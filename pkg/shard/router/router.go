@@ -1,17 +1,21 @@
-package loadbalance
+package router
 
-import "github.com/gin-gonic/gin"
+import (
+	"juno/pkg/shard/handler"
 
-func shardRouter(lb *ShardLoadBalancer) *gin.Engine {
+	"github.com/gin-gonic/gin"
+)
+
+func shardRouter(lbHandler *handler.LoadBalanceHandler) *gin.Engine {
 	r := gin.Default()
 
-	r.POST("/crawl", lb.Crawl)
+	r.POST("/crawl", lbHandler.Crawl)
 
 	return r
 }
 
-func RunShardLoadBalancer(port string) {
-	shardLb := NewShardLoadBalancer()
-
-	shardRouter(shardLb).Run(":" + port)
+func RunShardService(lbHandler *handler.LoadBalanceHandler, port string) {
+	shardRouter(
+		lbHandler,
+	).Run(":" + port)
 }

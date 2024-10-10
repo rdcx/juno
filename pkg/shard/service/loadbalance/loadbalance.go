@@ -1,4 +1,4 @@
-package service
+package loadbalance
 
 import (
 	"juno/pkg/crawl/client"
@@ -20,12 +20,12 @@ func (lb *LoadBalancer) SetNodes(nodes [domain.SHARDS][]string) {
 	lb.nodes = nodes
 }
 
-func (lb *LoadBalancer) randomNode(shard int) string {
+func (lb *LoadBalancer) randomNode(shard int) (string, error) {
 	if len(lb.nodes[shard]) == 0 {
-		return ""
+		return "", domain.ErrNoNodesAvailableInShard
 	}
 
-	return lb.nodes[shard][rand.Intn(len(lb.nodes[shard]))]
+	return lb.nodes[shard][rand.Intn(len(lb.nodes[shard]))], nil
 }
 
 func (lb *LoadBalancer) Crawl(url string) {
@@ -38,7 +38,11 @@ func (lb *LoadBalancer) Crawl(url string) {
 
 	tries := 0
 	for tries < 3 {
-		node := lb.randomNode(shard)
+		node, err := lb.randomNode(shard)
+		if err == domain.ErrNoNodesAvailableInShard {
+			log.Printf("no nodes available in shard %d", shard)
+			return
+		}
 		err = client.SendCrawlRequest(node, url)
 		if err == nil {
 			break

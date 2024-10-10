@@ -3,7 +3,9 @@ package client
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"juno/pkg/crawl/domain"
+	"juno/pkg/util"
 	"net/http"
 )
 
@@ -18,10 +20,17 @@ func SendCrawlRequest(node string, url string) error {
 		return err
 	}
 
-	_, err = http.Post(node+"/crawl", "application/json", bytes.NewBuffer(b))
+	res, err := http.Post(node+"/crawl", "application/json", bytes.NewBuffer(b))
 
 	if err != nil {
 		return err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return util.WrapErr(
+			domain.ErrFailedCrawlRequest,
+			fmt.Sprintf("status code: %d", res.StatusCode),
+		)
 	}
 
 	return nil

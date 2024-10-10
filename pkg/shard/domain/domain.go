@@ -1,6 +1,12 @@
 package domain
 
-import "github.com/spaolacci/murmur3"
+import (
+	"errors"
+
+	"github.com/spaolacci/murmur3"
+)
+
+var ErrNoNodesAvailableInShard = errors.New("no nodes available in shard")
 
 const SHARDS = 100
 
