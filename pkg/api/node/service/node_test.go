@@ -4,6 +4,7 @@ import (
 	"juno/pkg/api/node"
 	"juno/pkg/api/node/repo/mem"
 	"juno/pkg/api/user"
+	"strings"
 	"testing"
 
 	"github.com/google/uuid"
@@ -49,7 +50,7 @@ func TestCreate(t *testing.T) {
 			ID: uuid.New(),
 		}
 
-		addr := "http://example.com"
+		addr := "example.com:7000"
 		shards := []int{1, 2, 3}
 
 		n, err := svc.Create(u, addr, shards)
@@ -66,6 +67,35 @@ func TestCreate(t *testing.T) {
 
 		if !testNodeMatches(t, n.ID, n.OwnerID, addr, shards, node) {
 			t.Errorf("Node does not match")
+		}
+	})
+
+	t.Run("validation", func(t *testing.T) {
+		repo := mem.New()
+		svc := New(repo)
+
+		u := &user.User{
+			ID: uuid.New(),
+		}
+
+		addr := "bad address"
+
+		n, err := svc.Create(u, addr, []int{-1, 2, 3, 100 * 10000})
+
+		if err == nil {
+			t.Fatal("Expected an error")
+		}
+
+		if !strings.Contains(err.Error(), "invalid address") {
+			t.Errorf("Expected ErrInvalidAddress, got %v", err)
+		}
+
+		if !strings.Contains(err.Error(), "invalid shards") {
+			t.Errorf("Expected ErrInvalidShards, got %v", err)
+		}
+
+		if n != nil {
+			t.Errorf("Expected nil, got %v", n)
 		}
 	})
 
@@ -113,7 +143,7 @@ func TestGet(t *testing.T) {
 		n := &node.Node{
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
-			Address: "http://example.com",
+			Address: "example.com:8000",
 			Shards:  []int{1, 2, 3},
 		}
 
@@ -139,8 +169,6 @@ func TestGet(t *testing.T) {
 		n := &node.Node{
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
-			Address: "http://example.com",
-			Shards:  []int{1, 2, 3},
 		}
 
 		_, err := svc.Get(&user.User{ID: n.OwnerID}, n.ID)
@@ -203,6 +231,55 @@ func TestUpdate(t *testing.T) {
 		}
 
 		if !testNodeMatches(t, n.ID, n.OwnerID, n.Address, n.Shards, node) {
+			t.Errorf("Node does not match")
+		}
+	})
+
+	t.Run("validation", func(t *testing.T) {
+		repo := mem.New()
+		svc := New(repo)
+
+		n := &node.Node{
+			ID:      uuid.New(),
+			OwnerID: uuid.New(),
+			Address: "valid.com:8000",
+			Shards:  []int{1, 2, 3},
+		}
+
+		err := repo.Create(n)
+
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		nn := &node.Node{
+			ID:      n.ID,
+			OwnerID: n.OwnerID,
+		}
+
+		nn.Address = "bad address"
+		nn.Shards = []int{-1, 2, 3, 100 * 10000}
+
+		err = svc.Update(&user.User{ID: n.OwnerID}, nn)
+
+		if err == nil {
+			t.Fatal("Expected an error")
+		}
+
+		if !strings.Contains(err.Error(), "invalid address") {
+			t.Errorf("Expected ErrInvalidAddress, got %v", err)
+		}
+
+		if !strings.Contains(err.Error(), "invalid shards") {
+			t.Errorf("Expected ErrInvalidShards, got %v", err)
+		}
+
+		check, err := repo.Get(n.ID)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		if !testNodeMatches(t, n.ID, n.OwnerID, "valid.com:8000", []int{1, 2, 3}, check) {
 			t.Errorf("Node does not match")
 		}
 	})

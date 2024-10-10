@@ -9,6 +9,8 @@ import (
 
 var ErrUnauthorized = errors.New("unauthorized")
 var ErrAddressExists = errors.New("address already exists")
+var ErrInvalidAddress = errors.New("invalid address")
+var ErrInvalidShards = errors.New("invalid shards")
 var ErrNotFound = errors.New("node not found")
 
 type Repository interface {

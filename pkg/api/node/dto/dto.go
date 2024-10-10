@@ -90,3 +90,51 @@ func NewErrorCreateNodeResponse(message string) CreateNodeResponse {
 		Message: message,
 	}
 }
+
+type UpdateNodeRequest struct {
+	Address string `json:"address"`
+	Shards  []int  `json:"shards"`
+}
+
+func (r UpdateNodeRequest) ToDomain() (*node.Node, error) {
+	return &node.Node{
+		Address: r.Address,
+		Shards:  r.Shards,
+	}, nil
+}
+
+type UpdateNodeResponse struct {
+	Status  string `json:"status"`
+	Message string `json:"message,omitempty"` // Only present when there's an error
+}
+
+func NewSuccessUpdateNodeResponse() UpdateNodeResponse {
+	return UpdateNodeResponse{
+		Status: "success",
+	}
+}
+
+func NewErrorUpdateNodeResponse(message string) UpdateNodeResponse {
+	return UpdateNodeResponse{
+		Status:  "error",
+		Message: message,
+	}
+}
+
+type DeleteNodeResponse struct {
+	Status  string `json:"status"`
+	Message string `json:"message,omitempty"` // Only present when there's an error
+}
+
+func NewSuccessDeleteNodeResponse() DeleteNodeResponse {
+	return DeleteNodeResponse{
+		Status: "success",
+	}
+}
+
+func NewErrorDeleteNodeResponse(message string) DeleteNodeResponse {
+	return DeleteNodeResponse{
+		Status:  "error",
+		Message: message,
+	}
+}

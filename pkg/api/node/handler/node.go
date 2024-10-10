@@ -76,3 +76,74 @@ func (h *Handler) Create(c *gin.Context) {
 
 	c.JSON(201, dto.NewSuccessGetNodeResponse(n))
 }
+
+func (h *Handler) Update(c *gin.Context) {
+	u := c.MustGet("user").(*user.User)
+
+	var req dto.UpdateNodeRequest
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	id, err := uuid.Parse(c.Param("id"))
+
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	n, err := req.ToDomain()
+
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	n.ID = id
+
+	err = h.nodeService.Update(u, n)
+
+	if err != nil {
+		h.logger.Error(
+			logrus.Fields{
+				"error": err.Error(),
+				"user":  u.ID,
+				"req":   req,
+			})
+		c.JSON(400, dto.NewErrorGetNodeResponse(
+			err.Error(),
+		))
+		return
+	}
+
+	c.JSON(200, dto.NewSuccessUpdateNodeResponse())
+}
+
+func (h *Handler) Delete(c *gin.Context) {
+	u := c.MustGet("user").(*user.User)
+
+	id, err := uuid.Parse(c.Param("id"))
+
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = h.nodeService.Delete(u, id)
+
+	if err != nil {
+		h.logger.Error(
+			logrus.Fields{
+				"error": err.Error(),
+				"user":  u.ID,
+				"node":  id,
+			})
+		c.JSON(404, dto.NewErrorGetNodeResponse(
+			node.ErrNotFound.Error(),
+		))
+		return
+	}
+
+	c.JSON(200, dto.NewSuccessDeleteNodeResponse())
+}

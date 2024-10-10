@@ -8,6 +8,7 @@ import (
 	"juno/pkg/api/node/service"
 	"juno/pkg/api/user"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"encoding/json"
@@ -61,7 +62,7 @@ func TestGet(t *testing.T) {
 		n := &node.Node{
 			ID:      uuid.New(),
 			OwnerID: u.ID,
-			Address: "http://example.com",
+			Address: "example.com:8080",
 			Shards:  []int{1, 2, 3},
 		}
 
@@ -124,7 +125,7 @@ func TestGet(t *testing.T) {
 		n := &node.Node{
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
-			Address: "http://example.com",
+			Address: "example.com:8080",
 			Shards:  []int{1, 2, 3},
 		}
 
@@ -173,7 +174,7 @@ func TestCreate(t *testing.T) {
 			ID: uuid.New(),
 		}
 
-		addr := "http://example.com"
+		addr := "example.com:8080"
 		shards := []int{1, 2, 3}
 
 		// Create a new recorder and test context
@@ -243,7 +244,7 @@ func TestCreate(t *testing.T) {
 		n := &node.Node{
 			ID:      uuid.New(),
 			OwnerID: u.ID,
-			Address: "http://example.com",
+			Address: "example.com:8080",
 			Shards:  []int{1, 2, 3},
 		}
 
@@ -290,6 +291,251 @@ func TestCreate(t *testing.T) {
 		// Validate the error message
 		if res.Message != "address already exists" {
 			t.Errorf("Expected error message 'address already exists', got %s", res.Message)
+		}
+	})
+}
+
+func TestUpdate(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		repo := mem.New()
+		svc := service.New(repo)
+		handler := New(logrus.New(), svc)
+
+		u := &user.User{
+			ID: uuid.New(),
+		}
+
+		n := &node.Node{
+			ID:      uuid.New(),
+			OwnerID: u.ID,
+			Address: "http://example.com",
+			Shards:  []int{1, 2, 3},
+		}
+
+		err := repo.Create(n)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		addr := "new.example.com:2000"
+		shards := []int{4, 5, 6}
+
+		// Create a new recorder and test context
+		w := httptest.NewRecorder()
+		tc, _ := gin.CreateTestContext(w)
+
+		// Set the user in the context
+		tc.Set("user", u)
+
+		// Marshal the request body
+		body, err := json.Marshal(dto.UpdateNodeRequest{
+			Address: addr,
+			Shards:  shards,
+		})
+		if err != nil {
+			t.Fatalf("Unexpected error: %s", err)
+		}
+
+		// Set the request body correctly during request creation
+		tc.Request = httptest.NewRequest("PUT", "/nodes/"+n.ID.String(), bytes.NewReader(body))
+
+		// Set the path parameter
+		tc.Params = gin.Params{
+			{Key: "id", Value: n.ID.String()},
+		}
+
+		// Call the handler
+		handler.Update(tc)
+
+		// Check the status code
+		if w.Code != 200 {
+			t.Fatalf("Expected status code 200, got %d", w.Code)
+		}
+
+		// Parse the response
+		var res dto.UpdateNodeResponse
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		if err != nil {
+			t.Fatalf("Unexpected error: %s", err)
+		}
+
+		// Validate the response
+		if res.Status != "success" {
+			t.Errorf("Expected success, got %s", res.Status)
+		}
+	})
+
+	t.Run("error", func(t *testing.T) {
+		repo := mem.New()
+		svc := service.New(repo)
+		handler := New(logrus.New(), svc)
+
+		u := &user.User{
+			ID: uuid.New(),
+		}
+
+		n := &node.Node{
+			ID:      uuid.New(),
+			OwnerID: u.ID,
+			Address: "valid.com:8000",
+			Shards:  []int{1, 2, 3},
+		}
+
+		err := repo.Create(n)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		addr := "invalid"
+		shards := []int{4, 5, 6}
+
+		// Create a new recorder and test context
+		w := httptest.NewRecorder()
+		tc, _ := gin.CreateTestContext(w)
+
+		// Set the user in the context
+		tc.Set("user", u)
+
+		// Marshal the request body
+		body, err := json.Marshal(dto.UpdateNodeRequest{
+			Address: addr,
+			Shards:  shards,
+		})
+		if err != nil {
+			t.Fatalf("Unexpected error: %s", err)
+		}
+
+		// Set the request body correctly during request creation
+		tc.Request = httptest.NewRequest("PUT", "/nodes/"+n.ID.String(), bytes.NewReader(body))
+
+		// Set the path parameter
+		tc.Params = gin.Params{
+			{Key: "id", Value: n.ID.String()},
+		}
+
+		// Call the handler
+		handler.Update(tc)
+
+		// Check the status code
+		if w.Code != 400 {
+			t.Fatalf("Expected status code 400, got %d", w.Code)
+		}
+
+		// Parse the response
+		var res dto.UpdateNodeResponse
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		if err != nil {
+			t.Fatalf("Unexpected error: %s", err)
+		}
+
+		// Validate the error message
+		if !strings.Contains(res.Message, "invalid address") {
+			t.Errorf("Expected validation error message 'invalid address', got %s", res.Message)
+		}
+	})
+}
+
+func TestDelete(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		repo := mem.New()
+		svc := service.New(repo)
+		handler := New(logrus.New(), svc)
+
+		u := &user.User{
+			ID: uuid.New(),
+		}
+
+		n := &node.Node{
+			ID:      uuid.New(),
+			OwnerID: u.ID,
+			Address: "http://example.com",
+			Shards:  []int{1, 2, 3},
+		}
+
+		err := repo.Create(n)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		// Create a new recorder and test context
+		w := httptest.NewRecorder()
+		tc, _ := gin.CreateTestContext(w)
+
+		// Set the user in the context
+		tc.Set("user", u)
+
+		// Set the path parameter
+		tc.Params = gin.Params{
+			{Key: "id", Value: n.ID.String()},
+		}
+
+		// Call the handler
+		handler.Delete(tc)
+
+		// Check the status code
+		if w.Code != 200 {
+			t.Fatalf("Expected status code 200, got %d", w.Code)
+		}
+
+		// Parse the response
+		var res dto.DeleteNodeResponse
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+		if err != nil {
+			t.Fatalf("Unexpected error: %s", err)
+		}
+
+		// Validate the response
+		if res.Status != "success" {
+			t.Errorf("Expected success, got %s", res.Status)
+		}
+	})
+
+	t.Run("error", func(t *testing.T) {
+		repo := mem.New()
+		svc := service.New(repo)
+		handler := New(logrus.New(), svc)
+
+		u := &user.User{
+			ID: uuid.New(),
+		}
+
+		n := &node.Node{
+			ID:      uuid.New(),
+			OwnerID: u.ID,
+			Address: "http://example.com",
+			Shards:  []int{1, 2, 3},
+		}
+
+		// Create a new recorder and test context
+		w := httptest.NewRecorder()
+		tc, _ := gin.CreateTestContext(w)
+
+		// Set the user in the context
+		tc.Set("user", u)
+
+		// Set the path parameter
+		tc.Params = gin.Params{
+			{Key: "id", Value: n.ID.String()},
+		}
+
+		// Call the handler
+		handler.Delete(tc)
+
+		// Check the status code
+		if w.Code != 404 {
+			t.Fatalf("Expected status code 404, got %d", w.Code)
+		}
+
+		// Parse the response
+		var res dto.DeleteNodeResponse
+		err := json.Unmarshal(w.Body.Bytes(), &res)
+		if err != nil {
+			t.Fatalf("Unexpected error: %s", err)
+		}
+
+		// Validate the error message
+		if res.Message != "node not found" {
+			t.Errorf("Expected error message 'node not found', got %s", res.Message)
 		}
 	})
 }
