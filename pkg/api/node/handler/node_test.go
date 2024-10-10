@@ -500,10 +500,8 @@ func TestDelete(t *testing.T) {
 		}
 
 		n := &node.Node{
-			ID:      uuid.New(),
-			OwnerID: u.ID,
-			Address: "http://example.com",
-			Shards:  []int{1, 2, 3},
+			ID:     uuid.New(),
+			Shards: []int{1, 2, 3},
 		}
 
 		// Create a new recorder and test context
