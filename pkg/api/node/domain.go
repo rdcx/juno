@@ -4,6 +4,7 @@ import (
 	"errors"
 	"juno/pkg/api/user"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
@@ -26,6 +27,13 @@ type Service interface {
 	Create(u *user.User, addr string, shards []int) (*Node, error)
 	Update(u *user.User, n *Node) error
 	Delete(u *user.User, id uuid.UUID) error
+}
+
+type Handler interface {
+	Get(c *gin.Context)
+	Create(c *gin.Context)
+	Update(c *gin.Context)
+	Delete(c *gin.Context)
 }
 
 type Node struct {
