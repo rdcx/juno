@@ -5,6 +5,18 @@ import (
 	"testing"
 )
 
+func TestBcryptPassword(t *testing.T) {
+	password := "password"
+	hash, err := BcryptPassword(password)
+	if err != nil {
+		t.Errorf("BcryptPassword() error = %v, want nil", err)
+	}
+
+	if err := CompareBcryptPassword(hash, password); err != nil {
+		t.Errorf("CompareBcryptPassword() error = %v, want nil", err)
+	}
+}
+
 func TestValidationErrs(t *testing.T) {
 	errs := []error{
 		fmt.Errorf("error1"),
@@ -85,5 +97,38 @@ func TestIsValidPort(t *testing.T) {
 
 	if IsValidPort("65536") {
 		t.Errorf("IsValidPort(65536) = true, want false")
+	}
+}
+
+func TestIsValidEmail(t *testing.T) {
+	tests := []struct {
+		name  string
+		email string
+		want  bool
+	}{
+		{
+			name:  "valid email",
+			email: "valid@email.com",
+			want:  true,
+		},
+		{
+			name:  "valid email with subdomain and plus sign",
+			email: "valid+email@one.example.com",
+			want:  true,
+		},
+		{
+			name:  "invalid email",
+			email: "invalid",
+			want:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := IsValidEmail(tt.email)
+			if got != tt.want {
+				t.Errorf("IsValidEmail() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
