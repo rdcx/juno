@@ -7,11 +7,23 @@ import (
 	"juno/pkg/can"
 )
 
-func CanCreate() can.Result {
+type Policy struct{}
+
+func New() *Policy {
+	return &Policy{}
+}
+
+func (p Policy) CanCreate() can.Result {
 	return can.Allowed()
 }
 
-func CanUpdate(authUser *user.User, u *user.User) can.Result {
+func (p Policy) CanUpdate(c context.Context, u *user.User) can.Result {
+	authUser, ok := auth.UserFromContext(c)
+
+	if !ok {
+		return can.Error(user.ErrUserNotFoundInContext)
+	}
+
 	if authUser.ID == u.ID {
 		return can.Allowed()
 	}
@@ -19,7 +31,7 @@ func CanUpdate(authUser *user.User, u *user.User) can.Result {
 	return can.Denied("user not allowed to update user")
 }
 
-func CanRead(c context.Context, u *user.User) can.Result {
+func (p Policy) CanRead(c context.Context, u *user.User) can.Result {
 	authUser, ok := auth.UserFromContext(c)
 
 	if !ok {
@@ -33,7 +45,13 @@ func CanRead(c context.Context, u *user.User) can.Result {
 	return can.Denied("user not allowed to read user")
 }
 
-func CanDelete(authUser *user.User, u *user.User) can.Result {
+func (p Policy) CanDelete(c context.Context, u *user.User) can.Result {
+	authUser, ok := auth.UserFromContext(c)
+
+	if !ok {
+		return can.Error(user.ErrUserNotFoundInContext)
+	}
+
 	if authUser.ID == u.ID {
 		return can.Allowed()
 	}

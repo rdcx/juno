@@ -1,7 +1,9 @@
 package user
 
 import (
+	"context"
 	"errors"
+	"juno/pkg/can"
 
 	"github.com/google/uuid"
 )
@@ -35,4 +37,11 @@ type Service interface {
 	Get(id uuid.UUID) (*User, error)
 	Update(u *User) error
 	Delete(id uuid.UUID) error
+}
+
+type Policy interface {
+	CanCreate() can.Result
+	CanUpdate(ctx context.Context, u *User) can.Result
+	CanRead(ctx context.Context, u *User) can.Result
+	CanDelete(ctx context.Context, u *User) can.Result
 }

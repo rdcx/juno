@@ -2,6 +2,11 @@ package dto
 
 import "juno/pkg/api/user"
 
+const (
+	SUCCESS = "success"
+	ERROR   = "error"
+)
+
 type User struct {
 	ID    string `json:"id"`
 	Email string `json:"email"`
@@ -24,14 +29,14 @@ func NewUserFromDomain(u *user.User) *User {
 func NewSuccessGetUserResponse(u *user.User) GetUserResponse {
 	user := NewUserFromDomain(u)
 	return GetUserResponse{
-		Status: "success",
+		Status: SUCCESS,
 		User:   user,
 	}
 }
 
 func NewErrorGetUserResponse(message string) GetUserResponse {
 	return GetUserResponse{
-		Status:  "error",
+		Status:  ERROR,
 		Message: message,
 	}
 }

@@ -3,7 +3,6 @@ package handler
 import (
 	"juno/pkg/api/user"
 	"juno/pkg/api/user/dto"
-	"juno/pkg/api/user/policy"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -11,14 +10,16 @@ import (
 )
 
 type Handler struct {
-	logger  logrus.FieldLogger
-	userSvc user.Service
+	logger      logrus.FieldLogger
+	policy      user.Policy
+	userService user.Service
 }
 
-func New(logger logrus.FieldLogger, userSvc user.Service) *Handler {
+func New(logger logrus.FieldLogger, policy user.Policy, userService user.Service) *Handler {
 	return &Handler{
-		logger:  logger,
-		userSvc: userSvc,
+		logger:      logger,
+		policy:      policy,
+		userService: userService,
 	}
 }
 
@@ -33,7 +34,7 @@ func (h *Handler) Get(c *gin.Context) {
 		return
 	}
 
-	found, err := h.userSvc.Get(id)
+	found, err := h.userService.Get(id)
 
 	if err != nil {
 		h.logger.Error(err)
@@ -43,11 +44,11 @@ func (h *Handler) Get(c *gin.Context) {
 		return
 	}
 
-	policy.CanRead(c.Request.Context(), found).
-		Yes(func() {
+	h.policy.CanRead(c.Request.Context(), found).
+		Allow(func() {
 			c.JSON(200, dto.NewSuccessGetUserResponse(found))
 		}).
-		No(func(reason string) {
+		Deny(func(reason string) {
 			c.JSON(404, dto.NewErrorGetUserResponse(
 				user.ErrNotFound.Error(),
 			))

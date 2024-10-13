@@ -6,7 +6,7 @@ type Result struct {
 	Error   error
 }
 
-func (cr Result) Yes(f func()) Result {
+func (cr Result) Allow(f func()) Result {
 	if cr.Allowed {
 		f()
 	}
@@ -22,7 +22,7 @@ func (cr Result) Err(f func(error)) Result {
 	return cr
 }
 
-func (cr Result) No(f func(string)) Result {
+func (cr Result) Deny(f func(string)) Result {
 	if !cr.Allowed && cr.Error == nil {
 		f(cr.Reason)
 	}

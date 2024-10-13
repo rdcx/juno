@@ -6,6 +6,7 @@ import (
 	"juno/pkg/api/auth"
 	"juno/pkg/api/user"
 	"juno/pkg/api/user/dto"
+	"juno/pkg/api/user/policy"
 	"juno/pkg/api/user/repo/mem"
 	"juno/pkg/api/user/service"
 	"net/http/httptest"
@@ -20,12 +21,47 @@ func randomEmail() string {
 	return uuid.New().String() + "@example.com"
 }
 
+func testGetResponse(t *testing.T, w *httptest.ResponseRecorder, expectedCode int, expectedStatus, expectedMessage string, expectedUser *user.User) {
+	if w.Code != expectedCode {
+		t.Fatalf("Expected status code %d, got %d", expectedCode, w.Code)
+	}
+
+	var resp dto.GetUserResponse
+
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+
+	if err != nil {
+		t.Fatalf("Error parsing response: %s", err)
+	}
+
+	if resp.Status != expectedStatus {
+		t.Fatalf("Expected status %s, got %s", expectedStatus, resp.Status)
+	}
+
+	if resp.Message != expectedMessage {
+		t.Fatalf("Expected message %s, got %s", expectedMessage, resp.Message)
+	}
+
+	if expectedUser == nil && resp.User == nil {
+		return
+	}
+
+	if resp.User.ID != expectedUser.ID.String() {
+		t.Fatalf("Expected user ID %s, got %s", expectedUser.ID, resp.User.ID)
+	}
+
+	if resp.User.Email != expectedUser.Email {
+		t.Fatalf("Expected user email %s, got %s", expectedUser.Email, resp.User.Email)
+	}
+}
+
 func TestGet(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		logger := logrus.New()
 		repo := mem.New()
 		svc := service.New(logger, repo)
-		handler := New(logger, svc)
+		policy := policy.New()
+		handler := New(logger, policy, svc)
 
 		u := &user.User{
 			ID:    uuid.New(),
@@ -53,40 +89,15 @@ func TestGet(t *testing.T) {
 
 		handler.Get(tc)
 
-		if w.Code != 200 {
-			t.Fatalf("Expected status code 200, got %d", w.Code)
-		}
-
-		var resp dto.GetUserResponse
-
-		err = json.Unmarshal(w.Body.Bytes(), &resp)
-
-		if err != nil {
-			t.Fatalf("Error parsing response: %s", err)
-		}
-
-		if resp.Status != "success" {
-			t.Fatalf("Expected status success, got %s", resp.Status)
-		}
-
-		if resp.Message != "" {
-			t.Fatalf("Expected message to be empty, got %s", resp.Message)
-		}
-
-		if resp.User.ID != u.ID.String() {
-			t.Fatalf("Expected user ID %s, got %s", u.ID, resp.User.ID)
-		}
-
-		if resp.User.Email != u.Email {
-			t.Fatalf("Expected user email %s, got %s", u.Email, resp.User.Email)
-		}
+		testGetResponse(t, w, 200, dto.SUCCESS, "", u)
 	})
 
 	t.Run("not found", func(t *testing.T) {
 		logger := logrus.New()
 		repo := mem.New()
 		svc := service.New(logger, repo)
-		handler := New(logger, svc)
+		policy := policy.New()
+		handler := New(logger, policy, svc)
 
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest("GET", "/users/"+uuid.New().String(), nil)
@@ -101,36 +112,15 @@ func TestGet(t *testing.T) {
 
 		handler.Get(tc)
 
-		if w.Code != 404 {
-			t.Fatalf("Expected status code 404, got %d", w.Code)
-		}
-
-		var resp dto.GetUserResponse
-
-		err := json.Unmarshal(w.Body.Bytes(), &resp)
-
-		if err != nil {
-			t.Fatalf("Error parsing response: %s", err)
-		}
-
-		if resp.Status != "error" {
-			t.Fatalf("Expected status error, got %s", resp.Status)
-		}
-
-		if resp.Message != user.ErrNotFound.Error() {
-			t.Fatalf("Expected message %s, got %s", user.ErrNotFound.Error(), resp.Message)
-		}
-
-		if resp.User != nil {
-			t.Fatalf("Expected user to be nil, got %v", resp.User)
-		}
+		testGetResponse(t, w, 404, dto.ERROR, user.ErrNotFound.Error(), nil)
 	})
 
 	t.Run("unauthorized", func(t *testing.T) {
 		logger := logrus.New()
 		repo := mem.New()
 		svc := service.New(logger, repo)
-		handler := New(logger, svc)
+		policy := policy.New()
+		handler := New(logger, policy, svc)
 
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest("GET", "/users/"+uuid.New().String(), nil)
@@ -155,32 +145,15 @@ func TestGet(t *testing.T) {
 
 		handler.Get(tc)
 
-		if w.Code != 404 {
-			t.Fatalf("Expected status code 404, got %d", w.Code)
-		}
-
-		var resp dto.GetUserResponse
-
-		err = json.Unmarshal(w.Body.Bytes(), &resp)
-
-		if err != nil {
-			t.Fatalf("Error parsing response: %s", err)
-		}
-
-		if resp.Status != "error" {
-			t.Fatalf("Expected status error, got %s", resp.Status)
-		}
-
-		if resp.Message != user.ErrNotFound.Error() {
-			t.Fatalf("Expected message %s, got %s", user.ErrNotFound.Error(), resp.Message)
-		}
+		testGetResponse(t, w, 404, dto.ERROR, user.ErrNotFound.Error(), nil)
 	})
 
 	t.Run("invalid id", func(t *testing.T) {
 		logger := logrus.New()
 		repo := mem.New()
 		svc := service.New(logger, repo)
-		handler := New(logger, svc)
+		policy := policy.New()
+		handler := New(logger, policy, svc)
 
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest("GET", "/users/"+uuid.New().String(), nil)
@@ -195,32 +168,15 @@ func TestGet(t *testing.T) {
 
 		handler.Get(tc)
 
-		if w.Code != 400 {
-			t.Fatalf("Expected status code 400, got %d", w.Code)
-		}
-
-		var resp dto.GetUserResponse
-
-		err := json.Unmarshal(w.Body.Bytes(), &resp)
-
-		if err != nil {
-			t.Fatalf("Error parsing response: %s", err)
-		}
-
-		if resp.Status != "error" {
-			t.Fatalf("Expected status error, got %s", resp.Status)
-		}
-
-		if resp.Message != user.ErrInvalidID.Error() {
-			t.Fatalf("Expected message %s, got %s", user.ErrInvalidID.Error(), resp.Message)
-		}
+		testGetResponse(t, w, 400, dto.ERROR, user.ErrInvalidID.Error(), nil)
 	})
 
 	t.Run("user context not set", func(t *testing.T) {
 		logger := logrus.New()
 		repo := mem.New()
 		svc := service.New(logger, repo)
-		handler := New(logger, svc)
+		policy := policy.New()
+		handler := New(logger, policy, svc)
 
 		u := &user.User{
 			ID: uuid.New(),
@@ -242,24 +198,6 @@ func TestGet(t *testing.T) {
 
 		handler.Get(tc)
 
-		if w.Code != 500 {
-			t.Fatalf("Expected status code 500, got %d", w.Code)
-		}
-
-		var resp dto.GetUserResponse
-
-		err = json.Unmarshal(w.Body.Bytes(), &resp)
-
-		if err != nil {
-			t.Fatalf("Error parsing response: %s", err)
-		}
-
-		if resp.Status != "error" {
-			t.Fatalf("Expected status error, got %s", resp.Status)
-		}
-
-		if resp.Message != user.ErrInternal.Error() {
-			t.Fatalf("Expected message %s, got %s", user.ErrInternal.Error(), resp.Message)
-		}
+		testGetResponse(t, w, 500, dto.ERROR, user.ErrInternal.Error(), nil)
 	})
 }
