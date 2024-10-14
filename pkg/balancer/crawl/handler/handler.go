@@ -1,23 +1,23 @@
 package handler
 
 import (
-	"juno/pkg/crawl/domain"
-	"juno/pkg/shard/service/loadbalance"
+	loadbalance "juno/pkg/crawlbalance/balancer/service"
+	"juno/pkg/crawlbalance/dto"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-type LoadBalanceHandler struct {
+type Handler struct {
 	lb *loadbalance.LoadBalancer
 }
 
-func NewLoadBalanceHandler(lb *loadbalance.LoadBalancer) *LoadBalanceHandler {
-	return &LoadBalanceHandler{lb: lb}
+func NewLoadBalanceHandler(lb *loadbalance.LoadBalancer) *Handler {
+	return &Handler{lb: lb}
 }
 
-func (h *LoadBalanceHandler) Crawl(c *gin.Context) {
-	var req domain.CrawlRequest
+func (h *Handler) Crawl(c *gin.Context) {
+	var req dto.CrawlRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

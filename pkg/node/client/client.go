@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"juno/pkg/crawl/domain"
+	"juno/pkg/node/crawl/domain"
+	"juno/pkg/node/crawl/dto"
 	"juno/pkg/util"
 	"net/http"
 )
 
 func SendCrawlRequest(node string, url string) error {
-	var req domain.CrawlRequest
+	var req dto.CrawlRequest
 
 	req.URL = url
 

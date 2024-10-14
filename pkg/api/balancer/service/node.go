@@ -1,7 +1,7 @@
 package service
 
 import (
-	"juno/pkg/api/node"
+	"juno/pkg/api/balancer"
 	"juno/pkg/util"
 	"strings"
 
@@ -11,18 +11,18 @@ import (
 )
 
 type Service struct {
-	repo node.Repository
+	repo balancer.Repository
 }
 
-func New(repo node.Repository) *Service {
+func New(repo balancer.Repository) *Service {
 	return &Service{repo: repo}
 }
 
-func (s *Service) Get(id uuid.UUID) (*node.Node, error) {
+func (s *Service) Get(id uuid.UUID) (*balancer.Balancer, error) {
 	n, err := s.repo.Get(id)
 
 	if err != nil {
-		return nil, node.ErrNotFound
+		return nil, balancer.ErrNotFound
 	}
 	return n, nil
 }
@@ -30,7 +30,7 @@ func (s *Service) Get(id uuid.UUID) (*node.Node, error) {
 func validateShards(shards []int) error {
 	for _, s := range shards {
 		if s > shard.SHARDS || s < 0 {
-			return node.ErrInvalidShards
+			return balancer.ErrInvalidShards
 		}
 	}
 	return nil
@@ -40,22 +40,22 @@ func validateAddress(addr string) error {
 	addSplit := strings.Split(addr, ":")
 
 	if len(addSplit) != 2 {
-		return node.ErrInvalidAddress
+		return balancer.ErrInvalidAddress
 	}
 
 	host := addSplit[0]
 	port := addSplit[1]
 
 	if !util.IsValidHostname(host) || !util.IsValidPort(port) {
-		return node.ErrInvalidAddress
+		return balancer.ErrInvalidAddress
 	}
 
 	return nil
 }
 
-func (s *Service) Create(ownerID uuid.UUID, addr string, shards []int) (*node.Node, error) {
+func (s *Service) Create(ownerID uuid.UUID, addr string, shards []int) (*balancer.Balancer, error) {
 	if found, _ := s.repo.FirstWhereAddress(addr); found != nil {
-		return nil, node.ErrAddressExists
+		return nil, balancer.ErrAddressExists
 	}
 
 	errs := []error{}
@@ -72,7 +72,7 @@ func (s *Service) Create(ownerID uuid.UUID, addr string, shards []int) (*node.No
 		return nil, util.ValidationErrs(errs)
 	}
 
-	n := &node.Node{
+	n := &balancer.Balancer{
 		ID:      uuid.New(),
 		OwnerID: ownerID,
 		Address: addr,
@@ -88,7 +88,7 @@ func (s *Service) Create(ownerID uuid.UUID, addr string, shards []int) (*node.No
 	return n, nil
 }
 
-func (s *Service) Update(id uuid.UUID, dirty *node.Node) (*node.Node, error) {
+func (s *Service) Update(id uuid.UUID, dirty *balancer.Balancer) (*balancer.Balancer, error) {
 	n, err := s.repo.Get(id)
 
 	if err != nil {
@@ -110,7 +110,7 @@ func (s *Service) Update(id uuid.UUID, dirty *node.Node) (*node.Node, error) {
 	}
 
 	if found, _ := s.repo.FirstWhereAddress(dirty.Address); found != nil && found.ID != n.ID {
-		return nil, node.ErrAddressExists
+		return nil, balancer.ErrAddressExists
 	}
 
 	n.Address = dirty.Address
@@ -130,7 +130,7 @@ func (s *Service) Delete(id uuid.UUID) error {
 	n, err := s.repo.Get(id)
 
 	if err != nil {
-		return node.ErrNotFound
+		return balancer.ErrNotFound
 	}
 
 	return s.repo.Delete(n.ID)
