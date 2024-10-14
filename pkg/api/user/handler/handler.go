@@ -60,3 +60,41 @@ func (h *Handler) Get(c *gin.Context) {
 			))
 		})
 }
+
+func (h *Handler) Create(c *gin.Context) {
+	var req dto.CreateUserRequest
+	err := c.BindJSON(&req)
+	if err != nil {
+		h.logger.Error(err)
+		c.JSON(400, dto.NewErrorCreateUserResponse(
+			err.Error(),
+		))
+		return
+	}
+
+	h.policy.CanCreate().
+		Allow(func() {
+			u, err := h.userService.Create(req.Email, req.Password)
+
+			if err != nil {
+				h.logger.Error(err)
+				c.JSON(400, dto.NewErrorCreateUserResponse(
+					err.Error(),
+				))
+				return
+			}
+
+			c.JSON(201, dto.NewSuccessCreateUserResponse(u))
+		}).
+		Deny(func(reason string) {
+			c.JSON(403, dto.NewErrorCreateUserResponse(
+				reason,
+			))
+		}).
+		Err(func(err error) {
+			h.logger.Error(err)
+			c.JSON(500, dto.NewErrorCreateUserResponse(
+				user.ErrInternal.Error(),
+			))
+		})
+}

@@ -33,7 +33,7 @@ type Repository interface {
 }
 
 type Service interface {
-	Create(email, password string) error
+	Create(email, password string) (*User, error)
 	Get(id uuid.UUID) (*User, error)
 	Update(u *User) error
 	Delete(id uuid.UUID) error

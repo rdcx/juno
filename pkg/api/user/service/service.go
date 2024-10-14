@@ -40,7 +40,7 @@ func (s *Service) Get(id uuid.UUID) (*user.User, error) {
 	return s.userRepo.Get(id)
 }
 
-func (s *Service) Create(email, password string) error {
+func (s *Service) Create(email, password string) (*user.User, error) {
 
 	var errs []error
 
@@ -53,25 +53,32 @@ func (s *Service) Create(email, password string) error {
 	}
 
 	if len(errs) > 0 {
-		return util.ValidationErrs(errs)
+		return nil, util.ValidationErrs(errs)
 	}
 
 	if u, err := s.userRepo.FirstWhereEmail(email); err == nil || u != nil {
-		return user.ErrEmailAlreadyExists
+		return nil, user.ErrEmailAlreadyExists
 	}
 
 	hash, err := util.BcryptPassword(password)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	u := &user.User{
+		ID:       uuid.New(),
 		Email:    email,
 		Password: hash,
 	}
 
-	return s.userRepo.Create(u)
+	err = s.userRepo.Create(u)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return u, nil
 }
 
 func (s *Service) Update(u *user.User) error {
