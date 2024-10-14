@@ -1,9 +1,9 @@
 package handler
 
 import (
+	"juno/pkg/api/auth"
 	"juno/pkg/api/node"
 	"juno/pkg/api/node/dto"
-	"juno/pkg/api/user"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -12,19 +12,19 @@ import (
 
 type Handler struct {
 	logger      *logrus.Logger
+	policy      node.Policy
 	nodeService node.Service
 }
 
-func New(l *logrus.Logger, ns node.Service) *Handler {
+func New(l *logrus.Logger, policy node.Policy, ns node.Service) *Handler {
 	return &Handler{
 		logger:      l,
+		policy:      policy,
 		nodeService: ns,
 	}
 }
 
 func (h *Handler) Get(c *gin.Context) {
-	u := c.MustGet("user").(*user.User)
-
 	id, err := uuid.Parse(c.Param("id"))
 
 	if err != nil {
@@ -32,13 +32,12 @@ func (h *Handler) Get(c *gin.Context) {
 		return
 	}
 
-	n, err := h.nodeService.Get(u, id)
+	n, err := h.nodeService.Get(id)
 
 	if err != nil {
-		h.logger.Error(
+		h.logger.Debug(
 			logrus.Fields{
 				"error": err.Error(),
-				"user":  u.ID,
 				"node":  id,
 			})
 		c.JSON(404, dto.NewErrorGetNodeResponse(
@@ -47,11 +46,31 @@ func (h *Handler) Get(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, dto.NewSuccessGetNodeResponse(n))
+	h.policy.CanRead(c.Request.Context(), n).
+		Allow(func() {
+			c.JSON(200, dto.NewSuccessGetNodeResponse(n))
+		}).
+		Deny(func(reason string) {
+			h.logger.Debug(
+				logrus.Fields{
+					"error": reason,
+					"node":  id,
+				})
+			c.JSON(404, dto.NewErrorGetNodeResponse(
+				node.ErrNotFound.Error(),
+			))
+		}).
+		Err(func(err error) {
+			h.logger.Debug(err)
+			c.JSON(500, dto.NewErrorGetNodeResponse(
+				node.ErrInternal.Error(),
+			))
+		})
 }
 
 func (h *Handler) Create(c *gin.Context) {
-	u := c.MustGet("user").(*user.User)
+
+	u := auth.MustUserFromContext(c.Request.Context())
 
 	var req dto.CreateNodeRequest
 	if err := c.BindJSON(&req); err != nil {
@@ -59,32 +78,41 @@ func (h *Handler) Create(c *gin.Context) {
 		return
 	}
 
-	n, err := h.nodeService.Create(u, req.Address, req.Shards)
+	h.policy.CanCreate().
+		Allow(func() {
+			n, err := h.nodeService.Create(u.ID, req.Address, req.Shards)
 
-	if err != nil {
-		h.logger.Error(
-			logrus.Fields{
-				"error": err.Error(),
-				"user":  u.ID,
-				"req":   req,
-			})
-		c.JSON(400, dto.NewErrorGetNodeResponse(
-			err.Error(),
-		))
-		return
-	}
+			if err != nil {
+				h.logger.Debug(
+					logrus.Fields{
+						"error": err.Error(),
+						"user":  u.ID,
+						"req":   req,
+					})
+				c.JSON(400, dto.NewErrorGetNodeResponse(
+					err.Error(),
+				))
+				return
+			}
+			c.JSON(201, dto.NewSuccessGetNodeResponse(n))
+		}).
+		Deny(func(reason string) {
+			c.JSON(401, dto.NewErrorCreateNodeResponse(
+				reason,
+			))
+		}).
+		Err(func(err error) {
+			h.logger.Debug(err)
+			c.JSON(500, dto.NewErrorCreateNodeResponse(
+				node.ErrInternal.Error(),
+			))
+		})
 
-	c.JSON(201, dto.NewSuccessGetNodeResponse(n))
 }
 
 func (h *Handler) Update(c *gin.Context) {
-	u := c.MustGet("user").(*user.User)
 
-	var req dto.UpdateNodeRequest
-	if err := c.BindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
-		return
-	}
+	u := auth.MustUserFromContext(c.Request.Context())
 
 	id, err := uuid.Parse(c.Param("id"))
 
@@ -93,47 +121,10 @@ func (h *Handler) Update(c *gin.Context) {
 		return
 	}
 
-	n, err := req.ToDomain()
+	n, err := h.nodeService.Get(id)
 
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
-		return
-	}
-
-	n.ID = id
-
-	err = h.nodeService.Update(u, n)
-
-	if err != nil {
-		h.logger.Error(
-			logrus.Fields{
-				"error": err.Error(),
-				"user":  u.ID,
-				"req":   req,
-			})
-		c.JSON(400, dto.NewErrorGetNodeResponse(
-			err.Error(),
-		))
-		return
-	}
-
-	c.JSON(200, dto.NewSuccessUpdateNodeResponse())
-}
-
-func (h *Handler) Delete(c *gin.Context) {
-	u := c.MustGet("user").(*user.User)
-
-	id, err := uuid.Parse(c.Param("id"))
-
-	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
-		return
-	}
-
-	err = h.nodeService.Delete(u, id)
-
-	if err != nil {
-		h.logger.Error(
+		h.logger.Debug(
 			logrus.Fields{
 				"error": err.Error(),
 				"user":  u.ID,
@@ -145,5 +136,105 @@ func (h *Handler) Delete(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, dto.NewSuccessDeleteNodeResponse())
+	h.policy.CanUpdate(c.Request.Context(), n).
+		Allow(func() {
+
+			var req dto.UpdateNodeRequest
+			if err := c.BindJSON(&req); err != nil {
+				c.JSON(400, gin.H{"error": err.Error()})
+				return
+			}
+
+			n, err := req.ToDomain()
+
+			if err != nil {
+				c.JSON(400, gin.H{"error": err.Error()})
+				return
+			}
+
+			n, err = h.nodeService.Update(id, n)
+
+			if err != nil {
+				h.logger.Debug(
+					logrus.Fields{
+						"error": err.Error(),
+						"user":  u.ID,
+						"req":   req,
+					})
+				c.JSON(400, dto.NewErrorGetNodeResponse(
+					err.Error(),
+				))
+				return
+			}
+			c.JSON(200, dto.NewSuccessUpdateNodeResponse(n))
+		}).
+		Deny(func(reason string) {
+			c.JSON(401, dto.NewErrorUpdateNodeResponse(
+				reason,
+			))
+		}).
+		Err(func(err error) {
+			h.logger.Debug(err)
+			c.JSON(500, dto.NewErrorUpdateNodeResponse(
+				node.ErrInternal.Error(),
+			))
+		})
+
+}
+
+func (h *Handler) Delete(c *gin.Context) {
+
+	u := auth.MustUserFromContext(c.Request.Context())
+
+	id, err := uuid.Parse(c.Param("id"))
+
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	n, err := h.nodeService.Get(id)
+
+	if err != nil {
+		h.logger.Debug(
+			logrus.Fields{
+				"error": err.Error(),
+				"user":  u.ID,
+				"node":  id,
+			})
+		c.JSON(404, dto.NewErrorGetNodeResponse(
+			node.ErrNotFound.Error(),
+		))
+		return
+	}
+
+	h.policy.CanDelete(c.Request.Context(), n).
+		Allow(func() {
+			err := h.nodeService.Delete(id)
+
+			if err != nil {
+				h.logger.Debug(
+					logrus.Fields{
+						"error": err.Error(),
+						"user":  u.ID,
+						"node":  id,
+					})
+				c.JSON(400, dto.NewErrorGetNodeResponse(
+					err.Error(),
+				))
+				return
+			}
+			c.JSON(200, dto.NewSuccessDeleteNodeResponse())
+		}).
+		Deny(func(reason string) {
+			c.JSON(401, dto.NewErrorDeleteNodeResponse(
+				reason,
+			))
+		}).
+		Err(func(err error) {
+			h.logger.Debug(err)
+			c.JSON(500, dto.NewErrorDeleteNodeResponse(
+				node.ErrInternal.Error(),
+			))
+		})
 }

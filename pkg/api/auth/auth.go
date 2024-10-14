@@ -20,3 +20,11 @@ func UserFromContext(ctx context.Context) (*user.User, bool) {
 	user, ok := ctx.Value(userContextKey).(*user.User)
 	return user, ok
 }
+
+func MustUserFromContext(ctx context.Context) *user.User {
+	user, ok := UserFromContext(ctx)
+	if !ok {
+		panic("user not found in context")
+	}
+	return user
+}

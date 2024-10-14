@@ -53,7 +53,7 @@ func TestCreate(t *testing.T) {
 		addr := "example.com:7000"
 		shards := []int{1, 2, 3}
 
-		n, err := svc.Create(u, addr, shards)
+		n, err := svc.Create(u.ID, addr, shards)
 
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
@@ -80,7 +80,7 @@ func TestCreate(t *testing.T) {
 
 		addr := "bad address"
 
-		n, err := svc.Create(u, addr, []int{-1, 2, 3, 100 * 10000})
+		n, err := svc.Create(u.ID, addr, []int{-1, 2, 3, 100 * 10000})
 
 		if err == nil {
 			t.Fatal("Expected an error")
@@ -123,7 +123,7 @@ func TestCreate(t *testing.T) {
 		addr := "http://example.com"
 		shards := []int{4, 5, 6}
 
-		n, err = svc.Create(u, addr, shards)
+		n, err = svc.Create(u.ID, addr, shards)
 
 		if err != node.ErrAddressExists {
 			t.Errorf("Expected error, got nil")
@@ -152,7 +152,7 @@ func TestGet(t *testing.T) {
 			t.Errorf("Unexpected error: %s", err)
 		}
 
-		node, err := svc.Get(&user.User{ID: n.OwnerID}, n.ID)
+		node, err := svc.Get(n.ID)
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
@@ -171,30 +171,8 @@ func TestGet(t *testing.T) {
 			OwnerID: uuid.New(),
 		}
 
-		_, err := svc.Get(&user.User{ID: n.OwnerID}, n.ID)
+		_, err := svc.Get(n.ID)
 		if err != node.ErrNotFound {
-			t.Errorf("Expected error, got nil")
-		}
-	})
-
-	t.Run("error unauthorized", func(t *testing.T) {
-		repo := mem.New()
-		svc := New(repo)
-
-		n := &node.Node{
-			ID:      uuid.New(),
-			OwnerID: uuid.New(),
-			Address: "http://example.com",
-			Shards:  []int{1, 2, 3},
-		}
-
-		err := repo.Create(n)
-		if err != nil {
-			t.Errorf("Unexpected error: %s", err)
-		}
-
-		_, err = svc.Get(&user.User{ID: uuid.New()}, n.ID)
-		if err != node.ErrUnauthorized {
 			t.Errorf("Expected error, got nil")
 		}
 	})
@@ -208,7 +186,7 @@ func TestUpdate(t *testing.T) {
 		n := &node.Node{
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
-			Address: "http://example.com",
+			Address: "node.com:9392",
 			Shards:  []int{1, 2, 3},
 		}
 
@@ -217,10 +195,10 @@ func TestUpdate(t *testing.T) {
 			t.Errorf("Unexpected error: %s", err)
 		}
 
-		n.Address = "http://example2.com"
+		n.Address = "example2.com:8080"
 		n.Shards = []int{4, 5, 6}
 
-		err = svc.Update(&user.User{ID: n.OwnerID}, n)
+		n, err = svc.Update(n.ID, n)
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
@@ -260,10 +238,14 @@ func TestUpdate(t *testing.T) {
 		nn.Address = "bad address"
 		nn.Shards = []int{-1, 2, 3, 100 * 10000}
 
-		err = svc.Update(&user.User{ID: n.OwnerID}, nn)
+		updated, err := svc.Update(n.ID, nn)
 
 		if err == nil {
 			t.Fatal("Expected an error")
+		}
+
+		if updated != nil {
+			t.Fatal("Expected node, got nil")
 		}
 
 		if !strings.Contains(err.Error(), "invalid address") {
@@ -295,48 +277,9 @@ func TestUpdate(t *testing.T) {
 			Shards:  []int{1, 2, 3},
 		}
 
-		err := svc.Update(&user.User{ID: n.OwnerID}, n)
+		n, err := svc.Update(uuid.New(), n)
 		if err != node.ErrNotFound {
 			t.Errorf("Expected error, got nil")
-		}
-	})
-
-	t.Run("error unauthorized", func(t *testing.T) {
-		repo := mem.New()
-		svc := New(repo)
-
-		n := &node.Node{
-			ID:      uuid.New(),
-			OwnerID: uuid.New(),
-			Address: "http://example.com",
-			Shards:  []int{1, 2, 3},
-		}
-
-		err := repo.Create(n)
-		if err != nil {
-			t.Errorf("Unexpected error: %s", err)
-		}
-
-		newN := &node.Node{
-			ID:      n.ID,
-			OwnerID: uuid.New(),
-			Address: "http://example2.com",
-			Shards:  []int{4, 5, 6},
-		}
-
-		err = svc.Update(&user.User{ID: uuid.New()}, newN)
-
-		if err != node.ErrUnauthorized {
-			t.Errorf("Expected error, got nil")
-		}
-
-		check, err := repo.Get(n.ID)
-		if err != nil {
-			t.Errorf("Unexpected error: %s", err)
-		}
-
-		if !testNodeMatches(t, n.ID, n.OwnerID, "http://example.com", []int{1, 2, 3}, check) {
-			t.Errorf("Node does not match")
 		}
 	})
 }
@@ -358,7 +301,7 @@ func TestDelete(t *testing.T) {
 			t.Errorf("Unexpected error: %s", err)
 		}
 
-		err = svc.Delete(&user.User{ID: n.OwnerID}, n.ID)
+		err = svc.Delete(n.ID)
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
@@ -373,36 +316,9 @@ func TestDelete(t *testing.T) {
 		repo := mem.New()
 		svc := New(repo)
 
-		err := svc.Delete(&user.User{ID: uuid.New()}, uuid.New())
+		err := svc.Delete(uuid.New())
 		if err != node.ErrNotFound {
 			t.Errorf("Expected error, got nil")
-		}
-	})
-
-	t.Run("error unauthorized", func(t *testing.T) {
-		repo := mem.New()
-		svc := New(repo)
-
-		n := &node.Node{
-			ID:      uuid.New(),
-			OwnerID: uuid.New(),
-			Address: "http://example.com",
-			Shards:  []int{1, 2, 3},
-		}
-
-		err := repo.Create(n)
-		if err != nil {
-			t.Errorf("Unexpected error: %s", err)
-		}
-
-		err = svc.Delete(&user.User{ID: uuid.New()}, n.ID)
-		if err != node.ErrUnauthorized {
-			t.Errorf("Expected error, got nil")
-		}
-
-		_, err = repo.Get(n.ID)
-		if err != nil {
-			t.Errorf("Unexpected error: %s", err)
 		}
 	})
 }

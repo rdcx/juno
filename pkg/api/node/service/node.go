@@ -2,11 +2,8 @@ package service
 
 import (
 	"juno/pkg/api/node"
-	"juno/pkg/api/node/policy"
 	"juno/pkg/util"
 	"strings"
-
-	"juno/pkg/api/user"
 
 	"github.com/google/uuid"
 
@@ -21,17 +18,12 @@ func New(repo node.Repository) *Service {
 	return &Service{repo: repo}
 }
 
-func (s *Service) Get(u *user.User, id uuid.UUID) (*node.Node, error) {
+func (s *Service) Get(id uuid.UUID) (*node.Node, error) {
 	n, err := s.repo.Get(id)
 
 	if err != nil {
 		return nil, node.ErrNotFound
 	}
-
-	if can := policy.CanRead(u, n); !can {
-		return nil, node.ErrUnauthorized
-	}
-
 	return n, nil
 }
 
@@ -61,7 +53,7 @@ func validateAddress(addr string) error {
 	return nil
 }
 
-func (s *Service) Create(user *user.User, addr string, shards []int) (*node.Node, error) {
+func (s *Service) Create(ownerID uuid.UUID, addr string, shards []int) (*node.Node, error) {
 	if found, _ := s.repo.FirstWhereAddress(addr); found != nil {
 		return nil, node.ErrAddressExists
 	}
@@ -82,7 +74,7 @@ func (s *Service) Create(user *user.User, addr string, shards []int) (*node.Node
 
 	n := &node.Node{
 		ID:      uuid.New(),
-		OwnerID: user.ID,
+		OwnerID: ownerID,
 		Address: addr,
 		Shards:  shards,
 	}
@@ -96,15 +88,11 @@ func (s *Service) Create(user *user.User, addr string, shards []int) (*node.Node
 	return n, nil
 }
 
-func (s *Service) Update(u *user.User, dirty *node.Node) error {
-	n, err := s.repo.Get(dirty.ID)
+func (s *Service) Update(id uuid.UUID, dirty *node.Node) (*node.Node, error) {
+	n, err := s.repo.Get(id)
 
 	if err != nil {
-		return err
-	}
-
-	if can := policy.CanUpdate(u, n); !can {
-		return node.ErrUnauthorized
+		return nil, err
 	}
 
 	errs := []error{}
@@ -118,20 +106,26 @@ func (s *Service) Update(u *user.User, dirty *node.Node) error {
 	}
 
 	if len(errs) > 0 {
-		return util.ValidationErrs(errs)
+		return nil, util.ValidationErrs(errs)
 	}
 
-	if found, _ := s.repo.FirstWhereAddress(n.Address); found != nil && found.ID != n.ID {
-		return node.ErrAddressExists
+	if found, _ := s.repo.FirstWhereAddress(dirty.Address); found != nil && found.ID != n.ID {
+		return nil, node.ErrAddressExists
 	}
 
 	n.Address = dirty.Address
 	n.Shards = dirty.Shards
 
-	return s.repo.Update(n)
+	err = s.repo.Update(n)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return n, nil
 }
 
-func (s *Service) Delete(u *user.User, id uuid.UUID) error {
+func (s *Service) Delete(id uuid.UUID) error {
 
 	n, err := s.repo.Get(id)
 
@@ -139,9 +133,5 @@ func (s *Service) Delete(u *user.User, id uuid.UUID) error {
 		return node.ErrNotFound
 	}
 
-	if can := policy.CanDelete(u, n); !can {
-		return node.ErrUnauthorized
-	}
-
-	return s.repo.Delete(id)
+	return s.repo.Delete(n.ID)
 }

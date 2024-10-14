@@ -1,8 +1,9 @@
 package node
 
 import (
+	"context"
 	"errors"
-	"juno/pkg/api/user"
+	"juno/pkg/can"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -13,6 +14,7 @@ var ErrAddressExists = errors.New("address already exists")
 var ErrInvalidAddress = errors.New("invalid address")
 var ErrInvalidShards = errors.New("invalid shards")
 var ErrNotFound = errors.New("node not found")
+var ErrInternal = errors.New("internal error")
 
 type Repository interface {
 	Create(n *Node) error
@@ -23,10 +25,10 @@ type Repository interface {
 }
 
 type Service interface {
-	Get(u *user.User, id uuid.UUID) (*Node, error)
-	Create(u *user.User, addr string, shards []int) (*Node, error)
-	Update(u *user.User, n *Node) error
-	Delete(u *user.User, id uuid.UUID) error
+	Get(id uuid.UUID) (*Node, error)
+	Create(ownerID uuid.UUID, addr string, shards []int) (*Node, error)
+	Update(id uuid.UUID, n *Node) (*Node, error)
+	Delete(id uuid.UUID) error
 }
 
 type Handler interface {
@@ -34,6 +36,13 @@ type Handler interface {
 	Create(c *gin.Context)
 	Update(c *gin.Context)
 	Delete(c *gin.Context)
+}
+
+type Policy interface {
+	CanCreate() can.Result
+	CanUpdate(ctx context.Context, n *Node) can.Result
+	CanRead(ctx context.Context, n *Node) can.Result
+	CanDelete(ctx context.Context, n *Node) can.Result
 }
 
 type Node struct {

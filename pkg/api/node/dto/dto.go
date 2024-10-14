@@ -6,6 +6,11 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	SUCCESS = "success"
+	ERROR   = "error"
+)
+
 type Node struct {
 	ID      string `json:"id"`
 	OwnerID string `json:"owner_id"`
@@ -44,14 +49,14 @@ type GetNodeResponse struct {
 func NewSuccessGetNodeResponse(node *node.Node) GetNodeResponse {
 	n := NewNodeFromDomain(node)
 	return GetNodeResponse{
-		Status: "success",
+		Status: SUCCESS,
 		Node:   n,
 	}
 }
 
 func NewErrorGetNodeResponse(message string) GetNodeResponse {
 	return GetNodeResponse{
-		Status:  "error",
+		Status:  ERROR,
 		Message: message,
 	}
 }
@@ -79,14 +84,14 @@ type CreateNodeResponse struct {
 func NewSuccessCreateNodeResponse(node *node.Node) CreateNodeResponse {
 	n := NewNodeFromDomain(node)
 	return CreateNodeResponse{
-		Status: "success",
+		Status: SUCCESS,
 		Node:   n,
 	}
 }
 
 func NewErrorCreateNodeResponse(message string) CreateNodeResponse {
 	return CreateNodeResponse{
-		Status:  "error",
+		Status:  ERROR,
 		Message: message,
 	}
 }
@@ -106,17 +111,20 @@ func (r UpdateNodeRequest) ToDomain() (*node.Node, error) {
 type UpdateNodeResponse struct {
 	Status  string `json:"status"`
 	Message string `json:"message,omitempty"` // Only present when there's an error
+
+	Node *Node `json:"node,omitempty"` // Only present when successful
 }
 
-func NewSuccessUpdateNodeResponse() UpdateNodeResponse {
+func NewSuccessUpdateNodeResponse(node *node.Node) UpdateNodeResponse {
 	return UpdateNodeResponse{
-		Status: "success",
+		Status: SUCCESS,
+		Node:   NewNodeFromDomain(node),
 	}
 }
 
 func NewErrorUpdateNodeResponse(message string) UpdateNodeResponse {
 	return UpdateNodeResponse{
-		Status:  "error",
+		Status:  ERROR,
 		Message: message,
 	}
 }
@@ -128,13 +136,13 @@ type DeleteNodeResponse struct {
 
 func NewSuccessDeleteNodeResponse() DeleteNodeResponse {
 	return DeleteNodeResponse{
-		Status: "success",
+		Status: SUCCESS,
 	}
 }
 
 func NewErrorDeleteNodeResponse(message string) DeleteNodeResponse {
 	return DeleteNodeResponse{
-		Status:  "error",
+		Status:  ERROR,
 		Message: message,
 	}
 }

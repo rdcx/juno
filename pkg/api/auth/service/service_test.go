@@ -146,7 +146,7 @@ func TestAuthenticate(t *testing.T) {
 
 	t.Run("Invalid password", func(t *testing.T) {
 		_, err := service.Authenticate("test@example.com", "invalidpassword")
-		if !errors.Is(err, user.ErrInvalidPassword) {
+		if !errors.Is(err, auth.ErrInvalidEmailOrPassword) {
 			t.Errorf("Expected error %v, got %v", user.ErrInvalidPassword, err)
 		}
 	})

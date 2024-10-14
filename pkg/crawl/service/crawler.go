@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"juno/pkg/crawl/domain"
 	"juno/pkg/link"
 	"log"
 )
@@ -51,6 +52,6 @@ func (m *Crawler) Work() {
 	}
 }
 
-func (m *Crawler) HandleCrawlRequest(req CrawlRequest) {
+func (m *Crawler) HandleCrawlRequest(req domain.CrawlRequest) {
 	m.Queue.Push(req.URL)
 }

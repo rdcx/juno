@@ -2,8 +2,11 @@ package handler
 
 import (
 	"bytes"
+	"context"
+	"juno/pkg/api/auth"
 	"juno/pkg/api/node"
 	"juno/pkg/api/node/dto"
+	"juno/pkg/api/node/policy"
 	"juno/pkg/api/node/repo/mem"
 	"juno/pkg/api/node/service"
 	"juno/pkg/api/user"
@@ -53,7 +56,8 @@ func TestGet(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		repo := mem.New()
 		svc := service.New(repo)
-		handler := New(logrus.New(), svc)
+		policy := policy.New()
+		handler := New(logrus.New(), policy, svc)
 
 		u := &user.User{
 			ID: uuid.New(),
@@ -79,7 +83,9 @@ func TestGet(t *testing.T) {
 			{Key: "id", Value: n.ID.String()},
 		}
 
-		tc.Set("user", u)
+		tc.Request = httptest.NewRequest("GET", "/nodes/"+n.ID.String(), nil).WithContext(
+			auth.WithUser(context.Background(), u),
+		)
 
 		handler.Get(tc)
 
@@ -116,7 +122,8 @@ func TestGet(t *testing.T) {
 	t.Run("error", func(t *testing.T) {
 		repo := mem.New()
 		svc := service.New(repo)
-		handler := New(logrus.New(), svc)
+		policy := policy.New()
+		handler := New(logrus.New(), policy, svc)
 
 		u := &user.User{
 			ID: uuid.New(),
@@ -142,7 +149,9 @@ func TestGet(t *testing.T) {
 			{Key: "id", Value: n.ID.String()},
 		}
 
-		tc.Set("user", u)
+		tc.Request = httptest.NewRequest("GET", "/nodes/"+n.ID.String(), nil).WithContext(
+			auth.WithUser(context.Background(), u),
+		)
 
 		handler.Get(tc)
 
@@ -168,7 +177,8 @@ func TestCreate(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		repo := mem.New()
 		svc := service.New(repo)
-		handler := New(logrus.New(), svc)
+		policy := policy.New()
+		handler := New(logrus.New(), policy, svc)
 
 		u := &user.User{
 			ID: uuid.New(),
@@ -181,20 +191,20 @@ func TestCreate(t *testing.T) {
 		w := httptest.NewRecorder()
 		tc, _ := gin.CreateTestContext(w)
 
-		// Set the user in the context
-		tc.Set("user", u)
-
 		// Marshal the request body
 		body, err := json.Marshal(dto.CreateNodeRequest{
 			Address: addr,
 			Shards:  shards,
 		})
+
 		if err != nil {
 			t.Fatalf("Unexpected error: %s", err)
 		}
 
 		// Set the request body correctly during request creation
-		tc.Request = httptest.NewRequest("POST", "/nodes", bytes.NewReader(body))
+		tc.Request = httptest.NewRequest("POST", "/nodes", bytes.NewReader(body)).WithContext(
+			auth.WithUser(context.Background(), u),
+		)
 
 		// Call the handler
 		handler.Create(tc)
@@ -235,7 +245,8 @@ func TestCreate(t *testing.T) {
 	t.Run("error", func(t *testing.T) {
 		repo := mem.New()
 		svc := service.New(repo)
-		handler := New(logrus.New(), svc)
+		policy := policy.New()
+		handler := New(logrus.New(), policy, svc)
 
 		u := &user.User{
 			ID: uuid.New(),
@@ -271,7 +282,8 @@ func TestCreate(t *testing.T) {
 		}
 
 		// Set the request body correctly during request creation
-		tc.Request = httptest.NewRequest("POST", "/nodes", bytes.NewReader(body))
+		tc.Request = httptest.NewRequest("POST", "/nodes", bytes.NewReader(body)).
+			WithContext(auth.WithUser(context.Background(), u))
 
 		// Call the handler
 		handler.Create(tc)
@@ -299,7 +311,8 @@ func TestUpdate(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		repo := mem.New()
 		svc := service.New(repo)
-		handler := New(logrus.New(), svc)
+		policy := policy.New()
+		handler := New(logrus.New(), policy, svc)
 
 		u := &user.User{
 			ID: uuid.New(),
@@ -337,7 +350,8 @@ func TestUpdate(t *testing.T) {
 		}
 
 		// Set the request body correctly during request creation
-		tc.Request = httptest.NewRequest("PUT", "/nodes/"+n.ID.String(), bytes.NewReader(body))
+		tc.Request = httptest.NewRequest("PUT", "/nodes/"+n.ID.String(), bytes.NewReader(body)).
+			WithContext(auth.WithUser(context.Background(), u))
 
 		// Set the path parameter
 		tc.Params = gin.Params{
@@ -368,7 +382,8 @@ func TestUpdate(t *testing.T) {
 	t.Run("error", func(t *testing.T) {
 		repo := mem.New()
 		svc := service.New(repo)
-		handler := New(logrus.New(), svc)
+		policy := policy.New()
+		handler := New(logrus.New(), policy, svc)
 
 		u := &user.User{
 			ID: uuid.New(),
@@ -406,7 +421,8 @@ func TestUpdate(t *testing.T) {
 		}
 
 		// Set the request body correctly during request creation
-		tc.Request = httptest.NewRequest("PUT", "/nodes/"+n.ID.String(), bytes.NewReader(body))
+		tc.Request = httptest.NewRequest("PUT", "/nodes/"+n.ID.String(), bytes.NewReader(body)).
+			WithContext(auth.WithUser(context.Background(), u))
 
 		// Set the path parameter
 		tc.Params = gin.Params{
@@ -439,7 +455,8 @@ func TestDelete(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		repo := mem.New()
 		svc := service.New(repo)
-		handler := New(logrus.New(), svc)
+		policy := policy.New()
+		handler := New(logrus.New(), policy, svc)
 
 		u := &user.User{
 			ID: uuid.New(),
@@ -462,7 +479,9 @@ func TestDelete(t *testing.T) {
 		tc, _ := gin.CreateTestContext(w)
 
 		// Set the user in the context
-		tc.Set("user", u)
+		tc.Request = httptest.NewRequest("DELETE", "/nodes/"+n.ID.String(), nil).WithContext(
+			auth.WithUser(context.Background(), u),
+		)
 
 		// Set the path parameter
 		tc.Params = gin.Params{
@@ -493,7 +512,9 @@ func TestDelete(t *testing.T) {
 	t.Run("error", func(t *testing.T) {
 		repo := mem.New()
 		svc := service.New(repo)
-		handler := New(logrus.New(), svc)
+		policy := policy.New()
+
+		handler := New(logrus.New(), policy, svc)
 
 		u := &user.User{
 			ID: uuid.New(),
@@ -509,7 +530,9 @@ func TestDelete(t *testing.T) {
 		tc, _ := gin.CreateTestContext(w)
 
 		// Set the user in the context
-		tc.Set("user", u)
+		tc.Request = httptest.NewRequest("DELETE", "/nodes/"+n.ID.String(), nil).WithContext(
+			auth.WithUser(context.Background(), u),
+		)
 
 		// Set the path parameter
 		tc.Params = gin.Params{
