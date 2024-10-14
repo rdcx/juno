@@ -236,6 +236,97 @@ func TestGet(t *testing.T) {
 	})
 }
 
+func TestFirstWhereEmail(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+
+		db, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/user_test?parseTime=true")
+
+		if err != nil {
+			t.Errorf("Error connecting to database: %s", err)
+		}
+
+		defer db.Close()
+
+		repo := New(db)
+
+		err = mysql.ExecuteMigrations(db)
+
+		if err != nil {
+			t.Errorf("Error executing migrations: %s", err)
+		}
+
+		email := randomEmail()
+
+		defer db.Exec("DELETE FROM users WHERE email = ?", email)
+
+		u := user.User{
+			ID:       uuid.New(),
+			Email:    email,
+			Password: "password",
+		}
+
+		err = repo.Create(&u)
+
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		usr, err := repo.FirstWhereEmail(email)
+
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		if usr.ID != u.ID {
+			t.Errorf("Expected ID %s, got %s", u.ID, usr.ID)
+		}
+
+		if usr.Email != u.Email {
+			t.Errorf("Expected Email %s, got %s", u.Email, usr.Email)
+		}
+
+		if usr.Password != u.Password {
+			t.Errorf("Expected Password %s, got %s", u.Password, usr.Password)
+		}
+
+	})
+
+	t.Run("error", func(t *testing.T) {
+
+		db, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/user_test?parseTime=true")
+
+		if err != nil {
+			t.Errorf("Error connecting to database: %s", err)
+		}
+
+		defer db.Close()
+
+		repo := New(db)
+
+		err = mysql.ExecuteMigrations(db)
+
+		if err != nil {
+			t.Errorf("Error executing migrations: %s", err)
+		}
+
+		email := randomEmail()
+
+		defer db.Exec("DELETE FROM users WHERE email = ?", email)
+
+		u := user.User{
+			ID:       uuid.New(),
+			Email:    email,
+			Password: "password",
+		}
+
+		err = repo.Create(&u)
+
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+	})
+}
+
 func TestUpdate(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 

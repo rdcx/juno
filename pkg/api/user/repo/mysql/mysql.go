@@ -35,6 +35,18 @@ func (r *Repo) Get(id uuid.UUID) (*user.User, error) {
 	return &u, nil
 }
 
+func (r *Repo) FirstWhereEmail(email string) (*user.User, error) {
+	var u user.User
+
+	err := r.db.QueryRow("SELECT id, email, password FROM users WHERE email = ?", email).Scan(&u.ID, &u.Email, &u.Password)
+
+	if err != nil {
+		return nil, user.ErrNotFound
+	}
+
+	return &u, nil
+}
+
 func (r *Repo) Update(u *user.User) error {
 	_, err := r.db.Exec("UPDATE users SET email = ?, password = ? WHERE id = ?", u.Email, u.Password, u.ID)
 

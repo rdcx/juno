@@ -5,6 +5,7 @@ import (
 	"errors"
 	"juno/pkg/can"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
@@ -35,6 +36,7 @@ type Repository interface {
 type Service interface {
 	Create(email, password string) (*User, error)
 	Get(id uuid.UUID) (*User, error)
+	FirstWhereEmail(email string) (*User, error)
 	Update(u *User) error
 	Delete(id uuid.UUID) error
 }
@@ -44,4 +46,9 @@ type Policy interface {
 	CanUpdate(ctx context.Context, u *User) can.Result
 	CanRead(ctx context.Context, u *User) can.Result
 	CanDelete(ctx context.Context, u *User) can.Result
+}
+
+type Handler interface {
+	Get(c *gin.Context)
+	Create(c *gin.Context)
 }

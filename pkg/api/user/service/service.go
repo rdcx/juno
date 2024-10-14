@@ -40,6 +40,10 @@ func (s *Service) Get(id uuid.UUID) (*user.User, error) {
 	return s.userRepo.Get(id)
 }
 
+func (s *Service) FirstWhereEmail(email string) (*user.User, error) {
+	return s.userRepo.FirstWhereEmail(email)
+}
+
 func (s *Service) Create(email, password string) (*user.User, error) {
 
 	var errs []error

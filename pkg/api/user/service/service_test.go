@@ -49,6 +49,53 @@ func TestGet(t *testing.T) {
 	})
 }
 
+func TestFirstWhereEmail(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		repo := mem.New()
+
+		email := randomEmail()
+
+		u := &user.User{
+			ID:    uuid.New(),
+			Email: email,
+		}
+
+		err := repo.Create(u)
+
+		if err != nil {
+			t.Errorf("expected err to be nil, got %v", err)
+		}
+
+		s := New(logrus.New(), repo)
+
+		usr, err := s.FirstWhereEmail(email)
+
+		if err != nil {
+			t.Errorf("expected err to be nil, got %v", err)
+		}
+
+		if usr.ID != u.ID {
+			t.Errorf("expected user ID to be %s, got %s", u.ID, usr.ID)
+		}
+
+		if usr.Email != u.Email {
+			t.Errorf("expected user email to be %s, got %s", u.Email, usr.Email)
+		}
+	})
+
+	t.Run("not found", func(t *testing.T) {
+		repo := mem.New()
+
+		s := New(logrus.New(), repo)
+
+		_, err := s.FirstWhereEmail(randomEmail())
+
+		if err != user.ErrNotFound {
+			t.Errorf("expected error to be ErrNotFound, got %v", err)
+		}
+	})
+}
+
 func TestCreate(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		repo := mem.New()
