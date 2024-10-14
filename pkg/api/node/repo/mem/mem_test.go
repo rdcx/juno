@@ -127,6 +127,62 @@ func TestGet(t *testing.T) {
 	})
 }
 
+func TestListByOwnerID(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		ownerID := uuid.New()
+		n1 := node.Node{
+			ID:      uuid.New(),
+			OwnerID: ownerID,
+			Address: "http://example.com",
+			Shards:  []int{1, 2, 3},
+		}
+		n2 := node.Node{
+			ID:      uuid.New(),
+			OwnerID: ownerID,
+			Address: "http://example.org",
+			Shards:  []int{4, 5, 6},
+		}
+
+		repo := New()
+
+		err := repo.Create(&n1)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		err = repo.Create(&n2)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		nodes, err := repo.ListByOwnerID(ownerID)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		if len(nodes) != 2 {
+			t.Errorf("Expected 2 nodes, got %d", len(nodes))
+		}
+
+		if !testNodeMatches(t, n1.ID, n1.OwnerID, n1.Address, n1.Shards, nodes[0]) {
+			t.Errorf("Node 1 does not match")
+		}
+
+		if !testNodeMatches(t, n2.ID, n2.OwnerID, n2.Address, n2.Shards, nodes[1]) {
+			t.Errorf("Node 2 does not match")
+		}
+	})
+
+	t.Run("error", func(t *testing.T) {
+		repo := New()
+
+		_, err := repo.ListByOwnerID(uuid.New())
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+	})
+}
+
 func TestUpdate(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		n := node.Node{

@@ -27,6 +27,16 @@ func (s *Service) Get(id uuid.UUID) (*node.Node, error) {
 	return n, nil
 }
 
+func (s *Service) ListByOwnerID(ownerID uuid.UUID) ([]*node.Node, error) {
+	nodes, err := s.repo.ListByOwnerID(ownerID)
+
+	if err != nil {
+		return nil, node.ErrNotFound
+	}
+
+	return nodes, nil
+}
+
 func validateShards(shards []int) error {
 	for _, s := range shards {
 		if s > shard.SHARDS || s < 0 {

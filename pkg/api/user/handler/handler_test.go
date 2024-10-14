@@ -204,6 +204,38 @@ func TestGet(t *testing.T) {
 	})
 }
 
+func TestProfile(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		logger := logrus.New()
+		repo := mem.New()
+		svc := service.New(logger, repo)
+		policy := policy.New()
+		handler := New(logger, policy, svc)
+		w := httptest.NewRecorder()
+
+		u := &user.User{
+			ID:    uuid.New(),
+			Email: randomEmail(),
+		}
+
+		err := repo.Create(u)
+
+		if err != nil {
+			t.Errorf("expected err to be nil, got %v", err)
+		}
+
+		req := httptest.NewRequest("GET", "/users/profile", nil)
+		tc, _ := gin.CreateTestContext(w)
+		tc.Request = req.WithContext(
+			auth.WithUser(context.Background(), u),
+		)
+
+		handler.Profile(tc)
+
+		testGetResponse(t, w, 200, dto.SUCCESS, "", u)
+	})
+}
+
 func testCreateResponse(t *testing.T, w *httptest.ResponseRecorder, expectedCode int, expectedStatus, expectedMessage string, expectedUser *user.User) {
 	if w.Code != expectedCode {
 		t.Fatalf("Expected status code %d, got %d", expectedCode, w.Code)

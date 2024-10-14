@@ -40,6 +40,31 @@ func (n Node) ToDomain() (*node.Node, error) {
 	return node.New(id, ownerID, n.Address, n.Shards), nil
 }
 
+type ListNodesResponse struct {
+	Status  string `json:"status"`
+	Message string `json:"message,omitempty"` // Only present when there's an error
+
+	Nodes []*Node `json:"nodes,omitempty"` // Only present when successful
+}
+
+func NewSuccessListNodesResponse(nodes []*node.Node) ListNodesResponse {
+	var n []*Node
+	for _, node := range nodes {
+		n = append(n, NewNodeFromDomain(node))
+	}
+	return ListNodesResponse{
+		Status: SUCCESS,
+		Nodes:  n,
+	}
+}
+
+func NewErrorListNodesResponse(message string) ListNodesResponse {
+	return ListNodesResponse{
+		Status:  ERROR,
+		Message: message,
+	}
+}
+
 type GetNodeResponse struct {
 	Status  string `json:"status"`
 	Message string `json:"message,omitempty"` // Only present when there's an error

@@ -24,6 +24,45 @@ func New(l *logrus.Logger, policy node.Policy, ns node.Service) *Handler {
 	}
 }
 
+func (h *Handler) List(c *gin.Context) {
+	u := auth.MustUserFromContext(c.Request.Context())
+
+	nodes, err := h.nodeService.ListByOwnerID(u.ID)
+
+	if err != nil {
+		h.logger.Debug(
+			logrus.Fields{
+				"error": err.Error(),
+				"user":  u.ID,
+			})
+		c.JSON(404, dto.NewErrorListNodesResponse(
+			node.ErrNotFound.Error(),
+		))
+		return
+	}
+
+	h.policy.CanList(c.Request.Context(), nodes).
+		Allow(func() {
+			c.JSON(200, dto.NewSuccessListNodesResponse(nodes))
+		}).
+		Deny(func(reason string) {
+			h.logger.Debug(
+				logrus.Fields{
+					"error": reason,
+					"user":  u.ID,
+				})
+			c.JSON(404, dto.NewErrorListNodesResponse(
+				node.ErrNotFound.Error(),
+			))
+		}).
+		Err(func(err error) {
+			h.logger.Debug(err)
+			c.JSON(500, dto.NewErrorListNodesResponse(
+				node.ErrInternal.Error(),
+			))
+		})
+}
+
 func (h *Handler) Get(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 

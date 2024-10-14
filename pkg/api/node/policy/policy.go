@@ -56,6 +56,22 @@ func (p Policy) CanRead(ctx context.Context, n *node.Node) can.Result {
 	return can.Denied("user not allowed to read node")
 }
 
+func (p Policy) CanList(ctx context.Context, nodes []*node.Node) can.Result {
+	authUser, ok := auth.UserFromContext(ctx)
+
+	if !ok {
+		return can.Error(user.ErrUserNotFoundInContext)
+	}
+
+	for _, n := range nodes {
+		if authUser.ID != n.OwnerID {
+			return can.Denied("user not allowed to list nodes")
+		}
+	}
+
+	return can.Allowed()
+}
+
 func (p Policy) CanCreate() can.Result {
 	return can.Allowed()
 }

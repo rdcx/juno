@@ -173,6 +173,83 @@ func TestGet(t *testing.T) {
 	})
 }
 
+func TestList(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		repo := mem.New()
+		svc := service.New(repo)
+		policy := policy.New()
+		handler := New(logrus.New(), policy, svc)
+
+		u := &user.User{
+			ID: uuid.New(),
+		}
+
+		n1 := &node.Node{
+			ID:      uuid.New(),
+			OwnerID: u.ID,
+			Address: "example.com:8080",
+			Shards:  []int{1, 2, 3},
+		}
+
+		n2 := &node.Node{
+			ID:      uuid.New(),
+			OwnerID: uuid.New(),
+			Address: "example.com:8081",
+			Shards:  []int{4, 5, 6},
+		}
+
+		err := repo.Create(n1)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		err = repo.Create(n2)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		w := httptest.NewRecorder()
+
+		tc, _ := gin.CreateTestContext(w)
+
+		tc.Request = httptest.NewRequest("GET", "/nodes", nil).WithContext(
+			auth.WithUser(context.Background(), u),
+		)
+
+		handler.List(tc)
+
+		if w.Code != 200 {
+			t.Fatalf("Expected status code 200, got %d", w.Code)
+		}
+
+		var res dto.ListNodesResponse
+
+		err = json.Unmarshal(w.Body.Bytes(), &res)
+
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		if res.Status != "success" {
+			t.Errorf("Expected success, got %s", res.Status)
+		}
+
+		if len(res.Nodes) != 1 {
+			t.Fatalf("Expected 1 nodes, got %d", len(res.Nodes))
+		}
+
+		nodeCheck, err := res.Nodes[0].ToDomain()
+
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		if !testNodeMatches(t, n1.ID, n1.OwnerID, n1.Address, n1.Shards, nodeCheck) {
+			t.Errorf("Node 1 does not match")
+		}
+	})
+}
+
 func TestCreate(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		repo := mem.New()

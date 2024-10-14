@@ -213,6 +213,107 @@ func TestGet(t *testing.T) {
 	})
 }
 
+func TestListByOwnerID(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		ownerID := uuid.New()
+
+		n1 := node.Node{
+			ID:      uuid.New(),
+			OwnerID: ownerID,
+			Address: "http://example.com",
+			Shards:  []int{1, 2, 3},
+		}
+
+		n2 := node.Node{
+			ID:      uuid.New(),
+			OwnerID: ownerID,
+			Address: "http://example.org",
+			Shards:  []int{4, 5, 6},
+		}
+
+		conn, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/node_test?parseTime=true")
+		if err != nil {
+			t.Errorf("Error connecting to database: %s", err)
+		}
+		err = mysql.ExecuteMigrations(conn)
+		if err != nil {
+			t.Errorf("Error executing migrations: %s", err)
+		}
+
+		defer conn.Close()
+
+		defer conn.Exec("DELETE FROM nodes WHERE id = ?", n1.ID)
+		defer conn.Exec("DELETE FROM nodes WHERE id = ?", n2.ID)
+
+		_, err = conn.Exec("INSERT INTO nodes (id, owner_id, address, shards) VALUES (?, ?, ?, ?)", n1.ID, n1.OwnerID, n1.Address, "[1,2,3]")
+		if err != nil {
+			t.Errorf("Error inserting node: %s", err)
+		}
+
+		_, err = conn.Exec("INSERT INTO nodes (id, owner_id, address, shards) VALUES (?, ?, ?, ?)", n2.ID, n2.OwnerID, n2.Address, "[4,5,6]")
+		if err != nil {
+			t.Errorf("Error inserting node: %s", err)
+		}
+
+		repo := New(conn)
+
+		nodes, err := repo.ListByOwnerID(ownerID)
+
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		if len(nodes) != 2 {
+			t.Errorf("Expected 2 nodes, got %d", len(nodes))
+		}
+
+		if nodes[0].ID != n1.ID {
+			t.Errorf("Expected ID %s, got %s", n1.ID, nodes[0].ID)
+		}
+
+		if nodes[0].OwnerID != n1.OwnerID {
+			t.Errorf("Expected OwnerID %s, got %s", n1.OwnerID, nodes[0].OwnerID)
+		}
+
+		if nodes[0].Address != n1.Address {
+			t.Errorf("Expected Address %s, got %s", n1.Address, nodes[0].Address)
+		}
+
+		if len(nodes[0].Shards) != len(n1.Shards) {
+			t.Errorf("Expected %d shards, got %d", len(n1.Shards), len(nodes[0].Shards))
+		}
+
+		for i, shard := range n1.Shards {
+			if nodes[0].Shards[i] != shard {
+				t.Errorf("Expected shard %d, got %d", shard, nodes[0].Shards[i])
+			}
+		}
+
+		if nodes[1].ID != n2.ID {
+			t.Errorf("Expected ID %s, got %s", n2.ID, nodes[1].ID)
+		}
+
+		if nodes[1].OwnerID != n2.OwnerID {
+			t.Errorf("Expected OwnerID %s, got %s", n2.OwnerID, nodes[1].OwnerID)
+		}
+
+		if nodes[1].Address != n2.Address {
+			t.Errorf("Expected Address %s, got %s", n2.Address, nodes[1].Address)
+		}
+
+		if len(nodes[1].Shards) != len(n2.Shards) {
+			t.Errorf("Expected %d shards, got %d", len(n2.Shards), len(nodes[1].Shards))
+		}
+
+		for i, shard := range n2.Shards {
+			if nodes[1].Shards[i] != shard {
+				t.Errorf("Expected shard %d, got %d", shard, nodes[1].Shards[i])
+			}
+		}
+
+	})
+}
+
 func TestUpdate(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		n := node.Node{

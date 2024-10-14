@@ -1,19 +1,21 @@
 package handler
 
 import (
-	loadbalance "juno/pkg/crawlbalance/balancer/service"
-	"juno/pkg/crawlbalance/dto"
+	"juno/pkg/balancer/crawl"
+	"juno/pkg/balancer/crawl/dto"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Handler struct {
-	lb *loadbalance.LoadBalancer
+	crawlService crawl.Service
 }
 
-func NewLoadBalanceHandler(lb *loadbalance.LoadBalancer) *Handler {
-	return &Handler{lb: lb}
+func New(
+	crawlService crawl.Service,
+) *Handler {
+	return &Handler{crawlService: crawlService}
 }
 
 func (h *Handler) Crawl(c *gin.Context) {
@@ -24,7 +26,7 @@ func (h *Handler) Crawl(c *gin.Context) {
 		return
 	}
 
-	go h.lb.Crawl(req.URL)
+	go h.crawlService.Crawl(req)
 
 	c.JSON(http.StatusOK, gin.H{"message": "ok"})
 }

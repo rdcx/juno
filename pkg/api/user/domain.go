@@ -50,5 +50,6 @@ type Policy interface {
 
 type Handler interface {
 	Get(c *gin.Context)
+	Profile(c *gin.Context)
 	Create(c *gin.Context)
 }

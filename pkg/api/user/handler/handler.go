@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"juno/pkg/api/auth"
 	"juno/pkg/api/user"
 	"juno/pkg/api/user/dto"
 
@@ -51,6 +52,26 @@ func (h *Handler) Get(c *gin.Context) {
 		Deny(func(reason string) {
 			c.JSON(404, dto.NewErrorGetUserResponse(
 				user.ErrNotFound.Error(),
+			))
+		}).
+		Err(func(err error) {
+			h.logger.Error(err)
+			c.JSON(500, dto.NewErrorGetUserResponse(
+				user.ErrInternal.Error(),
+			))
+		})
+}
+
+func (h *Handler) Profile(c *gin.Context) {
+	u := auth.MustUserFromContext(c.Request.Context())
+
+	h.policy.CanRead(c.Request.Context(), u).
+		Allow(func() {
+			c.JSON(200, dto.NewSuccessGetUserResponse(u))
+		}).
+		Deny(func(reason string) {
+			c.JSON(403, dto.NewErrorGetUserResponse(
+				user.ErrForbidden.Error(),
 			))
 		}).
 		Err(func(err error) {

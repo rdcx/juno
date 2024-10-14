@@ -19,6 +19,7 @@ var ErrInternal = errors.New("internal error")
 type Repository interface {
 	Create(n *Node) error
 	Get(id uuid.UUID) (*Node, error)
+	ListByOwnerID(ownerID uuid.UUID) ([]*Node, error)
 	FirstWhereAddress(address string) (*Node, error)
 	Update(n *Node) error
 	Delete(id uuid.UUID) error
@@ -26,12 +27,14 @@ type Repository interface {
 
 type Service interface {
 	Get(id uuid.UUID) (*Node, error)
+	ListByOwnerID(ownerID uuid.UUID) ([]*Node, error)
 	Create(ownerID uuid.UUID, addr string, shards []int) (*Node, error)
 	Update(id uuid.UUID, n *Node) (*Node, error)
 	Delete(id uuid.UUID) error
 }
 
 type Handler interface {
+	List(c *gin.Context)
 	Get(c *gin.Context)
 	Create(c *gin.Context)
 	Update(c *gin.Context)
@@ -42,6 +45,7 @@ type Policy interface {
 	CanCreate() can.Result
 	CanUpdate(ctx context.Context, n *Node) can.Result
 	CanRead(ctx context.Context, n *Node) can.Result
+	CanList(ctx context.Context, nodes []*Node) can.Result
 	CanDelete(ctx context.Context, n *Node) can.Result
 }
 

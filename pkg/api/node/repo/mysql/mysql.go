@@ -52,6 +52,34 @@ func (r *Repo) Get(id uuid.UUID) (*node.Node, error) {
 	return &n, nil
 }
 
+func (r *Repo) ListByOwnerID(ownerID uuid.UUID) ([]*node.Node, error) {
+	var nodes []*node.Node
+
+	rows, err := r.db.Query("SELECT id, owner_id, address, shards FROM nodes WHERE owner_id = ?", ownerID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var n node.Node
+		var shards string
+		err = rows.Scan(&n.ID, &n.OwnerID, &n.Address, &shards)
+		if err != nil {
+			return nil, err
+		}
+
+		err = json.Unmarshal([]byte(shards), &n.Shards)
+		if err != nil {
+			return nil, err
+		}
+
+		nodes = append(nodes, &n)
+	}
+
+	return nodes, nil
+}
+
 func (r *Repo) FirstWhereAddress(address string) (*node.Node, error) {
 	var n node.Node
 	var shards string

@@ -35,6 +35,18 @@ func (r *Repository) Get(id uuid.UUID) (*node.Node, error) {
 	return n, nil
 }
 
+func (r *Repository) ListByOwnerID(ownerID uuid.UUID) ([]*node.Node, error) {
+	var nodes []*node.Node
+
+	for _, n := range r.nodes {
+		if n.OwnerID == ownerID {
+			nodes = append(nodes, n)
+		}
+	}
+
+	return nodes, nil
+}
+
 func (r *Repository) FirstWhereAddress(address string) (*node.Node, error) {
 	for _, n := range r.nodes {
 		if n.Address == address {
