@@ -19,6 +19,7 @@ var ErrInternal = errors.New("internal error")
 type Repository interface {
 	Create(n *Balancer) error
 	Get(id uuid.UUID) (*Balancer, error)
+	ListByOwnerID(ownerID uuid.UUID) ([]*Balancer, error)
 	FirstWhereAddress(address string) (*Balancer, error)
 	Update(n *Balancer) error
 	Delete(id uuid.UUID) error
@@ -26,12 +27,14 @@ type Repository interface {
 
 type Service interface {
 	Get(id uuid.UUID) (*Balancer, error)
+	ListByOwnerID(ownerID uuid.UUID) ([]*Balancer, error)
 	Create(ownerID uuid.UUID, addr string, shards []int) (*Balancer, error)
 	Update(id uuid.UUID, n *Balancer) (*Balancer, error)
 	Delete(id uuid.UUID) error
 }
 
 type Handler interface {
+	List(c *gin.Context)
 	Get(c *gin.Context)
 	Create(c *gin.Context)
 	Update(c *gin.Context)
@@ -42,6 +45,7 @@ type Policy interface {
 	CanCreate() can.Result
 	CanUpdate(ctx context.Context, n *Balancer) can.Result
 	CanRead(ctx context.Context, n *Balancer) can.Result
+	CanList(ctx context.Context, balancers []*Balancer) can.Result
 	CanDelete(ctx context.Context, n *Balancer) can.Result
 }
 

@@ -52,6 +52,34 @@ func (r *Repo) Get(id uuid.UUID) (*balancer.Balancer, error) {
 	return &n, nil
 }
 
+func (r *Repo) ListByOwnerID(ownerID uuid.UUID) ([]*balancer.Balancer, error) {
+	var balancers []*balancer.Balancer
+
+	rows, err := r.db.Query("SELECT id, owner_id, address, shards FROM balancers WHERE owner_id = ?", ownerID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var n balancer.Balancer
+		var shards string
+		err = rows.Scan(&n.ID, &n.OwnerID, &n.Address, &shards)
+		if err != nil {
+			return nil, err
+		}
+
+		err = json.Unmarshal([]byte(shards), &n.Shards)
+		if err != nil {
+			return nil, err
+		}
+
+		balancers = append(balancers, &n)
+	}
+
+	return balancers, nil
+}
+
 func (r *Repo) FirstWhereAddress(address string) (*balancer.Balancer, error) {
 	var n balancer.Balancer
 	var shards string

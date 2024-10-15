@@ -40,6 +40,31 @@ func (n Balancer) ToDomain() (*balancer.Balancer, error) {
 	return balancer.New(id, ownerID, n.Address, n.Shards), nil
 }
 
+type ListBalancersResponse struct {
+	Status  string `json:"status"`
+	Message string `json:"message,omitempty"` // Only present when there's an error
+
+	Balancers []*Balancer `json:"balancers,omitempty"` // Only present when successful
+}
+
+func NewSuccessListBalancersResponse(balancers []*balancer.Balancer) ListBalancersResponse {
+	var n []*Balancer
+	for _, balancer := range balancers {
+		n = append(n, NewBalancerFromDomain(balancer))
+	}
+	return ListBalancersResponse{
+		Status:    SUCCESS,
+		Balancers: n,
+	}
+}
+
+func NewErrorListBalancersResponse(message string) ListBalancersResponse {
+	return ListBalancersResponse{
+		Status:  ERROR,
+		Message: message,
+	}
+}
+
 type GetBalancerResponse struct {
 	Status   string    `json:"status"`
 	Message  string    `json:"message,omitempty"`  // Only present when there's an error

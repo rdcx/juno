@@ -35,6 +35,18 @@ func (r *Repository) Get(id uuid.UUID) (*balancer.Balancer, error) {
 	return n, nil
 }
 
+func (r *Repository) ListByOwnerID(ownerID uuid.UUID) ([]*balancer.Balancer, error) {
+	var balancers []*balancer.Balancer
+
+	for _, n := range r.balancers {
+		if n.OwnerID == ownerID {
+			balancers = append(balancers, n)
+		}
+	}
+
+	return balancers, nil
+}
+
 func (r *Repository) FirstWhereAddress(address string) (*balancer.Balancer, error) {
 	for _, n := range r.balancers {
 		if n.Address == address {

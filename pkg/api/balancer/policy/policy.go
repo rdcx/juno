@@ -56,6 +56,22 @@ func (p Policy) CanRead(ctx context.Context, n *balancer.Balancer) can.Result {
 	return can.Denied("user not allowed to read balancer")
 }
 
+func (p Policy) CanList(ctx context.Context, balancers []*balancer.Balancer) can.Result {
+	authUser, ok := auth.UserFromContext(ctx)
+
+	if !ok {
+		return can.Error(user.ErrUserNotFoundInContext)
+	}
+
+	for _, n := range balancers {
+		if authUser.ID != n.OwnerID {
+			return can.Denied("user not allowed to list balancers")
+		}
+	}
+
+	return can.Allowed()
+}
+
 func (p Policy) CanCreate() can.Result {
 	return can.Allowed()
 }
