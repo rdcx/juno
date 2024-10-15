@@ -5,8 +5,8 @@
       <!-- Log Filters -->
       <div class="mb-4 flex justify-between items-center">
         <div>
-          <button @click="filterLogs('All')" class="px-4 py-2 mr-2 bg-stone-700 rounded hover:bg-stone-600">All</button>
-          <button @click="filterLogs('Info')" class="px-4 py-2 mr-2 bg-stone-700 rounded hover:bg-stone-600">Info</button>
+          <button @click="filterLogs('All')" class="px-4 py-2 mr-2 bg-gray-700 rounded hover:bg-gray-600">All</button>
+          <button @click="filterLogs('Info')" class="px-4 py-2 mr-2 bg-gray-700 rounded hover:bg-gray-600">Info</button>
           <button @click="filterLogs('Warning')" class="px-4 py-2 mr-2 bg-yellow-600 rounded hover:bg-yellow-500">Warning</button>
           <button @click="filterLogs('Error')" class="px-4 py-2 bg-red-600 rounded hover:bg-red-500">Error</button>
         </div>
@@ -16,7 +16,7 @@
       <!-- Logs Table -->
       <table class="w-full table-auto">
         <thead>
-          <tr class="bg-stone-700 text-left">
+          <tr class="bg-gray-700 text-left">
             <th class="p-2">Node</th>
             <th class="p-2">Timestamp</th>
             <th class="p-2">Level</th>
@@ -24,7 +24,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="log in filteredLogs" :key="log.id" class="hover:bg-stone-600">
+          <tr v-for="log in filteredLogs" :key="log.id" class="hover:bg-gray-600">
             <td class="p-2">{{ log.node }}</td>
             <td class="p-2">{{ log.timestamp }}</td>
             <td class="p-2">

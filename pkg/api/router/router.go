@@ -51,6 +51,7 @@ func New(
 		authGroup.PUT("/nodes", nodeHandler.Update)
 		authGroup.DELETE("/nodes/:id", nodeHandler.Delete)
 
+		authGroup.GET("/balancers", balancerHandler.List)
 		authGroup.GET("/balancers/:id", balancerHandler.Get)
 		authGroup.POST("/balancers", balancerHandler.Create)
 		authGroup.PUT("/balancers", balancerHandler.Update)

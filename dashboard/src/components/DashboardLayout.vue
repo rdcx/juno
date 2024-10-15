@@ -1,16 +1,16 @@
 <template>
-    <div v-if="isLoggedIn" class="flex h-screen bg-black text-white">
+    <div v-if="isLoggedIn" class="flex h-screen bg-gray-900 text-white">
       <!-- Sidebar -->
-      <aside class="w-64 h-full m-8">
-        <div class="items-center justify-center space-y-4 p-8 rounded-xl bg-stone-900">
+      <aside class="w-72 h-full bg-gray-950">
+        <div class="items-center justify-center space-y-4 p-8">
           <h1 class="text-2xl text-white mb-4 p-2">Juno</h1>
           <nav>
             <ul>
               <li class="mb-2">
-                <router-link class="block p-2 hover:bg-stone-700 rounded-xl" to="/nodes">Nodes</router-link>
+                <router-link class="block p-2 hover:bg-gray-700 rounded-xl" to="/nodes">Nodes</router-link>
               </li>
               <li class="mb-2">
-                <router-link class="block p-2 hover:bg-stone-700 rounded-xl" to="/balancers">Balancers</router-link>
+                <router-link class="block p-2 hover:bg-gray-700 rounded-xl" to="/balancers">Balancers</router-link>
               </li>
             </ul>
           </nav>
@@ -24,12 +24,12 @@
           <h2 class="text-3xl">Node Management</h2>
           <div class="space-x-4">
             <span v-if="email">{{ email.split('@')[0] }}</span>
-            <button class="px-4 py-2 bg-stone-700 rounded hover:bg-stone-600" @click="logout">Logout</button>
+            <button class="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600" @click="logout">Logout</button>
           </div>
         </div>
   
         <!-- Dashboard Content -->
-        <div class="bg-stone-800 p-6 rounded-lg shadow-lg">
+        <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
           <router-view />
         </div>
       </main>

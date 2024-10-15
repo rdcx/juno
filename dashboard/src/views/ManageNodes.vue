@@ -3,7 +3,7 @@
       <h3 class="text-xl font-bold mb-4">Nodes Overview</h3>
       <table class="w-full table-auto">
         <thead>
-          <tr class="bg-stone-700 text-left">
+          <tr class="bg-gray-700 text-left">
             <th class="p-2">Node ID</th>
             <th class="p-2">Status</th>
             <th class="p-2">Load</th>
@@ -11,12 +11,12 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="node in nodes" :key="node.id" class="hover:bg-stone-600">
+          <tr v-for="node in nodes" :key="node.id" class="hover:bg-gray-600">
             <td class="p-2">{{ node.id }}</td>
             <td class="p-2">{{ node.status }}</td>
             <td class="p-2">{{ node.load }}%</td>
             <td class="p-2">
-              <button class="px-2 py-1 bg-stone-700 rounded hover:bg-stone-600">
+              <button class="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600">
                 View
               </button>
               <button class="ml-2 px-2 py-1 bg-red-600 rounded hover:bg-red-500">
