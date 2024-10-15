@@ -7,10 +7,13 @@
           <nav>
             <ul>
               <li class="mb-2">
-                <router-link class="block p-2 hover:bg-gray-700 rounded-xl" to="/nodes">Nodes</router-link>
+                <router-link class="block p-2 hover:bg-gray-700 rounded-xl" :class="currentRoute == 'nodes' ? 'bg-gray-700' : ''" to="/nodes">Nodes</router-link>
               </li>
               <li class="mb-2">
-                <router-link class="block p-2 hover:bg-gray-700 rounded-xl" to="/balancers">Balancers</router-link>
+                <router-link class="block p-2 hover:bg-gray-700 rounded-xl" :class="currentRoute == 'add-node' ? 'bg-gray-700' : ''" to="/add-node">Add Node</router-link>
+                </li>
+              <li class="mb-2">
+                <router-link class="block p-2 hover:bg-gray-700 rounded-xl" :class="currentRoute == 'balancers' ? 'bg-gray-700' : ''"  to="/balancers">Balancers</router-link>
               </li>
             </ul>
           </nav>
@@ -29,7 +32,7 @@
         </div>
   
         <!-- Dashboard Content -->
-        <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+        <div class="">
           <router-view />
         </div>
       </main>
@@ -40,6 +43,8 @@
   import { defineComponent, computed } from 'vue';
   import { useUserStore } from '@/stores/user';
   import { useRouter } from 'vue-router';
+  import { useRoute } from 'vue-router';
+
   
   export default defineComponent({
     name: 'DashboardLayout',
@@ -54,11 +59,14 @@
         userStore.logout();
         router.push('/login');
       };
+
+      const currentRoute = computed(() => useRoute().name);
   
       return {
         isLoggedIn,
         email,
         logout,
+        currentRoute,
       };
     },
   });

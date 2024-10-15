@@ -11,11 +11,17 @@ const routes = [
     path: '/',
     component: DashboardLayout,
     children: [
-      { path: 'nodes', component: ManageNodes },
-      { path: 'balancers', component: ManageBalancers },
+      {
+        name: 'add-node',
+        path: '/add-node',
+        component: () => import('@/views/AddNode.vue'),
+      },
+      { name: 'nodes', path: 'nodes', component: ManageNodes },
+      { name: 'balancers', path: 'balancers', component: ManageBalancers },
     ],
     meta: { requiresAuth: true }, // Protected routes
   },
+
   {
     path: '/login',
     component: AuthView,

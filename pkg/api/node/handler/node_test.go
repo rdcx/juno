@@ -21,7 +21,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func testNodeMatches(t *testing.T, id, ownerID uuid.UUID, address string, shards []int, n *node.Node) bool {
+func testNodeMatches(t *testing.T, id, ownerID uuid.UUID, address string, offset, shards int, n *node.Node) bool {
 	if n.ID != id {
 		t.Errorf("Expected ID %s, got %s", id, n.ID)
 		return false
@@ -37,16 +37,14 @@ func testNodeMatches(t *testing.T, id, ownerID uuid.UUID, address string, shards
 		return false
 	}
 
-	if len(n.Shards) != len(shards) {
-		t.Errorf("Expected %d shards, got %d", len(shards), len(n.Shards))
+	if n.Offset != offset {
+		t.Errorf("Expected Offset %d, got %d", offset, n.Offset)
 		return false
 	}
 
-	for i, shard := range shards {
-		if n.Shards[i] != shard {
-			t.Errorf("Expected shard %d, got %d", shard, n.Shards[i])
-			return false
-		}
+	if n.Shards != shards {
+		t.Errorf("Expected %d shards, got %d", shards, n.Shards)
+		return false
 	}
 
 	return true
@@ -67,7 +65,8 @@ func TestGet(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: u.ID,
 			Address: "example.com:8080",
-			Shards:  []int{1, 2, 3},
+			Offset:  0,
+			Shards:  1000,
 		}
 
 		err := repo.Create(n)
@@ -114,7 +113,7 @@ func TestGet(t *testing.T) {
 			t.Errorf("Unexpected error: %s", err)
 		}
 
-		if !testNodeMatches(t, n.ID, n.OwnerID, n.Address, n.Shards, resN) {
+		if !testNodeMatches(t, n.ID, n.OwnerID, n.Address, n.Offset, n.Shards, resN) {
 			t.Errorf("Node does not match")
 		}
 	})
@@ -133,7 +132,8 @@ func TestGet(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
 			Address: "example.com:8080",
-			Shards:  []int{1, 2, 3},
+			Offset:  0,
+			Shards:  1000,
 		}
 
 		err := repo.Create(n)
@@ -188,14 +188,16 @@ func TestList(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: u.ID,
 			Address: "example.com:8080",
-			Shards:  []int{1, 2, 3},
+			Offset:  100,
+			Shards:  2,
 		}
 
 		n2 := &node.Node{
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
 			Address: "example.com:8081",
-			Shards:  []int{4, 5, 6},
+			Offset:  200,
+			Shards:  3,
 		}
 
 		err := repo.Create(n1)
@@ -244,7 +246,7 @@ func TestList(t *testing.T) {
 			t.Errorf("Unexpected error: %s", err)
 		}
 
-		if !testNodeMatches(t, n1.ID, n1.OwnerID, n1.Address, n1.Shards, nodeCheck) {
+		if !testNodeMatches(t, n1.ID, n1.OwnerID, n1.Address, n1.Offset, n1.Shards, nodeCheck) {
 			t.Errorf("Node 1 does not match")
 		}
 	})
@@ -262,7 +264,8 @@ func TestCreate(t *testing.T) {
 		}
 
 		addr := "example.com:8080"
-		shards := []int{1, 2, 3}
+		offset := 0
+		shards := 1000
 
 		// Create a new recorder and test context
 		w := httptest.NewRecorder()
@@ -271,6 +274,7 @@ func TestCreate(t *testing.T) {
 		// Marshal the request body
 		body, err := json.Marshal(dto.CreateNodeRequest{
 			Address: addr,
+			Offset:  offset,
 			Shards:  shards,
 		})
 
@@ -314,7 +318,7 @@ func TestCreate(t *testing.T) {
 		}
 
 		// Check if node matches
-		if !testNodeMatches(t, resN.ID, u.ID, addr, shards, resN) {
+		if !testNodeMatches(t, resN.ID, u.ID, addr, offset, shards, resN) {
 			t.Errorf("Node does not match")
 		}
 	})
@@ -333,7 +337,8 @@ func TestCreate(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: u.ID,
 			Address: "example.com:8080",
-			Shards:  []int{1, 2, 3},
+			Offset:  0,
+			Shards:  1000,
 		}
 
 		// Pre-create the node to simulate a duplicate node creation
@@ -399,7 +404,8 @@ func TestUpdate(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: u.ID,
 			Address: "http://example.com",
-			Shards:  []int{1, 2, 3},
+			Offset:  0,
+			Shards:  1000,
 		}
 
 		err := repo.Create(n)
@@ -408,7 +414,8 @@ func TestUpdate(t *testing.T) {
 		}
 
 		addr := "new.example.com:2000"
-		shards := []int{4, 5, 6}
+		offset := 0
+		shards := 100
 
 		// Create a new recorder and test context
 		w := httptest.NewRecorder()
@@ -420,6 +427,7 @@ func TestUpdate(t *testing.T) {
 		// Marshal the request body
 		body, err := json.Marshal(dto.UpdateNodeRequest{
 			Address: addr,
+			Offset:  offset,
 			Shards:  shards,
 		})
 		if err != nil {
@@ -470,7 +478,8 @@ func TestUpdate(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: u.ID,
 			Address: "valid.com:8000",
-			Shards:  []int{1, 2, 3},
+			Offset:  0,
+			Shards:  1000,
 		}
 
 		err := repo.Create(n)
@@ -479,7 +488,8 @@ func TestUpdate(t *testing.T) {
 		}
 
 		addr := "invalid"
-		shards := []int{4, 5, 6}
+		offset := 0
+		shards := 100
 
 		// Create a new recorder and test context
 		w := httptest.NewRecorder()
@@ -491,6 +501,7 @@ func TestUpdate(t *testing.T) {
 		// Marshal the request body
 		body, err := json.Marshal(dto.UpdateNodeRequest{
 			Address: addr,
+			Offset:  offset,
 			Shards:  shards,
 		})
 		if err != nil {
@@ -543,7 +554,8 @@ func TestDelete(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: u.ID,
 			Address: "http://example.com",
-			Shards:  []int{1, 2, 3},
+			Offset:  0,
+			Shards:  1000,
 		}
 
 		err := repo.Create(n)
@@ -599,7 +611,8 @@ func TestDelete(t *testing.T) {
 
 		n := &node.Node{
 			ID:     uuid.New(),
-			Shards: []int{1, 2, 3},
+			Offset: 0,
+			Shards: 1000,
 		}
 
 		// Create a new recorder and test context

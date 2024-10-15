@@ -1,14 +1,14 @@
 package main
 
 import (
-	"juno/pkg/crawlbalance/balanacer/service"
-	"juno/pkg/crawlbalance/balancer/handler"
-	"juno/pkg/crawlbalance/router"
+	"juno/pkg/balancer/crawl/handler"
+	"juno/pkg/balancer/crawl/service"
+	"juno/pkg/balancer/router"
 )
 
 func main() {
 	balancerHandler := handler.New(
-		service.NewLoadBalancer(),
+		service.New(),
 	)
 	router.New(balancerHandler)
 }

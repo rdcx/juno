@@ -1,4 +1,4 @@
-package loadbalance
+package service
 
 import (
 	"juno/pkg/shard"

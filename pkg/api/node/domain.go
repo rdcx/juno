@@ -28,7 +28,7 @@ type Repository interface {
 type Service interface {
 	Get(id uuid.UUID) (*Node, error)
 	ListByOwnerID(ownerID uuid.UUID) ([]*Node, error)
-	Create(ownerID uuid.UUID, addr string, shards []int) (*Node, error)
+	Create(ownerID uuid.UUID, addr string, offset, shards int) (*Node, error)
 	Update(id uuid.UUID, n *Node) (*Node, error)
 	Delete(id uuid.UUID) error
 }
@@ -53,14 +53,12 @@ type Node struct {
 	ID      uuid.UUID `json:"id"`
 	OwnerID uuid.UUID `json:"owner_id"`
 	Address string    `json:"address"`
-	Shards  []int     `json:"shards"`
 }
 
-func New(id, ownerID uuid.UUID, address string, shards []int) *Node {
+func New(id, ownerID uuid.UUID, address string) *Node {
 	return &Node{
 		ID:      id,
 		OwnerID: ownerID,
 		Address: address,
-		Shards:  shards,
 	}
 }

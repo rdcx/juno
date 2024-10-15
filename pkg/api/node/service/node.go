@@ -6,8 +6,6 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-
-	"juno/pkg/shard"
 )
 
 type Service struct {
@@ -37,15 +35,6 @@ func (s *Service) ListByOwnerID(ownerID uuid.UUID) ([]*node.Node, error) {
 	return nodes, nil
 }
 
-func validateShards(shards []int) error {
-	for _, s := range shards {
-		if s > shard.SHARDS || s < 0 {
-			return node.ErrInvalidShards
-		}
-	}
-	return nil
-}
-
 func validateAddress(addr string) error {
 	addSplit := strings.Split(addr, ":")
 
@@ -63,16 +52,12 @@ func validateAddress(addr string) error {
 	return nil
 }
 
-func (s *Service) Create(ownerID uuid.UUID, addr string, shards []int) (*node.Node, error) {
+func (s *Service) Create(ownerID uuid.UUID, addr string) (*node.Node, error) {
 	if found, _ := s.repo.FirstWhereAddress(addr); found != nil {
 		return nil, node.ErrAddressExists
 	}
 
 	errs := []error{}
-
-	if err := validateShards(shards); err != nil {
-		errs = append(errs, err)
-	}
 
 	if err := validateAddress(addr); err != nil {
 		errs = append(errs, err)
@@ -86,7 +71,6 @@ func (s *Service) Create(ownerID uuid.UUID, addr string, shards []int) (*node.No
 		ID:      uuid.New(),
 		OwnerID: ownerID,
 		Address: addr,
-		Shards:  shards,
 	}
 
 	err := s.repo.Create(n)
@@ -107,10 +91,6 @@ func (s *Service) Update(id uuid.UUID, dirty *node.Node) (*node.Node, error) {
 
 	errs := []error{}
 
-	if err := validateShards(dirty.Shards); err != nil {
-		errs = append(errs, err)
-	}
-
 	if err := validateAddress(dirty.Address); err != nil {
 		errs = append(errs, err)
 	}
@@ -124,7 +104,6 @@ func (s *Service) Update(id uuid.UUID, dirty *node.Node) (*node.Node, error) {
 	}
 
 	n.Address = dirty.Address
-	n.Shards = dirty.Shards
 
 	err = s.repo.Update(n)
 

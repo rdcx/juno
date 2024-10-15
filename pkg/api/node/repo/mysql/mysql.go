@@ -2,10 +2,7 @@ package mysql
 
 import (
 	"database/sql"
-	"encoding/json"
-	"fmt"
 	"juno/pkg/api/node"
-	"strings"
 
 	"github.com/google/uuid"
 )
@@ -19,14 +16,7 @@ func New(db *sql.DB) *Repo {
 }
 
 func (r *Repo) Create(n *node.Node) error {
-	shards := "["
-	for _, s := range n.Shards {
-		shards += fmt.Sprintf("%d", s) + ","
-	}
-	shards = strings.TrimSuffix(shards, ",")
-	shards = shards + "]"
-
-	_, err := r.db.Exec("INSERT INTO nodes (id, owner_id, address, shards) VALUES (?, ?, ?, ?)", n.ID, n.OwnerID, n.Address, shards)
+	_, err := r.db.Exec("INSERT INTO nodes (id, owner_id, address) VALUES (?, ?, ?)", n.ID, n.OwnerID, n.Address)
 	if err != nil {
 		return err
 	}
@@ -37,14 +27,7 @@ func (r *Repo) Create(n *node.Node) error {
 func (r *Repo) Get(id uuid.UUID) (*node.Node, error) {
 	var n node.Node
 
-	var shards string
-
-	err := r.db.QueryRow("SELECT id, owner_id, address, shards FROM nodes WHERE id = ?", id).Scan(&n.ID, &n.OwnerID, &n.Address, &shards)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal([]byte(shards), &n.Shards)
+	err := r.db.QueryRow("SELECT id, owner_id, address FROM nodes WHERE id = ?", id).Scan(&n.ID, &n.OwnerID, &n.Address)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +38,7 @@ func (r *Repo) Get(id uuid.UUID) (*node.Node, error) {
 func (r *Repo) ListByOwnerID(ownerID uuid.UUID) ([]*node.Node, error) {
 	var nodes []*node.Node
 
-	rows, err := r.db.Query("SELECT id, owner_id, address, shards FROM nodes WHERE owner_id = ?", ownerID)
+	rows, err := r.db.Query("SELECT id, owner_id, address FROM nodes WHERE owner_id = ?", ownerID)
 
 	if err != nil {
 		return nil, err
@@ -63,13 +46,7 @@ func (r *Repo) ListByOwnerID(ownerID uuid.UUID) ([]*node.Node, error) {
 
 	for rows.Next() {
 		var n node.Node
-		var shards string
-		err = rows.Scan(&n.ID, &n.OwnerID, &n.Address, &shards)
-		if err != nil {
-			return nil, err
-		}
-
-		err = json.Unmarshal([]byte(shards), &n.Shards)
+		err = rows.Scan(&n.ID, &n.OwnerID, &n.Address)
 		if err != nil {
 			return nil, err
 		}
@@ -82,14 +59,8 @@ func (r *Repo) ListByOwnerID(ownerID uuid.UUID) ([]*node.Node, error) {
 
 func (r *Repo) FirstWhereAddress(address string) (*node.Node, error) {
 	var n node.Node
-	var shards string
 
-	err := r.db.QueryRow("SELECT id, owner_id, address, shards FROM nodes WHERE address = ?", address).Scan(&n.ID, &n.OwnerID, &n.Address, &shards)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal([]byte(shards), &n.Shards)
+	err := r.db.QueryRow("SELECT id, owner_id, address, shards FROM nodes WHERE address = ?", address).Scan(&n.ID, &n.OwnerID, &n.Address)
 	if err != nil {
 		return nil, err
 	}
@@ -98,14 +69,8 @@ func (r *Repo) FirstWhereAddress(address string) (*node.Node, error) {
 }
 
 func (r *Repo) Update(n *node.Node) error {
-	shards := "["
-	for _, s := range n.Shards {
-		shards += fmt.Sprintf("%d", s) + ","
-	}
-	shards = strings.TrimSuffix(shards, ",")
-	shards = shards + "]"
 
-	_, err := r.db.Exec("UPDATE nodes SET owner_id = ?, address = ?, shards = ? WHERE id = ?", n.OwnerID, n.Address, shards, n.ID)
+	_, err := r.db.Exec("UPDATE nodes SET owner_id = ?, address = ? WHERE id = ?", n.OwnerID, n.Address, n.ID)
 	if err != nil {
 		return err
 	}

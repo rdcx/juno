@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func testNodeMatches(t *testing.T, id, ownerID uuid.UUID, address string, shards []int, n *node.Node) bool {
+func testNodeMatches(t *testing.T, id, ownerID uuid.UUID, address string, n *node.Node) bool {
 	if n.ID != id {
 		t.Errorf("Expected ID %s, got %s", id, n.ID)
 		return false
@@ -26,18 +26,6 @@ func testNodeMatches(t *testing.T, id, ownerID uuid.UUID, address string, shards
 		return false
 	}
 
-	if len(n.Shards) != len(shards) {
-		t.Errorf("Expected %d shards, got %d", len(shards), len(n.Shards))
-		return false
-	}
-
-	for i, shard := range shards {
-		if n.Shards[i] != shard {
-			t.Errorf("Expected shard %d, got %d", shard, n.Shards[i])
-			return false
-		}
-	}
-
 	return true
 }
 
@@ -51,9 +39,8 @@ func TestCreate(t *testing.T) {
 		}
 
 		addr := "example.com:7000"
-		shards := []int{1, 2, 3}
 
-		n, err := svc.Create(u.ID, addr, shards)
+		n, err := svc.Create(u.ID, addr)
 
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
@@ -65,7 +52,7 @@ func TestCreate(t *testing.T) {
 			t.Errorf("Unexpected error: %s", err)
 		}
 
-		if !testNodeMatches(t, n.ID, n.OwnerID, addr, shards, node) {
+		if !testNodeMatches(t, n.ID, n.OwnerID, addr, node) {
 			t.Errorf("Node does not match")
 		}
 	})
@@ -80,7 +67,7 @@ func TestCreate(t *testing.T) {
 
 		addr := "bad address"
 
-		n, err := svc.Create(u.ID, addr, []int{-1, 2, 3, 100 * 10000})
+		n, err := svc.Create(u.ID, addr)
 
 		if err == nil {
 			t.Fatal("Expected an error")
@@ -88,10 +75,6 @@ func TestCreate(t *testing.T) {
 
 		if !strings.Contains(err.Error(), "invalid address") {
 			t.Errorf("Expected ErrInvalidAddress, got %v", err)
-		}
-
-		if !strings.Contains(err.Error(), "invalid shards") {
-			t.Errorf("Expected ErrInvalidShards, got %v", err)
 		}
 
 		if n != nil {
@@ -107,7 +90,6 @@ func TestCreate(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
 			Address: "http://example.com",
-			Shards:  []int{1, 2, 3},
 		}
 
 		u := &user.User{
@@ -121,9 +103,8 @@ func TestCreate(t *testing.T) {
 		}
 
 		addr := "http://example.com"
-		shards := []int{4, 5, 6}
 
-		n, err = svc.Create(u.ID, addr, shards)
+		n, err = svc.Create(u.ID, addr)
 
 		if err != node.ErrAddressExists {
 			t.Errorf("Expected error, got nil")
@@ -144,7 +125,6 @@ func TestGet(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
 			Address: "example.com:8000",
-			Shards:  []int{1, 2, 3},
 		}
 
 		err := repo.Create(n)
@@ -157,7 +137,7 @@ func TestGet(t *testing.T) {
 			t.Errorf("Unexpected error: %s", err)
 		}
 
-		if !testNodeMatches(t, n.ID, n.OwnerID, n.Address, n.Shards, node) {
+		if !testNodeMatches(t, n.ID, n.OwnerID, n.Address, node) {
 			t.Errorf("Node does not match")
 		}
 	})
@@ -189,7 +169,6 @@ func TestListByOwnerID(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: ownerID,
 			Address: "example.com:8000",
-			Shards:  []int{1, 2, 3},
 		}
 
 		err := repo.Create(n1)
@@ -201,7 +180,6 @@ func TestListByOwnerID(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
 			Address: "example2.com:8080",
-			Shards:  []int{4, 5, 6},
 		}
 
 		err = repo.Create(n2)
@@ -219,7 +197,7 @@ func TestListByOwnerID(t *testing.T) {
 			t.Errorf("Expected 1 nodes, got %d", len(nodes))
 		}
 
-		if !testNodeMatches(t, n1.ID, n1.OwnerID, n1.Address, n1.Shards, nodes[0]) {
+		if !testNodeMatches(t, n1.ID, n1.OwnerID, n1.Address, nodes[0]) {
 			t.Errorf("Node does not match")
 		}
 	})
@@ -234,7 +212,6 @@ func TestUpdate(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
 			Address: "node.com:9392",
-			Shards:  []int{1, 2, 3},
 		}
 
 		err := repo.Create(n)
@@ -243,7 +220,6 @@ func TestUpdate(t *testing.T) {
 		}
 
 		n.Address = "example2.com:8080"
-		n.Shards = []int{4, 5, 6}
 
 		n, err = svc.Update(n.ID, n)
 		if err != nil {
@@ -255,7 +231,7 @@ func TestUpdate(t *testing.T) {
 			t.Errorf("Unexpected error: %s", err)
 		}
 
-		if !testNodeMatches(t, n.ID, n.OwnerID, n.Address, n.Shards, node) {
+		if !testNodeMatches(t, n.ID, n.OwnerID, n.Address, node) {
 			t.Errorf("Node does not match")
 		}
 	})
@@ -268,7 +244,6 @@ func TestUpdate(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
 			Address: "valid.com:8000",
-			Shards:  []int{1, 2, 3},
 		}
 
 		err := repo.Create(n)
@@ -283,7 +258,6 @@ func TestUpdate(t *testing.T) {
 		}
 
 		nn.Address = "bad address"
-		nn.Shards = []int{-1, 2, 3, 100 * 10000}
 
 		updated, err := svc.Update(n.ID, nn)
 
@@ -299,16 +273,12 @@ func TestUpdate(t *testing.T) {
 			t.Errorf("Expected ErrInvalidAddress, got %v", err)
 		}
 
-		if !strings.Contains(err.Error(), "invalid shards") {
-			t.Errorf("Expected ErrInvalidShards, got %v", err)
-		}
-
 		check, err := repo.Get(n.ID)
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
 		}
 
-		if !testNodeMatches(t, n.ID, n.OwnerID, "valid.com:8000", []int{1, 2, 3}, check) {
+		if !testNodeMatches(t, n.ID, n.OwnerID, "valid.com:8000", check) {
 			t.Errorf("Node does not match")
 		}
 	})
@@ -321,7 +291,6 @@ func TestUpdate(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
 			Address: "http://example.com",
-			Shards:  []int{1, 2, 3},
 		}
 
 		n, err := svc.Update(uuid.New(), n)
@@ -340,7 +309,6 @@ func TestDelete(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
 			Address: "http://example.com",
-			Shards:  []int{1, 2, 3},
 		}
 
 		err := repo.Create(n)
