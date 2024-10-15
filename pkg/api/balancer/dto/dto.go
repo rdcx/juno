@@ -15,7 +15,6 @@ type Balancer struct {
 	ID      string `json:"id"`
 	OwnerID string `json:"owner_id"`
 	Address string `json:"address"`
-	Shards  []int  `json:"shards"`
 }
 
 func NewBalancerFromDomain(n *balancer.Balancer) *Balancer {
@@ -23,7 +22,6 @@ func NewBalancerFromDomain(n *balancer.Balancer) *Balancer {
 		ID:      n.ID.String(),
 		OwnerID: n.OwnerID.String(),
 		Address: n.Address,
-		Shards:  n.Shards,
 	}
 }
 
@@ -37,7 +35,7 @@ func (n Balancer) ToDomain() (*balancer.Balancer, error) {
 	if err != nil {
 		return nil, err
 	}
-	return balancer.New(id, ownerID, n.Address, n.Shards), nil
+	return balancer.New(id, ownerID, n.Address), nil
 }
 
 type ListBalancersResponse struct {
@@ -88,14 +86,12 @@ func NewErrorGetBalancerResponse(message string) GetBalancerResponse {
 
 type CreateBalancerRequest struct {
 	Address string `json:"address"`
-	Shards  []int  `json:"shards"`
 }
 
 func (r CreateBalancerRequest) ToDomain() balancer.Balancer {
 	return balancer.Balancer{
 		ID:      uuid.New(),
 		Address: r.Address,
-		Shards:  r.Shards,
 	}
 }
 
@@ -123,13 +119,13 @@ func NewErrorCreateBalancerResponse(message string) CreateBalancerResponse {
 
 type UpdateBalancerRequest struct {
 	Address string `json:"address"`
-	Shards  []int  `json:"shards"`
+	Offset  int    `json:"offset"`
+	Shards  int    `json:"shards"`
 }
 
 func (r UpdateBalancerRequest) ToDomain() (*balancer.Balancer, error) {
 	return &balancer.Balancer{
 		Address: r.Address,
-		Shards:  r.Shards,
 	}, nil
 }
 

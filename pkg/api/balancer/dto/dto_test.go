@@ -8,7 +8,6 @@ func TestBalancerToDomain(t *testing.T) {
 			ID:      "00000000-0000-0000-0000-000000000000",
 			OwnerID: "00000000-0000-0000-0000-000000000001",
 			Address: "http://balancer.com",
-			Shards:  []int{1, 2, 3},
 		}
 
 		d, err := n.ToDomain()
@@ -29,9 +28,6 @@ func TestBalancerToDomain(t *testing.T) {
 			t.Errorf("Expected Address %s, got %s", n.Address, d.Address)
 		}
 
-		if len(d.Shards) != len(n.Shards) {
-			t.Errorf("Expected %d shards, got %d", len(n.Shards), len(d.Shards))
-		}
 	})
 
 	t.Run("invalid id", func(t *testing.T) {
@@ -39,7 +35,6 @@ func TestBalancerToDomain(t *testing.T) {
 			ID:      "00000000-0000-0000-0000-000000000000",
 			OwnerID: "00000000-0000-0000-0000-000000000001",
 			Address: "http://balancer.com",
-			Shards:  []int{1, 2, 3},
 		}
 
 		n.ID = "invalid"
@@ -56,7 +51,6 @@ func TestBalancerToDomain(t *testing.T) {
 			ID:      "00000000-0000-0000-0000-000000000000",
 			OwnerID: "00000000-0000-0000-0000-000000000001",
 			Address: "http://balancer.com",
-			Shards:  []int{1, 2, 3},
 		}
 
 		n.OwnerID = "invalid"

@@ -1,13 +1,13 @@
 package router
 
 import (
-	"juno/pkg/crawlbalance/balancer"
+	"juno/pkg/balancer/crawl"
 
 	"github.com/gin-gonic/gin"
 )
 
 func New(
-	crawlHandler balancer.Handler,
+	crawlHandler crawl.Handler,
 ) *gin.Engine {
 	r := gin.Default()
 

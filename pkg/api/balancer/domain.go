@@ -28,7 +28,7 @@ type Repository interface {
 type Service interface {
 	Get(id uuid.UUID) (*Balancer, error)
 	ListByOwnerID(ownerID uuid.UUID) ([]*Balancer, error)
-	Create(ownerID uuid.UUID, addr string, shards []int) (*Balancer, error)
+	Create(ownerID uuid.UUID, addr string) (*Balancer, error)
 	Update(id uuid.UUID, n *Balancer) (*Balancer, error)
 	Delete(id uuid.UUID) error
 }
@@ -53,14 +53,12 @@ type Balancer struct {
 	ID      uuid.UUID `json:"id"`
 	OwnerID uuid.UUID `json:"owner_id"`
 	Address string    `json:"address"`
-	Shards  []int     `json:"shards"`
 }
 
-func New(id, ownerID uuid.UUID, address string, shards []int) *Balancer {
+func New(id, ownerID uuid.UUID, address string) *Balancer {
 	return &Balancer{
 		ID:      id,
 		OwnerID: ownerID,
 		Address: address,
-		Shards:  shards,
 	}
 }

@@ -21,7 +21,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func testBalancerMatches(t *testing.T, id, ownerID uuid.UUID, address string, shards []int, n *balancer.Balancer) bool {
+func testBalancerMatches(t *testing.T, id, ownerID uuid.UUID, address string, n *balancer.Balancer) bool {
 	if n.ID != id {
 		t.Errorf("Expected ID %s, got %s", id, n.ID)
 		return false
@@ -35,18 +35,6 @@ func testBalancerMatches(t *testing.T, id, ownerID uuid.UUID, address string, sh
 	if n.Address != address {
 		t.Errorf("Expected Address %s, got %s", address, n.Address)
 		return false
-	}
-
-	if len(n.Shards) != len(shards) {
-		t.Errorf("Expected %d shards, got %d", len(shards), len(n.Shards))
-		return false
-	}
-
-	for i, shard := range shards {
-		if n.Shards[i] != shard {
-			t.Errorf("Expected shard %d, got %d", shard, n.Shards[i])
-			return false
-		}
 	}
 
 	return true
@@ -67,7 +55,6 @@ func TestGet(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: u.ID,
 			Address: "example.com:8080",
-			Shards:  []int{1, 2, 3},
 		}
 
 		err := repo.Create(n)
@@ -114,7 +101,7 @@ func TestGet(t *testing.T) {
 			t.Errorf("Unexpected error: %s", err)
 		}
 
-		if !testBalancerMatches(t, n.ID, n.OwnerID, n.Address, n.Shards, resN) {
+		if !testBalancerMatches(t, n.ID, n.OwnerID, n.Address, resN) {
 			t.Errorf("Balancer does not match")
 		}
 	})
@@ -133,7 +120,6 @@ func TestGet(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
 			Address: "example.com:8080",
-			Shards:  []int{1, 2, 3},
 		}
 
 		err := repo.Create(n)
@@ -188,14 +174,12 @@ func TestList(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: u.ID,
 			Address: "example.com:8080",
-			Shards:  []int{1, 2, 3},
 		}
 
 		n2 := &balancer.Balancer{
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
 			Address: "example.com:8081",
-			Shards:  []int{4, 5, 6},
 		}
 
 		err := repo.Create(n1)
@@ -244,7 +228,7 @@ func TestList(t *testing.T) {
 			t.Errorf("Unexpected error: %s", err)
 		}
 
-		if !testBalancerMatches(t, n1.ID, n1.OwnerID, n1.Address, n1.Shards, balancerCheck) {
+		if !testBalancerMatches(t, n1.ID, n1.OwnerID, n1.Address, balancerCheck) {
 			t.Errorf("Balancer 1 does not match")
 		}
 	})
@@ -262,7 +246,6 @@ func TestCreate(t *testing.T) {
 		}
 
 		addr := "example.com:8080"
-		shards := []int{1, 2, 3}
 
 		// Create a new recorder and test context
 		w := httptest.NewRecorder()
@@ -271,7 +254,6 @@ func TestCreate(t *testing.T) {
 		// Marshal the request body
 		body, err := json.Marshal(dto.CreateBalancerRequest{
 			Address: addr,
-			Shards:  shards,
 		})
 
 		if err != nil {
@@ -314,7 +296,7 @@ func TestCreate(t *testing.T) {
 		}
 
 		// Check if balancer matches
-		if !testBalancerMatches(t, resN.ID, u.ID, addr, shards, resN) {
+		if !testBalancerMatches(t, resN.ID, u.ID, addr, resN) {
 			t.Errorf("Balancer does not match")
 		}
 	})
@@ -333,7 +315,6 @@ func TestCreate(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: u.ID,
 			Address: "example.com:8080",
-			Shards:  []int{1, 2, 3},
 		}
 
 		// Pre-create the balancer to simulate a duplicate balancer creation
@@ -352,7 +333,6 @@ func TestCreate(t *testing.T) {
 		// Marshal the request body
 		body, err := json.Marshal(dto.CreateBalancerRequest{
 			Address: n.Address,
-			Shards:  n.Shards,
 		})
 		if err != nil {
 			t.Fatalf("Unexpected error: %s", err)
@@ -399,7 +379,6 @@ func TestUpdate(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: u.ID,
 			Address: "http://example.com",
-			Shards:  []int{1, 2, 3},
 		}
 
 		err := repo.Create(n)
@@ -408,7 +387,8 @@ func TestUpdate(t *testing.T) {
 		}
 
 		addr := "new.example.com:2000"
-		shards := []int{4, 5, 6}
+		offset := 0
+		shards := 100
 
 		// Create a new recorder and test context
 		w := httptest.NewRecorder()
@@ -420,6 +400,7 @@ func TestUpdate(t *testing.T) {
 		// Marshal the request body
 		body, err := json.Marshal(dto.UpdateBalancerRequest{
 			Address: addr,
+			Offset:  offset,
 			Shards:  shards,
 		})
 		if err != nil {
@@ -470,7 +451,6 @@ func TestUpdate(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: u.ID,
 			Address: "valid.com:8000",
-			Shards:  []int{1, 2, 3},
 		}
 
 		err := repo.Create(n)
@@ -479,7 +459,8 @@ func TestUpdate(t *testing.T) {
 		}
 
 		addr := "invalid"
-		shards := []int{4, 5, 6}
+		offset := 0
+		shards := 100
 
 		// Create a new recorder and test context
 		w := httptest.NewRecorder()
@@ -491,6 +472,7 @@ func TestUpdate(t *testing.T) {
 		// Marshal the request body
 		body, err := json.Marshal(dto.UpdateBalancerRequest{
 			Address: addr,
+			Offset:  offset,
 			Shards:  shards,
 		})
 		if err != nil {
@@ -543,7 +525,6 @@ func TestDelete(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: u.ID,
 			Address: "http://example.com",
-			Shards:  []int{1, 2, 3},
 		}
 
 		err := repo.Create(n)
@@ -598,8 +579,7 @@ func TestDelete(t *testing.T) {
 		}
 
 		n := &balancer.Balancer{
-			ID:     uuid.New(),
-			Shards: []int{1, 2, 3},
+			ID: uuid.New(),
 		}
 
 		// Create a new recorder and test context
