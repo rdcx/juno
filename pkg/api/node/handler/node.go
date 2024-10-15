@@ -24,6 +24,23 @@ func New(l *logrus.Logger, policy node.Policy, ns node.Service) *Handler {
 	}
 }
 
+func (h *Handler) AllShardsNodes(c *gin.Context) {
+	shards, err := h.nodeService.AllShardsNodes()
+
+	if err != nil {
+		h.logger.Debug(
+			logrus.Fields{
+				"error": err.Error(),
+			})
+		c.JSON(404, dto.NewErrorAllShardsNodesResponse(
+			node.ErrNotFound.Error(),
+		))
+		return
+	}
+
+	c.JSON(200, dto.NewSuccessAllShardsNodesResponse(shards))
+}
+
 func (h *Handler) List(c *gin.Context) {
 	u := auth.MustUserFromContext(c.Request.Context())
 

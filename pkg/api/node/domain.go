@@ -17,6 +17,7 @@ var ErrNotFound = errors.New("node not found")
 var ErrInternal = errors.New("internal error")
 
 type Repository interface {
+	All() ([]*Node, error)
 	Create(n *Node) error
 	Get(id uuid.UUID) (*Node, error)
 	ListByOwnerID(ownerID uuid.UUID) ([]*Node, error)
@@ -26,6 +27,7 @@ type Repository interface {
 }
 
 type Service interface {
+	AllShardsNodes() (map[int][]*Node, error)
 	Get(id uuid.UUID) (*Node, error)
 	ListByOwnerID(ownerID uuid.UUID) ([]*Node, error)
 	Create(ownerID uuid.UUID, addr string, shardAssignments [][2]int) (*Node, error)
@@ -34,6 +36,7 @@ type Service interface {
 }
 
 type Handler interface {
+	AllShardsNodes(c *gin.Context)
 	List(c *gin.Context)
 	Get(c *gin.Context)
 	Create(c *gin.Context)

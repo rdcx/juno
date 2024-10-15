@@ -31,6 +31,34 @@ func (r *Repo) Create(n *node.Node) error {
 	return nil
 }
 
+func (r *Repo) All() ([]*node.Node, error) {
+	var nodes []*node.Node
+
+	rows, err := r.db.Query("SELECT id, owner_id, address, shard_assignments FROM nodes")
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var n node.Node
+		var shardAssignmentJson string
+		err = rows.Scan(&n.ID, &n.OwnerID, &n.Address, &shardAssignmentJson)
+		if err != nil {
+			return nil, err
+		}
+
+		err = json.Unmarshal([]byte(shardAssignmentJson), &n.ShardAssignments)
+		if err != nil {
+			return nil, err
+		}
+
+		nodes = append(nodes, &n)
+	}
+
+	return nodes, nil
+}
+
 func (r *Repo) Get(id uuid.UUID) (*node.Node, error) {
 	var n node.Node
 

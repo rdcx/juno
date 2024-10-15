@@ -48,6 +48,8 @@ func New(
 		authGroup.POST("/nodes", nodeHandler.Create)
 		authGroup.PUT("/nodes/:id", nodeHandler.Update)
 		authGroup.DELETE("/nodes/:id", nodeHandler.Delete)
+
+		authGroup.GET("/shards", nodeHandler.AllShardsNodes)
 	}
 
 	return r

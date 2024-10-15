@@ -41,6 +41,75 @@ func testNodeMatches(t *testing.T, id, ownerID uuid.UUID, address string, shardA
 	return true
 }
 
+func TestAllShardsNodes(t *testing.T) {
+	repo := mem.New()
+	svc := New(repo)
+
+	n1 := &node.Node{
+		ID:               uuid.New(),
+		OwnerID:          uuid.New(),
+		Address:          "http://example.com",
+		ShardAssignments: [][2]int{{0, 1000}, {1000, 1000}},
+	}
+
+	err := repo.Create(n1)
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+
+	n2 := &node.Node{
+		ID:               uuid.New(),
+		OwnerID:          uuid.New(),
+		Address:          "http://example.org",
+		ShardAssignments: [][2]int{{2000, 1000}, {3000, 2000}},
+	}
+
+	err = repo.Create(n2)
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+
+	shards, err := svc.AllShardsNodes()
+
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+
+	if len(shards) != 5000 {
+		t.Errorf("Expected 5000 shards, got %d", len(shards))
+	}
+
+	if len(shards[0]) != 1 {
+		t.Errorf("Expected 1 node for shard 0, got %d", len(shards[0]))
+	}
+
+	if len(shards[1000]) != 1 {
+		t.Errorf("Expected 1 node for shard 1000, got %d", len(shards[1000]))
+	}
+
+	for i := 1; i < 1000; i++ {
+		if shards[i][0].ID != n1.ID {
+			t.Errorf("Expected node %s for shard %d, got %s", n1.ID, i, shards[i][0].ID)
+		}
+
+		if shards[i+1000][0].ID != n1.ID {
+			t.Errorf("Expected node %s for shard %d, got %s", n1.ID, i+1000, shards[i+1000][0].ID)
+		}
+
+		if shards[i+2000][0].ID != n2.ID {
+			t.Errorf("Expected node %s for shard %d, got %s", n2.ID, i+2000, shards[i+2000][0].ID)
+		}
+
+		if shards[i+3000][0].ID != n2.ID {
+			t.Errorf("Expected node %s for shard %d, got %s", n2.ID, i+3000, shards[i+3000][0].ID)
+		}
+
+		if shards[i+4000][0].ID != n2.ID {
+			t.Errorf("Expected node %s for shard %d, got %s", n2.ID, i+4000, shards[i+4000][0].ID)
+		}
+	}
+}
+
 func TestValidateShardAssignments(t *testing.T) {
 	tests := []struct {
 		name    string

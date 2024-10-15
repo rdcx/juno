@@ -26,6 +26,16 @@ func (r *Repository) Create(n *node.Node) error {
 	return nil
 }
 
+func (r *Repository) All() ([]*node.Node, error) {
+	var nodes []*node.Node
+
+	for _, n := range r.nodes {
+		nodes = append(nodes, n)
+	}
+
+	return nodes, nil
+}
+
 func (r *Repository) Get(id uuid.UUID) (*node.Node, error) {
 	n, ok := r.nodes[id]
 	if !ok || n == nil {

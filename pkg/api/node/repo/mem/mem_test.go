@@ -26,6 +26,56 @@ func testNodeMatches(t *testing.T, id, ownerID uuid.UUID, address string, n *nod
 	return true
 }
 
+func TestAll(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		n1 := node.Node{
+			ID:      uuid.New(),
+			OwnerID: uuid.New(),
+			Address: "http://example.com",
+		}
+		n2 := node.Node{
+			ID:      uuid.New(),
+			OwnerID: uuid.New(),
+			Address: "http://example.org",
+		}
+
+		repo := New()
+
+		err := repo.Create(&n1)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		err = repo.Create(&n2)
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		nodes, err := repo.All()
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		if len(nodes) != 2 {
+			t.Errorf("Expected 2 nodes, got %d", len(nodes))
+		}
+
+		for _, n := range nodes {
+			if n.ID == n1.ID {
+				if !testNodeMatches(t, n1.ID, n1.OwnerID, n1.Address, n) {
+					t.Errorf("Node 1 does not match")
+				}
+			} else if n.ID == n2.ID {
+				if !testNodeMatches(t, n2.ID, n2.OwnerID, n2.Address, n) {
+					t.Errorf("Node 2 does not match")
+				}
+			} else {
+				t.Errorf("Unexpected node ID: %s", n.ID)
+			}
+		}
+	})
+}
+
 func TestCreate(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		n := node.Node{

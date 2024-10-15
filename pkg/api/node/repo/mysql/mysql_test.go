@@ -64,6 +64,74 @@ func testNodeMatches(t *testing.T, conn *sql.DB, id, ownerID uuid.UUID, address 
 	return true
 }
 
+func TestAll(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		n1 := node.Node{
+			ID:      uuid.New(),
+			OwnerID: uuid.New(),
+			Address: "http://example.com",
+			ShardAssignments: [][2]int{
+				{0, 1}, {1, 2},
+			},
+		}
+
+		n2 := node.Node{
+			ID:      uuid.New(),
+			OwnerID: uuid.New(),
+			Address: "http://example.org",
+			ShardAssignments: [][2]int{
+				{0, 1}, {1, 2},
+			},
+		}
+
+		// Marshal shard_assignments to JSON string
+		shardsJSON1, err := json.Marshal(n1.ShardAssignments)
+		if err != nil {
+			t.Errorf("Error marshalling shard assignments: %s", err)
+		}
+		shardsJSON2, err := json.Marshal(n2.ShardAssignments)
+		if err != nil {
+			t.Errorf("Error marshalling shard assignments: %s", err)
+		}
+
+		conn, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/node_test?parseTime=true")
+		if err != nil {
+			t.Errorf("Error connecting to database: %s", err)
+		}
+		err = mysql.ExecuteMigrations(conn)
+		if err != nil {
+			t.Errorf("Error executing migrations: %s", err)
+		}
+
+		defer conn.Close()
+
+		defer conn.Exec("DELETE FROM nodes WHERE id = ?", n1.ID)
+		defer conn.Exec("DELETE FROM nodes WHERE id = ?", n2.ID)
+
+		_, err = conn.Exec("INSERT INTO nodes (id, owner_id, address, shard_assignments) VALUES (?, ?, ?, ?)", n1.ID, n1.OwnerID, n1.Address, shardsJSON1)
+		if err != nil {
+			t.Errorf("Error inserting node: %s", err)
+		}
+
+		_, err = conn.Exec("INSERT INTO nodes (id, owner_id, address, shard_assignments) VALUES (?, ?, ?, ?)", n2.ID, n2.OwnerID, n2.Address, shardsJSON2)
+		if err != nil {
+			t.Errorf("Error inserting node: %s", err)
+		}
+
+		repo := New(conn)
+
+		nodes, err := repo.All()
+
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		if len(nodes) < 2 {
+			t.Errorf("Expected 2 nodes, got %d", len(nodes))
+		}
+	})
+}
+
 func TestCreate(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		n := node.Node{

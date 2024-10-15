@@ -67,6 +67,26 @@ func validateShardAssignments(shardAssignments [][2]int) error {
 	return nil
 }
 
+func (s *Service) AllShardsNodes() (map[int][]*node.Node, error) {
+	nodes, err := s.repo.All()
+
+	if err != nil {
+		return nil, node.ErrInternal
+	}
+
+	shardsNodes := make(map[int][]*node.Node)
+
+	for _, n := range nodes {
+		for _, s := range n.ShardAssignments {
+			for i := s[0]; i < s[0]+s[1]; i++ {
+				shardsNodes[i] = append(shardsNodes[i], n)
+			}
+		}
+	}
+
+	return shardsNodes, nil
+}
+
 func (s *Service) Create(ownerID uuid.UUID, addr string, shardAssignments [][2]int) (*node.Node, error) {
 	if found, _ := s.repo.FirstWhereAddress(addr); found != nil {
 		return nil, node.ErrAddressExists

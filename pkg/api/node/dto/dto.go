@@ -172,3 +172,30 @@ func NewErrorDeleteNodeResponse(message string) DeleteNodeResponse {
 		Message: message,
 	}
 }
+
+type AllShardsNodesResponse struct {
+	Status  string `json:"status"`
+	Message string `json:"message,omitempty"` // Only present when there's an error
+
+	Shards map[int][]string `json:"shards,omitempty"` // Only present when successful
+}
+
+func NewSuccessAllShardsNodesResponse(shards map[int][]*node.Node) AllShardsNodesResponse {
+	m := make(map[int][]string)
+	for i, nodes := range shards {
+		for _, node := range nodes {
+			m[i] = append(m[i], node.Address)
+		}
+	}
+	return AllShardsNodesResponse{
+		Status: SUCCESS,
+		Shards: m,
+	}
+}
+
+func NewErrorAllShardsNodesResponse(message string) AllShardsNodesResponse {
+	return AllShardsNodesResponse{
+		Status:  ERROR,
+		Message: message,
+	}
+}

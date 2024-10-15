@@ -52,6 +52,65 @@ func testNodeMatches(t *testing.T, id, ownerID uuid.UUID, address string, shardA
 	return true
 }
 
+func TestAllShardsNodes(t *testing.T) {
+	repo := mem.New()
+	svc := service.New(repo)
+	handler := New(logrus.New(), policy.New(), svc)
+
+	n1 := &node.Node{
+		ID:               uuid.New(),
+		OwnerID:          uuid.New(),
+		Address:          "http://example.com",
+		ShardAssignments: [][2]int{{0, 1000}, {1000, 1000}},
+	}
+
+	err := repo.Create(n1)
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+
+	n2 := &node.Node{
+		ID:               uuid.New(),
+		OwnerID:          uuid.New(),
+		Address:          "node.com:8080",
+		ShardAssignments: [][2]int{{0, 1000}, {1000, 1000}},
+	}
+
+	err = repo.Create(n2)
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+
+	w := httptest.NewRecorder()
+	tc, _ := gin.CreateTestContext(w)
+
+	tc.Request = httptest.NewRequest("GET", "/nodes", nil)
+
+	handler.AllShardsNodes(tc)
+
+	var res dto.AllShardsNodesResponse
+
+	err = json.Unmarshal(w.Body.Bytes(), &res)
+
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+
+	if res.Status != "success" {
+		t.Errorf("Expected success, got %s", res.Status)
+	}
+
+	if len(res.Shards) != 2000 {
+		t.Errorf("Expected 2000 shards, got %d", len(res.Shards))
+	}
+
+	for i := 0; i < 2000; i++ {
+		if res.Shards[i][0] != n1.Address {
+			t.Errorf("Expected address %s for shard %d, got %s", n1.Address, i, res.Shards[i][0])
+		}
+	}
+}
+
 func TestGet(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		repo := mem.New()
