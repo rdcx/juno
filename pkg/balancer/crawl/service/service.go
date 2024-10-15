@@ -2,7 +2,6 @@ package service
 
 import (
 	"juno/pkg/balancer/crawl"
-	"juno/pkg/balancer/crawl/dto"
 	"juno/pkg/link"
 	"juno/pkg/node/client"
 	"juno/pkg/shard"
@@ -30,9 +29,9 @@ func (lb *Service) randomNode(shard int) (string, error) {
 	return lb.nodes[shard][rand.Intn(len(lb.nodes[shard]))], nil
 }
 
-func (lb *Service) Crawl(req dto.CrawlRequest) {
+func (lb *Service) Crawl(url string) {
 
-	hostname, err := link.ToHostname(req.URL)
+	hostname, err := link.ToHostname(url)
 	if err != nil {
 		return
 	}
@@ -45,7 +44,7 @@ func (lb *Service) Crawl(req dto.CrawlRequest) {
 			log.Printf("no nodes available in shard %d", shard)
 			return
 		}
-		err = client.SendCrawlRequest(node, req.URL)
+		err = client.SendCrawlRequest(node, url)
 		if err == nil {
 			break
 		}
@@ -53,5 +52,5 @@ func (lb *Service) Crawl(req dto.CrawlRequest) {
 		tries++
 	}
 
-	log.Printf("failed to send link %s to shard: %v", req.URL, err)
+	log.Printf("failed to send link %s to shard: %v", url, err)
 }

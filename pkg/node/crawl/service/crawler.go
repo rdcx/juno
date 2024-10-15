@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	"juno/pkg/crawl/domain"
 	"juno/pkg/link"
+	"juno/pkg/node/crawl/domain"
 	"log"
 )
 
