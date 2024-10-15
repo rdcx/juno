@@ -119,7 +119,7 @@ func (h *Handler) Create(c *gin.Context) {
 
 	h.policy.CanCreate().
 		Allow(func() {
-			n, err := h.nodeService.Create(u.ID, req.Address)
+			n, err := h.nodeService.Create(u.ID, req.Address, req.ShardAssignments)
 
 			if err != nil {
 				h.logger.Debug(

@@ -2,6 +2,7 @@ package service
 
 import (
 	"juno/pkg/api/node"
+	"juno/pkg/shard"
 	"juno/pkg/util"
 	"strings"
 
@@ -52,12 +53,38 @@ func validateAddress(addr string) error {
 	return nil
 }
 
-func (s *Service) Create(ownerID uuid.UUID, addr string) (*node.Node, error) {
+func validateShardAssignments(shardAssignments [][2]int) error {
+	for _, s := range shardAssignments {
+		if s[0] < 0 || s[1] < 0 {
+			return node.ErrInvalidShards
+		}
+
+		if s[0] > s[1] {
+			return node.ErrInvalidShards
+		}
+
+		if s[0] == s[1] {
+			return node.ErrInvalidShards
+		}
+
+		if s[0]+s[1] > shard.SHARDS {
+			return node.ErrInvalidShards
+		}
+	}
+
+	return nil
+}
+
+func (s *Service) Create(ownerID uuid.UUID, addr string, shardAssignments [][2]int) (*node.Node, error) {
 	if found, _ := s.repo.FirstWhereAddress(addr); found != nil {
 		return nil, node.ErrAddressExists
 	}
 
 	errs := []error{}
+
+	if err := validateShardAssignments(shardAssignments); err != nil {
+		errs = append(errs, err)
+	}
 
 	if err := validateAddress(addr); err != nil {
 		errs = append(errs, err)

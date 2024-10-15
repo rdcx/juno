@@ -399,9 +399,8 @@ func TestUpdate(t *testing.T) {
 
 		// Marshal the request body
 		body, err := json.Marshal(dto.UpdateNodeRequest{
-			Address: addr,
-			Offset:  offset,
-			Shards:  shards,
+			Address:          addr,
+			ShardAssignments: [][2]int{{offset, shards}},
 		})
 		if err != nil {
 			t.Fatalf("Unexpected error: %s", err)
@@ -471,9 +470,8 @@ func TestUpdate(t *testing.T) {
 
 		// Marshal the request body
 		body, err := json.Marshal(dto.UpdateNodeRequest{
-			Address: addr,
-			Offset:  offset,
-			Shards:  shards,
+			Address:          addr,
+			ShardAssignments: [][2]int{{offset, shards}},
 		})
 		if err != nil {
 			t.Fatalf("Unexpected error: %s", err)

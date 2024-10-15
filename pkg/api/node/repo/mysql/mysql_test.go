@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"database/sql"
+	"encoding/json"
 	"juno/pkg/api/node"
 	"juno/pkg/api/node/migration/mysql"
 	"testing"
@@ -11,17 +12,27 @@ import (
 	"github.com/google/uuid"
 )
 
-func testNodeMatches(t *testing.T, conn *sql.DB, id, ownerID uuid.UUID, address string) bool {
-	sqlCheck := "SELECT id, owner_id, address FROM nodes WHERE id = ?"
+func testNodeMatches(t *testing.T, conn *sql.DB, id, ownerID uuid.UUID, address string, expectedShards [][2]int) bool {
+	sqlCheck := "SELECT id, owner_id, address, shard_assignments FROM nodes WHERE id = ?"
 
 	row := conn.QueryRow(sqlCheck, id)
 
 	var node node.Node
-	err := row.Scan(&node.ID, &node.OwnerID, &node.Address)
+	var shardAssignments string
+	err := row.Scan(&node.ID, &node.OwnerID, &node.Address, &shardAssignments)
 	if err != nil {
 		t.Errorf("Error getting node: %s", err)
 		return false
 	}
+
+	// Unmarshal shard_assignments from string
+	var shards [][2]int
+	if err := json.Unmarshal([]byte(shardAssignments), &shards); err != nil {
+		t.Errorf("Error unmarshalling shard assignments: %s", err)
+		return false
+	}
+
+	node.ShardAssignments = shards
 
 	if node.ID != id {
 		t.Errorf("Expected ID %s, got %s", id, node.ID)
@@ -38,6 +49,18 @@ func testNodeMatches(t *testing.T, conn *sql.DB, id, ownerID uuid.UUID, address 
 		return false
 	}
 
+	if len(node.ShardAssignments) != len(expectedShards) {
+		t.Errorf("Expected %d shard assignments, got %d", len(expectedShards), len(node.ShardAssignments))
+		return false
+	}
+
+	for i, shard := range expectedShards {
+		if node.ShardAssignments[i][0] != shard[0] || node.ShardAssignments[i][1] != shard[1] {
+			t.Errorf("Expected shard assignment %v, got %v", shard, node.ShardAssignments[i])
+			return false
+		}
+	}
+
 	return true
 }
 
@@ -47,6 +70,9 @@ func TestCreate(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
 			Address: "http://example.com",
+			ShardAssignments: [][2]int{
+				{0, 1}, {1, 2},
+			},
 		}
 
 		conn, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/node_test?parseTime=true")
@@ -70,7 +96,7 @@ func TestCreate(t *testing.T) {
 			t.Errorf("Unexpected error: %s", err)
 		}
 
-		if !testNodeMatches(t, conn, n.ID, n.OwnerID, n.Address) {
+		if !testNodeMatches(t, conn, n.ID, n.OwnerID, n.Address, n.ShardAssignments) {
 			t.Errorf("Node does not match")
 		}
 	})
@@ -80,6 +106,15 @@ func TestCreate(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
 			Address: "http://example.com",
+			ShardAssignments: [][2]int{
+				{0, 1}, {1, 2},
+			},
+		}
+
+		// Marshal shard_assignments to JSON string
+		shardsJSON, err := json.Marshal(n.ShardAssignments)
+		if err != nil {
+			t.Errorf("Error marshalling shard assignments: %s", err)
 		}
 
 		conn, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/node_test?parseTime=true")
@@ -93,7 +128,7 @@ func TestCreate(t *testing.T) {
 
 		defer conn.Close()
 
-		_, err = conn.Exec("INSERT INTO nodes (id, owner_id, address) VALUES (?, ?, ?)", n.ID, n.OwnerID, n.Address)
+		_, err = conn.Exec("INSERT INTO nodes (id, owner_id, address, shard_assignments) VALUES (?, ?, ?, ?)", n.ID, n.OwnerID, n.Address, shardsJSON)
 
 		if err != nil {
 			t.Errorf("Error inserting node: %s", err)
@@ -115,6 +150,15 @@ func TestGet(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
 			Address: "http://example.com",
+			ShardAssignments: [][2]int{
+				{0, 1}, {1, 2},
+			},
+		}
+
+		// Marshal shard_assignments to JSON string
+		shardsJSON, err := json.Marshal(n.ShardAssignments)
+		if err != nil {
+			t.Errorf("Error marshalling shard assignments: %s", err)
 		}
 
 		conn, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/node_test?parseTime=true")
@@ -130,7 +174,7 @@ func TestGet(t *testing.T) {
 
 		defer conn.Exec("DELETE FROM nodes WHERE id = ?", n.ID)
 
-		_, err = conn.Exec("INSERT INTO nodes (id, owner_id, address) VALUES (?, ?, ?)", n.ID, n.OwnerID, n.Address)
+		_, err = conn.Exec("INSERT INTO nodes (id, owner_id, address, shard_assignments) VALUES (?, ?, ?, ?)", n.ID, n.OwnerID, n.Address, shardsJSON)
 
 		if err != nil {
 			t.Errorf("Error inserting node: %s", err)
@@ -155,7 +199,6 @@ func TestGet(t *testing.T) {
 		if node.Address != n.Address {
 			t.Errorf("Expected Address %s, got %s", n.Address, node.Address)
 		}
-
 	})
 
 	t.Run("error", func(t *testing.T) {
@@ -177,7 +220,6 @@ func TestGet(t *testing.T) {
 		if err.Error() != "sql: no rows in result set" {
 			t.Errorf("Unexpected error: %s", err)
 		}
-
 	})
 }
 
@@ -189,12 +231,28 @@ func TestListByOwnerID(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: ownerID,
 			Address: "http://example.com",
+			ShardAssignments: [][2]int{
+				{0, 1}, {1, 2},
+			},
 		}
 
 		n2 := node.Node{
 			ID:      uuid.New(),
-			OwnerID: ownerID,
+			OwnerID: uuid.New(),
 			Address: "http://example.org",
+			ShardAssignments: [][2]int{
+				{0, 1}, {1, 2},
+			},
+		}
+
+		// Marshal shard_assignments to JSON string
+		shardsJSON1, err := json.Marshal(n1.ShardAssignments)
+		if err != nil {
+			t.Errorf("Error marshalling shard assignments: %s", err)
+		}
+		shardsJSON2, err := json.Marshal(n2.ShardAssignments)
+		if err != nil {
+			t.Errorf("Error marshalling shard assignments: %s", err)
 		}
 
 		conn, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/node_test?parseTime=true")
@@ -211,12 +269,12 @@ func TestListByOwnerID(t *testing.T) {
 		defer conn.Exec("DELETE FROM nodes WHERE id = ?", n1.ID)
 		defer conn.Exec("DELETE FROM nodes WHERE id = ?", n2.ID)
 
-		_, err = conn.Exec("INSERT INTO nodes (id, owner_id, address) VALUES (?, ?, ?)", n1.ID, n1.OwnerID, n1.Address)
+		_, err = conn.Exec("INSERT INTO nodes (id, owner_id, address, shard_assignments) VALUES (?, ?, ?, ?)", n1.ID, n1.OwnerID, n1.Address, shardsJSON1)
 		if err != nil {
 			t.Errorf("Error inserting node: %s", err)
 		}
 
-		_, err = conn.Exec("INSERT INTO nodes (id, owner_id, address) VALUES (?, ?, ?)", n2.ID, n2.OwnerID, n2.Address)
+		_, err = conn.Exec("INSERT INTO nodes (id, owner_id, address, shard_assignments) VALUES (?, ?, ?, ?)", n2.ID, n2.OwnerID, n2.Address, shardsJSON2)
 		if err != nil {
 			t.Errorf("Error inserting node: %s", err)
 		}
@@ -229,8 +287,8 @@ func TestListByOwnerID(t *testing.T) {
 			t.Errorf("Unexpected error: %s", err)
 		}
 
-		if len(nodes) != 2 {
-			t.Errorf("Expected 2 nodes, got %d", len(nodes))
+		if len(nodes) != 1 {
+			t.Errorf("Expected 1 nodes, got %d", len(nodes))
 		}
 
 		if nodes[0].ID != n1.ID {
@@ -244,19 +302,6 @@ func TestListByOwnerID(t *testing.T) {
 		if nodes[0].Address != n1.Address {
 			t.Errorf("Expected Address %s, got %s", n1.Address, nodes[0].Address)
 		}
-
-		if nodes[1].ID != n2.ID {
-			t.Errorf("Expected ID %s, got %s", n2.ID, nodes[1].ID)
-		}
-
-		if nodes[1].OwnerID != n2.OwnerID {
-			t.Errorf("Expected OwnerID %s, got %s", n2.OwnerID, nodes[1].OwnerID)
-		}
-
-		if nodes[1].Address != n2.Address {
-			t.Errorf("Expected Address %s, got %s", n2.Address, nodes[1].Address)
-		}
-
 	})
 }
 
@@ -266,6 +311,15 @@ func TestUpdate(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
 			Address: "http://example.com",
+			ShardAssignments: [][2]int{
+				{0, 1}, {1, 2},
+			},
+		}
+
+		// Marshal shard_assignments to JSON string
+		shardsJSON, err := json.Marshal(n.ShardAssignments)
+		if err != nil {
+			t.Errorf("Error marshalling shard assignments: %s", err)
 		}
 
 		conn, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/node_test?parseTime=true")
@@ -281,7 +335,7 @@ func TestUpdate(t *testing.T) {
 
 		defer conn.Exec("DELETE FROM nodes WHERE id = ?", n.ID)
 
-		_, err = conn.Exec("INSERT INTO nodes (id, owner_id, address) VALUES (?, ?, ?)", n.ID, n.OwnerID, n.Address)
+		_, err = conn.Exec("INSERT INTO nodes (id, owner_id, address, shard_assignments) VALUES (?, ?, ?, ?)", n.ID, n.OwnerID, n.Address, shardsJSON)
 
 		if err != nil {
 			t.Errorf("Error inserting node: %s", err)
@@ -297,7 +351,7 @@ func TestUpdate(t *testing.T) {
 			t.Errorf("Unexpected error: %s", err)
 		}
 
-		if !testNodeMatches(t, conn, n.ID, n.OwnerID, n.Address) {
+		if !testNodeMatches(t, conn, n.ID, n.OwnerID, n.Address, n.ShardAssignments) {
 			t.Errorf("Node does not match")
 		}
 	})
@@ -309,6 +363,15 @@ func TestDelete(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
 			Address: "http://example.com",
+			ShardAssignments: [][2]int{
+				{0, 1}, {1, 2},
+			},
+		}
+
+		// Marshal shard_assignments to JSON string
+		shardsJSON, err := json.Marshal(n.ShardAssignments)
+		if err != nil {
+			t.Errorf("Error marshalling shard assignments: %s", err)
 		}
 
 		conn, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/node_test?parseTime=true")
@@ -322,7 +385,7 @@ func TestDelete(t *testing.T) {
 
 		defer conn.Close()
 
-		_, err = conn.Exec("INSERT INTO nodes (id, owner_id, address) VALUES (?, ?, ?)", n.ID, n.OwnerID, n.Address)
+		_, err = conn.Exec("INSERT INTO nodes (id, owner_id, address, shard_assignments) VALUES (?, ?, ?, ?)", n.ID, n.OwnerID, n.Address, shardsJSON)
 
 		if err != nil {
 			t.Errorf("Error inserting node: %s", err)

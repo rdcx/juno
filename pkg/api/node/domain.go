@@ -28,7 +28,7 @@ type Repository interface {
 type Service interface {
 	Get(id uuid.UUID) (*Node, error)
 	ListByOwnerID(ownerID uuid.UUID) ([]*Node, error)
-	Create(ownerID uuid.UUID, addr string) (*Node, error)
+	Create(ownerID uuid.UUID, addr string, shardAssignments [][2]int) (*Node, error)
 	Update(id uuid.UUID, n *Node) (*Node, error)
 	Delete(id uuid.UUID) error
 }
@@ -50,9 +50,10 @@ type Policy interface {
 }
 
 type Node struct {
-	ID      uuid.UUID `json:"id"`
-	OwnerID uuid.UUID `json:"owner_id"`
-	Address string    `json:"address"`
+	ID               uuid.UUID `json:"id"`
+	OwnerID          uuid.UUID `json:"owner_id"`
+	Address          string    `json:"address"`
+	ShardAssignments [][2]int  `json:"shard_assignments"`
 }
 
 func New(id, ownerID uuid.UUID, address string) *Node {

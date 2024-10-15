@@ -40,7 +40,7 @@ func TestCreate(t *testing.T) {
 
 		addr := "example.com:7000"
 
-		n, err := svc.Create(u.ID, addr)
+		n, err := svc.Create(u.ID, addr, [][2]int{{0, 1}, {1, 2}})
 
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
@@ -67,7 +67,7 @@ func TestCreate(t *testing.T) {
 
 		addr := "bad address"
 
-		n, err := svc.Create(u.ID, addr)
+		n, err := svc.Create(u.ID, addr, [][2]int{{0, 1}, {1, 2}})
 
 		if err == nil {
 			t.Fatal("Expected an error")
@@ -104,7 +104,7 @@ func TestCreate(t *testing.T) {
 
 		addr := "http://example.com"
 
-		n, err = svc.Create(u.ID, addr)
+		n, err = svc.Create(u.ID, addr, [][2]int{{0, 1}, {1, 2}})
 
 		if err != node.ErrAddressExists {
 			t.Errorf("Expected error, got nil")

@@ -12,9 +12,11 @@ const (
 )
 
 type Node struct {
-	ID      string `json:"id"`
-	OwnerID string `json:"owner_id"`
-	Address string `json:"address"`
+	ID               string   `json:"id"`
+	OwnerID          string   `json:"owner_id"`
+	Address          string   `json:"address"`
+	Status           string   `json:"status"`
+	ShardAssignments [][2]int `json:"shard_assignments"`
 }
 
 func NewNodeFromDomain(n *node.Node) *Node {
@@ -85,13 +87,15 @@ func NewErrorGetNodeResponse(message string) GetNodeResponse {
 }
 
 type CreateNodeRequest struct {
-	Address string `json:"address"`
+	Address          string   `json:"address"`
+	ShardAssignments [][2]int `json:"shard_assignments"`
 }
 
 func (r CreateNodeRequest) ToDomain() node.Node {
 	return node.Node{
-		ID:      uuid.New(),
-		Address: r.Address,
+		ID:               uuid.New(),
+		Address:          r.Address,
+		ShardAssignments: r.ShardAssignments,
 	}
 }
 
@@ -118,14 +122,14 @@ func NewErrorCreateNodeResponse(message string) CreateNodeResponse {
 }
 
 type UpdateNodeRequest struct {
-	Address string `json:"address"`
-	Offset  int    `json:"offset"`
-	Shards  int    `json:"shards"`
+	Address          string   `json:"address"`
+	ShardAssignments [][2]int `json:"shard_assignments"`
 }
 
 func (r UpdateNodeRequest) ToDomain() (*node.Node, error) {
 	return &node.Node{
-		Address: r.Address,
+		Address:          r.Address,
+		ShardAssignments: r.ShardAssignments,
 	}, nil
 }
 
