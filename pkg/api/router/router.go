@@ -46,7 +46,7 @@ func New(
 		authGroup.GET("/nodes", nodeHandler.List)
 		authGroup.GET("/nodes/:id", nodeHandler.Get)
 		authGroup.POST("/nodes", nodeHandler.Create)
-		authGroup.PUT("/nodes", nodeHandler.Update)
+		authGroup.PUT("/nodes/:id", nodeHandler.Update)
 		authGroup.DELETE("/nodes/:id", nodeHandler.Delete)
 	}
 

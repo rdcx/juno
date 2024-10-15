@@ -21,7 +21,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func testNodeMatches(t *testing.T, id, ownerID uuid.UUID, address string, n *node.Node) bool {
+func testNodeMatches(t *testing.T, id, ownerID uuid.UUID, address string, shardAssignments [][2]int, n *node.Node) bool {
 	if n.ID != id {
 		t.Errorf("Expected ID %s, got %s", id, n.ID)
 		return false
@@ -35,6 +35,18 @@ func testNodeMatches(t *testing.T, id, ownerID uuid.UUID, address string, n *nod
 	if n.Address != address {
 		t.Errorf("Expected Address %s, got %s", address, n.Address)
 		return false
+	}
+
+	if len(n.ShardAssignments) != len(shardAssignments) {
+		t.Errorf("Expected %d shard assignments, got %d", len(shardAssignments), len(n.ShardAssignments))
+		return false
+	}
+
+	for i, s := range shardAssignments {
+		if n.ShardAssignments[i][0] != s[0] || n.ShardAssignments[i][1] != s[1] {
+			t.Errorf("Expected shard assignment %v, got %v", s, n.ShardAssignments[i])
+			return false
+		}
 	}
 
 	return true
@@ -55,6 +67,10 @@ func TestGet(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: u.ID,
 			Address: "example.com:8080",
+			ShardAssignments: [][2]int{
+				{0, 100},
+				{100, 200},
+			},
 		}
 
 		err := repo.Create(n)
@@ -101,7 +117,7 @@ func TestGet(t *testing.T) {
 			t.Errorf("Unexpected error: %s", err)
 		}
 
-		if !testNodeMatches(t, n.ID, n.OwnerID, n.Address, resN) {
+		if !testNodeMatches(t, n.ID, n.OwnerID, n.Address, n.ShardAssignments, resN) {
 			t.Errorf("Node does not match")
 		}
 	})
@@ -180,6 +196,10 @@ func TestList(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
 			Address: "example.com:8081",
+			ShardAssignments: [][2]int{
+				{0, 100},
+				{100, 200},
+			},
 		}
 
 		err := repo.Create(n1)
@@ -228,7 +248,7 @@ func TestList(t *testing.T) {
 			t.Errorf("Unexpected error: %s", err)
 		}
 
-		if !testNodeMatches(t, n1.ID, n1.OwnerID, n1.Address, nodeCheck) {
+		if !testNodeMatches(t, n1.ID, n1.OwnerID, n1.Address, n1.ShardAssignments, nodeCheck) {
 			t.Errorf("Node 1 does not match")
 		}
 	})
@@ -246,6 +266,10 @@ func TestCreate(t *testing.T) {
 		}
 
 		addr := "example.com:8080"
+		shardAssignments := [][2]int{
+			{0, 100},
+			{100, 200},
+		}
 
 		// Create a new recorder and test context
 		w := httptest.NewRecorder()
@@ -253,7 +277,8 @@ func TestCreate(t *testing.T) {
 
 		// Marshal the request body
 		body, err := json.Marshal(dto.CreateNodeRequest{
-			Address: addr,
+			Address:          addr,
+			ShardAssignments: shardAssignments,
 		})
 
 		if err != nil {
@@ -296,7 +321,7 @@ func TestCreate(t *testing.T) {
 		}
 
 		// Check if node matches
-		if !testNodeMatches(t, resN.ID, u.ID, addr, resN) {
+		if !testNodeMatches(t, resN.ID, u.ID, addr, shardAssignments, resN) {
 			t.Errorf("Node does not match")
 		}
 	})
@@ -379,6 +404,10 @@ func TestUpdate(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: u.ID,
 			Address: "http://example.com",
+			ShardAssignments: [][2]int{
+				{0, 100},
+				{100, 200},
+			},
 		}
 
 		err := repo.Create(n)
@@ -387,8 +416,9 @@ func TestUpdate(t *testing.T) {
 		}
 
 		addr := "new.example.com:2000"
-		offset := 0
-		shards := 100
+		offset := 1000
+		shards := 2000
+		shardAssignments := [][2]int{{offset, shards}}
 
 		// Create a new recorder and test context
 		w := httptest.NewRecorder()
@@ -400,7 +430,7 @@ func TestUpdate(t *testing.T) {
 		// Marshal the request body
 		body, err := json.Marshal(dto.UpdateNodeRequest{
 			Address:          addr,
-			ShardAssignments: [][2]int{{offset, shards}},
+			ShardAssignments: shardAssignments,
 		})
 		if err != nil {
 			t.Fatalf("Unexpected error: %s", err)
@@ -433,6 +463,22 @@ func TestUpdate(t *testing.T) {
 		// Validate the response
 		if res.Status != "success" {
 			t.Errorf("Expected success, got %s", res.Status)
+		}
+
+		if res.Node == nil {
+			t.Fatal("Expected node, got nil")
+		}
+
+		// Convert response node to domain
+		resN, err := res.Node.ToDomain()
+
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		// Check if node matches
+		if !testNodeMatches(t, resN.ID, u.ID, addr, shardAssignments, resN) {
+			t.Errorf("Node does not match")
 		}
 	})
 

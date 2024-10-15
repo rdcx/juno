@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func testNodeMatches(t *testing.T, id, ownerID uuid.UUID, address string, n *node.Node) bool {
+func testNodeMatches(t *testing.T, id, ownerID uuid.UUID, address string, shardAssignments [][2]int, n *node.Node) bool {
 	if n.ID != id {
 		t.Errorf("Expected ID %s, got %s", id, n.ID)
 		return false
@@ -26,7 +26,57 @@ func testNodeMatches(t *testing.T, id, ownerID uuid.UUID, address string, n *nod
 		return false
 	}
 
+	if len(n.ShardAssignments) != len(shardAssignments) {
+		t.Errorf("Expected %d shard assignments, got %d", len(shardAssignments), len(n.ShardAssignments))
+		return false
+	}
+
+	for i, s := range shardAssignments {
+		if n.ShardAssignments[i][0] != s[0] || n.ShardAssignments[i][1] != s[1] {
+			t.Errorf("Expected shard assignment %v, got %v", s, n.ShardAssignments[i])
+			return false
+		}
+	}
+
 	return true
+}
+
+func TestValidateShardAssignments(t *testing.T) {
+	tests := []struct {
+		name    string
+		shards  [][2]int
+		wantErr bool
+	}{
+		{
+			name:    "valid",
+			shards:  [][2]int{{0, 1}, {1, 2}},
+			wantErr: false,
+		},
+		{
+			name:   "valid 1k",
+			shards: [][2]int{{0, 1000}, {1000, 1000}},
+		},
+		{
+			name:    "invalid",
+			shards:  [][2]int{{1, 100_001}, {1000, 1000}},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateShardAssignments(tt.shards)
+
+			if tt.wantErr && err == nil {
+				t.Errorf("Expected error, got nil")
+			}
+
+			if !tt.wantErr && err != nil {
+				t.Errorf("Unexpected error: %s", err)
+			}
+		})
+	}
 }
 
 func TestCreate(t *testing.T) {
@@ -52,7 +102,7 @@ func TestCreate(t *testing.T) {
 			t.Errorf("Unexpected error: %s", err)
 		}
 
-		if !testNodeMatches(t, n.ID, n.OwnerID, addr, node) {
+		if !testNodeMatches(t, n.ID, n.OwnerID, addr, [][2]int{{0, 1}, {1, 2}}, node) {
 			t.Errorf("Node does not match")
 		}
 	})
@@ -67,7 +117,7 @@ func TestCreate(t *testing.T) {
 
 		addr := "bad address"
 
-		n, err := svc.Create(u.ID, addr, [][2]int{{0, 1}, {1, 2}})
+		n, err := svc.Create(u.ID, addr, [][2]int{{1, 100_001}, {1000, 1000}})
 
 		if err == nil {
 			t.Fatal("Expected an error")
@@ -75,6 +125,10 @@ func TestCreate(t *testing.T) {
 
 		if !strings.Contains(err.Error(), "invalid address") {
 			t.Errorf("Expected ErrInvalidAddress, got %v", err)
+		}
+
+		if !strings.Contains(err.Error(), "invalid shards") {
+			t.Errorf("Expected ErrInvalidShards, got %v", err)
 		}
 
 		if n != nil {
@@ -137,7 +191,7 @@ func TestGet(t *testing.T) {
 			t.Errorf("Unexpected error: %s", err)
 		}
 
-		if !testNodeMatches(t, n.ID, n.OwnerID, n.Address, node) {
+		if !testNodeMatches(t, n.ID, n.OwnerID, n.Address, n.ShardAssignments, node) {
 			t.Errorf("Node does not match")
 		}
 	})
@@ -166,9 +220,10 @@ func TestListByOwnerID(t *testing.T) {
 		ownerID := uuid.New()
 
 		n1 := &node.Node{
-			ID:      uuid.New(),
-			OwnerID: ownerID,
-			Address: "example.com:8000",
+			ID:               uuid.New(),
+			OwnerID:          ownerID,
+			Address:          "example.com:8000",
+			ShardAssignments: [][2]int{{0, 1}, {1, 2}},
 		}
 
 		err := repo.Create(n1)
@@ -197,7 +252,7 @@ func TestListByOwnerID(t *testing.T) {
 			t.Errorf("Expected 1 nodes, got %d", len(nodes))
 		}
 
-		if !testNodeMatches(t, n1.ID, n1.OwnerID, n1.Address, nodes[0]) {
+		if !testNodeMatches(t, n1.ID, n1.OwnerID, n1.Address, n1.ShardAssignments, nodes[0]) {
 			t.Errorf("Node does not match")
 		}
 	})
@@ -231,7 +286,7 @@ func TestUpdate(t *testing.T) {
 			t.Errorf("Unexpected error: %s", err)
 		}
 
-		if !testNodeMatches(t, n.ID, n.OwnerID, n.Address, node) {
+		if !testNodeMatches(t, n.ID, n.OwnerID, n.Address, n.ShardAssignments, node) {
 			t.Errorf("Node does not match")
 		}
 	})
@@ -278,7 +333,7 @@ func TestUpdate(t *testing.T) {
 			t.Errorf("Unexpected error: %s", err)
 		}
 
-		if !testNodeMatches(t, n.ID, n.OwnerID, "valid.com:8000", check) {
+		if !testNodeMatches(t, n.ID, n.OwnerID, "valid.com:8000", n.ShardAssignments, check) {
 			t.Errorf("Node does not match")
 		}
 	})

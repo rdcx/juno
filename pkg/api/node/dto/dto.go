@@ -21,9 +21,10 @@ type Node struct {
 
 func NewNodeFromDomain(n *node.Node) *Node {
 	return &Node{
-		ID:      n.ID.String(),
-		OwnerID: n.OwnerID.String(),
-		Address: n.Address,
+		ID:               n.ID.String(),
+		OwnerID:          n.OwnerID.String(),
+		Address:          n.Address,
+		ShardAssignments: n.ShardAssignments,
 	}
 }
 

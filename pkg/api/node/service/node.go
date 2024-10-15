@@ -59,14 +59,6 @@ func validateShardAssignments(shardAssignments [][2]int) error {
 			return node.ErrInvalidShards
 		}
 
-		if s[0] > s[1] {
-			return node.ErrInvalidShards
-		}
-
-		if s[0] == s[1] {
-			return node.ErrInvalidShards
-		}
-
 		if s[0]+s[1] > shard.SHARDS {
 			return node.ErrInvalidShards
 		}
@@ -95,9 +87,10 @@ func (s *Service) Create(ownerID uuid.UUID, addr string, shardAssignments [][2]i
 	}
 
 	n := &node.Node{
-		ID:      uuid.New(),
-		OwnerID: ownerID,
-		Address: addr,
+		ID:               uuid.New(),
+		OwnerID:          ownerID,
+		Address:          addr,
+		ShardAssignments: shardAssignments,
 	}
 
 	err := s.repo.Create(n)
@@ -131,6 +124,7 @@ func (s *Service) Update(id uuid.UUID, dirty *node.Node) (*node.Node, error) {
 	}
 
 	n.Address = dirty.Address
+	n.ShardAssignments = dirty.ShardAssignments
 
 	err = s.repo.Update(n)
 

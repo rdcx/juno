@@ -23,7 +23,7 @@ func (r *Repo) Create(n *node.Node) error {
 		return err
 	}
 
-	_, err = r.db.Exec("INSERT INTO nodes (id, owner_id, address, shard_assignments) VALUES (?, ?, ?, ?)", n.ID, n.OwnerID, n.Address, assignments)
+	_, err = r.db.Exec("INSERT INTO nodes (id, owner_id, address, shard_assignments) VALUES (?, ?, ?, ?)", n.ID, n.OwnerID, n.Address, string(assignments))
 	if err != nil {
 		return err
 	}
@@ -100,7 +100,7 @@ func (r *Repo) Update(n *node.Node) error {
 		return err
 	}
 
-	_, err = r.db.Exec("UPDATE nodes SET owner_id = ?, address = ?, shard_assignments = ? WHERE id = ?", n.OwnerID, n.Address, assignments, n.ID)
+	_, err = r.db.Exec("UPDATE nodes SET owner_id = ?, address = ?, shard_assignments = ? WHERE id = ?", n.OwnerID, n.Address, string(assignments), n.ID)
 	if err != nil {
 		return err
 	}
