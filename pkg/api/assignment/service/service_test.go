@@ -12,11 +12,11 @@ func TestCreate(t *testing.T) {
 		repo := mem.New()
 		svc := New(repo)
 		ownerID := uuid.New()
-		entityID := uuid.New()
+		nodeID := uuid.New()
 		offset := 0
 		length := 10
 
-		assignment, err := svc.Create(ownerID, entityID, offset, length)
+		assignment, err := svc.Create(ownerID, nodeID, offset, length)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -26,8 +26,8 @@ func TestCreate(t *testing.T) {
 			t.Errorf("expected assignment OwnerID %v, got %v", ownerID, assignment.OwnerID)
 		}
 
-		if assignment.EntityID != entityID {
-			t.Errorf("expected assignment EntityID %v, got %v", entityID, assignment.EntityID)
+		if assignment.NodeID != nodeID {
+			t.Errorf("expected assignment NodeID %v, got %v", nodeID, assignment.NodeID)
 		}
 
 		if assignment.Offset != offset {

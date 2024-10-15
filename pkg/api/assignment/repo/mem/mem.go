@@ -24,10 +24,10 @@ func (r *Repository) Get(id uuid.UUID) (*assignment.Assignment, error) {
 	return a, nil
 }
 
-func (r *Repository) ListByEntityID(entityID uuid.UUID) ([]*assignment.Assignment, error) {
+func (r *Repository) ListByNodeID(nodeID uuid.UUID) ([]*assignment.Assignment, error) {
 	var result []*assignment.Assignment
 	for _, a := range r.assignments {
-		if a.EntityID == entityID {
+		if a.NodeID == nodeID {
 			result = append(result, a)
 		}
 	}

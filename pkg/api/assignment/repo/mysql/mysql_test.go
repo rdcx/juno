@@ -30,11 +30,11 @@ func TestGet(t *testing.T) {
 		db := testDB(t)
 		repo := New(db)
 		a := &assignment.Assignment{
-			ID:       uuid.New(),
-			OwnerID:  uuid.New(),
-			EntityID: uuid.New(),
-			Offset:   0,
-			Length:   10,
+			ID:      uuid.New(),
+			OwnerID: uuid.New(),
+			NodeID:  uuid.New(),
+			Offset:  0,
+			Length:  10,
 		}
 
 		repo.Create(a)
@@ -54,8 +54,8 @@ func TestGet(t *testing.T) {
 			t.Errorf("expected assignment OwnerID %v, got %v", a.OwnerID, result.OwnerID)
 		}
 
-		if result.EntityID != a.EntityID {
-			t.Errorf("expected assignment EntityID %v, got %v", a.EntityID, result.EntityID)
+		if result.NodeID != a.NodeID {
+			t.Errorf("expected assignment NodeID %v, got %v", a.NodeID, result.NodeID)
 		}
 
 		if result.Offset != a.Offset {
@@ -81,25 +81,25 @@ func TestGet(t *testing.T) {
 	})
 }
 
-func TestListByEntityID(t *testing.T) {
+func TestListByNodeID(t *testing.T) {
 	t.Run("returns assignments for entity ID", func(t *testing.T) {
 		db := testDB(t)
 		repo := New(db)
-		entityID := uuid.New()
+		nodeID := uuid.New()
 		assignments := []*assignment.Assignment{
 			{
-				ID:       uuid.New(),
-				OwnerID:  uuid.New(),
-				EntityID: entityID,
-				Offset:   0,
-				Length:   10,
+				ID:      uuid.New(),
+				OwnerID: uuid.New(),
+				NodeID:  nodeID,
+				Offset:  0,
+				Length:  10,
 			},
 			{
-				ID:       uuid.New(),
-				OwnerID:  uuid.New(),
-				EntityID: uuid.New(),
-				Offset:   10,
-				Length:   10,
+				ID:      uuid.New(),
+				OwnerID: uuid.New(),
+				NodeID:  uuid.New(),
+				Offset:  10,
+				Length:  10,
 			},
 		}
 
@@ -111,7 +111,7 @@ func TestListByEntityID(t *testing.T) {
 			}
 		}
 
-		result, err := repo.ListByEntityID(entityID)
+		result, err := repo.ListByNodeID(nodeID)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -134,11 +134,11 @@ func TestCreate(t *testing.T) {
 		db := testDB(t)
 		repo := New(db)
 		a := &assignment.Assignment{
-			ID:       uuid.New(),
-			OwnerID:  uuid.New(),
-			EntityID: uuid.New(),
-			Offset:   0,
-			Length:   10,
+			ID:      uuid.New(),
+			OwnerID: uuid.New(),
+			NodeID:  uuid.New(),
+			Offset:  0,
+			Length:  10,
 		}
 
 		defer db.Exec("DELETE FROM assignments WHERE id = ?", a.ID)
@@ -150,7 +150,7 @@ func TestCreate(t *testing.T) {
 
 		var check assignment.Assignment
 
-		err = db.QueryRow("SELECT id, owner_id, entity_id, offset, length FROM assignments WHERE id = ?", a.ID).Scan(&check.ID, &check.OwnerID, &check.EntityID, &check.Offset, &check.Length)
+		err = db.QueryRow("SELECT id, owner_id, node_id, offset, length FROM assignments WHERE id = ?", a.ID).Scan(&check.ID, &check.OwnerID, &check.NodeID, &check.Offset, &check.Length)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -164,8 +164,8 @@ func TestCreate(t *testing.T) {
 			t.Errorf("expected assignment OwnerID %v, got %v", a.OwnerID, check.OwnerID)
 		}
 
-		if check.EntityID != a.EntityID {
-			t.Errorf("expected assignment EntityID %v, got %v", a.EntityID, check.EntityID)
+		if check.NodeID != a.NodeID {
+			t.Errorf("expected assignment NodeID %v, got %v", a.NodeID, check.NodeID)
 		}
 
 		if check.Offset != a.Offset {
@@ -183,11 +183,11 @@ func TestUpdate(t *testing.T) {
 		db := testDB(t)
 		repo := New(db)
 		a := &assignment.Assignment{
-			ID:       uuid.New(),
-			OwnerID:  uuid.New(),
-			EntityID: uuid.New(),
-			Offset:   0,
-			Length:   10,
+			ID:      uuid.New(),
+			OwnerID: uuid.New(),
+			NodeID:  uuid.New(),
+			Offset:  0,
+			Length:  10,
 		}
 
 		repo.Create(a)
@@ -204,7 +204,7 @@ func TestUpdate(t *testing.T) {
 
 		var check assignment.Assignment
 
-		err = db.QueryRow("SELECT id, owner_id, entity_id, offset, length FROM assignments WHERE id = ?", a.ID).Scan(&check.ID, &check.OwnerID, &check.EntityID, &check.Offset, &check.Length)
+		err = db.QueryRow("SELECT id, owner_id, node_id, offset, length FROM assignments WHERE id = ?", a.ID).Scan(&check.ID, &check.OwnerID, &check.NodeID, &check.Offset, &check.Length)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -218,8 +218,8 @@ func TestUpdate(t *testing.T) {
 			t.Errorf("expected assignment OwnerID %v, got %v", a.OwnerID, check.OwnerID)
 		}
 
-		if check.EntityID != a.EntityID {
-			t.Errorf("expected assignment EntityID %v, got %v", a.EntityID, check.EntityID)
+		if check.NodeID != a.NodeID {
+			t.Errorf("expected assignment NodeID %v, got %v", a.NodeID, check.NodeID)
 		}
 
 		if check.Offset != a.Offset {
@@ -238,11 +238,11 @@ func TestDelete(t *testing.T) {
 		db := testDB(t)
 		repo := New(db)
 		a := &assignment.Assignment{
-			ID:       uuid.New(),
-			OwnerID:  uuid.New(),
-			EntityID: uuid.New(),
-			Offset:   0,
-			Length:   10,
+			ID:      uuid.New(),
+			OwnerID: uuid.New(),
+			NodeID:  uuid.New(),
+			Offset:  0,
+			Length:  10,
 		}
 
 		repo.Create(a)

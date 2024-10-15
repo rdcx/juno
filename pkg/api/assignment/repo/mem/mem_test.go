@@ -11,14 +11,14 @@ func TestGet(t *testing.T) {
 	t.Run("returns assignment by ID", func(t *testing.T) {
 		repo := New()
 		a := &assignment.Assignment{
-			ID:       uuid.New(),
-			OwnerID:  uuid.New(),
-			EntityID: uuid.New(),
-			Offset:   0,
-			Length:   10,
+			ID:      uuid.New(),
+			OwnerID: uuid.New(),
+			NodeID:  uuid.New(),
+			Offset:  0,
+			Length:  10,
 		}
 
-		repo.Store(a)
+		repo.Create(a)
 
 		result, err := repo.Get(a.ID)
 
@@ -43,32 +43,32 @@ func TestGet(t *testing.T) {
 	})
 }
 
-func TestListByEntityID(t *testing.T) {
+func TestListByNodeID(t *testing.T) {
 	t.Run("returns assignments for entity ID", func(t *testing.T) {
 		repo := New()
-		entityID := uuid.New()
+		nodeID := uuid.New()
 		assignments := []*assignment.Assignment{
 			{
-				ID:       uuid.New(),
-				OwnerID:  uuid.New(),
-				EntityID: entityID,
-				Offset:   0,
-				Length:   10,
+				ID:      uuid.New(),
+				OwnerID: uuid.New(),
+				NodeID:  nodeID,
+				Offset:  0,
+				Length:  10,
 			},
 			{
-				ID:       uuid.New(),
-				OwnerID:  uuid.New(),
-				EntityID: entityID,
-				Offset:   10,
-				Length:   10,
+				ID:      uuid.New(),
+				OwnerID: uuid.New(),
+				NodeID:  nodeID,
+				Offset:  10,
+				Length:  10,
 			},
 		}
 
 		for _, a := range assignments {
-			repo.Store(a)
+			repo.Create(a)
 		}
 
-		result, err := repo.ListByEntityID(entityID)
+		result, err := repo.ListByNodeID(nodeID)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -91,14 +91,14 @@ func TestStore(t *testing.T) {
 	t.Run("stores assignment", func(t *testing.T) {
 		repo := New()
 		a := &assignment.Assignment{
-			ID:       uuid.New(),
-			OwnerID:  uuid.New(),
-			EntityID: uuid.New(),
-			Offset:   0,
-			Length:   10,
+			ID:      uuid.New(),
+			OwnerID: uuid.New(),
+			NodeID:  uuid.New(),
+			Offset:  0,
+			Length:  10,
 		}
 
-		err := repo.Store(a)
+		err := repo.Create(a)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -118,14 +118,14 @@ func TestDelete(t *testing.T) {
 	t.Run("deletes assignment", func(t *testing.T) {
 		repo := New()
 		a := &assignment.Assignment{
-			ID:       uuid.New(),
-			OwnerID:  uuid.New(),
-			EntityID: uuid.New(),
-			Offset:   0,
-			Length:   10,
+			ID:      uuid.New(),
+			OwnerID: uuid.New(),
+			NodeID:  uuid.New(),
+			Offset:  0,
+			Length:  10,
 		}
 
-		repo.Store(a)
+		repo.Create(a)
 
 		err := repo.Delete(a.ID)
 

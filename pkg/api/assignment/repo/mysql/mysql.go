@@ -21,7 +21,7 @@ func New(db *sql.DB) *Repository {
 func (r *Repository) Get(id uuid.UUID) (*assignment.Assignment, error) {
 	var a assignment.Assignment
 
-	err := r.db.QueryRow("SELECT id, owner_id, entity_id, offset, length FROM assignments WHERE id = ?", id).Scan(&a.ID, &a.OwnerID, &a.EntityID, &a.Offset, &a.Length)
+	err := r.db.QueryRow("SELECT id, owner_id, node_id, offset, length FROM assignments WHERE id = ?", id).Scan(&a.ID, &a.OwnerID, &a.NodeID, &a.Offset, &a.Length)
 
 	if err != nil {
 		if strings.Contains(err.Error(), "no rows in result set") {
@@ -33,10 +33,10 @@ func (r *Repository) Get(id uuid.UUID) (*assignment.Assignment, error) {
 	return &a, nil
 }
 
-func (r *Repository) ListByEntityID(entityID uuid.UUID) ([]*assignment.Assignment, error) {
+func (r *Repository) ListByNodeID(nodeID uuid.UUID) ([]*assignment.Assignment, error) {
 	var result []*assignment.Assignment
 
-	rows, err := r.db.Query("SELECT id, owner_id, entity_id, offset, length FROM assignments WHERE entity_id = ?", entityID)
+	rows, err := r.db.Query("SELECT id, owner_id, node_id, offset, length FROM assignments WHERE node_id = ?", nodeID)
 
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (r *Repository) ListByEntityID(entityID uuid.UUID) ([]*assignment.Assignmen
 
 	for rows.Next() {
 		var a assignment.Assignment
-		err := rows.Scan(&a.ID, &a.OwnerID, &a.EntityID, &a.Offset, &a.Length)
+		err := rows.Scan(&a.ID, &a.OwnerID, &a.NodeID, &a.Offset, &a.Length)
 
 		if err != nil {
 			return nil, err
@@ -59,13 +59,13 @@ func (r *Repository) ListByEntityID(entityID uuid.UUID) ([]*assignment.Assignmen
 }
 
 func (r *Repository) Create(a *assignment.Assignment) error {
-	_, err := r.db.Exec("INSERT INTO assignments (id, owner_id, entity_id, offset, length) VALUES (?, ?, ?, ?, ?)", a.ID, a.OwnerID, a.EntityID, a.Offset, a.Length)
+	_, err := r.db.Exec("INSERT INTO assignments (id, owner_id, node_id, offset, length) VALUES (?, ?, ?, ?, ?)", a.ID, a.OwnerID, a.NodeID, a.Offset, a.Length)
 
 	return err
 }
 
 func (r *Repository) Update(a *assignment.Assignment) error {
-	_, err := r.db.Exec("UPDATE assignments SET owner_id = ?, entity_id = ?, offset = ?, length = ? WHERE id = ?", a.OwnerID, a.EntityID, a.Offset, a.Length, a.ID)
+	_, err := r.db.Exec("UPDATE assignments SET owner_id = ?, node_id = ?, offset = ?, length = ? WHERE id = ?", a.OwnerID, a.NodeID, a.Offset, a.Length, a.ID)
 
 	return err
 }

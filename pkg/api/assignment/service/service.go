@@ -16,14 +16,14 @@ func New(assignmentRepo assignment.Repository) *Service {
 	}
 }
 
-func (s *Service) Create(ownerID, entityID uuid.UUID, offset, length int) (*assignment.Assignment, error) {
+func (s *Service) Create(ownerID, nodeID uuid.UUID, offset, length int) (*assignment.Assignment, error) {
 
 	assignment := &assignment.Assignment{
-		ID:       uuid.New(),
-		OwnerID:  ownerID,
-		EntityID: entityID,
-		Offset:   offset,
-		Length:   length,
+		ID:      uuid.New(),
+		OwnerID: ownerID,
+		NodeID:  nodeID,
+		Offset:  offset,
+		Length:  length,
 	}
 
 	err := s.assignmentRepo.Create(assignment)
@@ -39,8 +39,8 @@ func (s *Service) Get(id uuid.UUID) (*assignment.Assignment, error) {
 	return s.assignmentRepo.Get(id)
 }
 
-func (s *Service) ListByEntityID(entityID uuid.UUID) ([]*assignment.Assignment, error) {
-	return s.assignmentRepo.ListByEntityID(entityID)
+func (s *Service) ListByNodeID(nodeID uuid.UUID) ([]*assignment.Assignment, error) {
+	return s.assignmentRepo.ListByNodeID(nodeID)
 }
 
 func (s *Service) Update(id uuid.UUID, offset, length int) (*assignment.Assignment, error) {

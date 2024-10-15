@@ -26,15 +26,15 @@ func TestCreate(t *testing.T) {
 		handler := New(logrus.New(), policy, svc)
 
 		ownerID := uuid.New()
-		entityID := uuid.New()
+		nodeID := uuid.New()
 		offset := 0
 		length := 10
 
 		body, err := json.Marshal(dto.CreateAssignmentRequest{
-			OwnerID:  ownerID.String(),
-			EntityID: entityID.String(),
-			Offset:   offset,
-			Length:   length,
+			OwnerID: ownerID.String(),
+			NodeID:  nodeID.String(),
+			Offset:  offset,
+			Length:  length,
 		})
 
 		if err != nil {
@@ -68,8 +68,8 @@ func TestCreate(t *testing.T) {
 			t.Errorf("expected assignment OwnerID %v, got %v", ownerID, resp.Assignment.OwnerID)
 		}
 
-		if resp.Assignment.EntityID != entityID.String() {
-			t.Errorf("expected assignment EntityID %v, got %v", entityID, resp.Assignment.EntityID)
+		if resp.Assignment.NodeID != nodeID.String() {
+			t.Errorf("expected assignment NodeID %v, got %v", nodeID, resp.Assignment.NodeID)
 		}
 
 		if resp.Assignment.Offset != offset {
@@ -88,15 +88,15 @@ func TestCreate(t *testing.T) {
 		handler := New(logrus.New(), policy, svc)
 
 		ownerID := uuid.New()
-		entityID := uuid.New()
+		nodeID := uuid.New()
 		offset := 0
 		length := 10
 
 		body, _ := json.Marshal(dto.CreateAssignmentRequest{
-			OwnerID:  ownerID.String(),
-			EntityID: entityID.String(),
-			Offset:   offset,
-			Length:   length,
+			OwnerID: ownerID.String(),
+			NodeID:  nodeID.String(),
+			Offset:  offset,
+			Length:  length,
 		})
 
 		w := httptest.NewRecorder()
@@ -123,11 +123,11 @@ func TestGet(t *testing.T) {
 		handler := New(logrus.New(), policy, svc)
 
 		ownerID := uuid.New()
-		entityID := uuid.New()
+		nodeID := uuid.New()
 		offset := 0
 		length := 10
 
-		assignment, err := svc.Create(ownerID, entityID, offset, length)
+		assignment, err := svc.Create(ownerID, nodeID, offset, length)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -162,8 +162,8 @@ func TestGet(t *testing.T) {
 			t.Errorf("expected assignment OwnerID %v, got %v", ownerID, resp.Assignment.OwnerID)
 		}
 
-		if resp.Assignment.EntityID != entityID.String() {
-			t.Errorf("expected assignment EntityID %v, got %v", entityID, resp.Assignment.EntityID)
+		if resp.Assignment.NodeID != nodeID.String() {
+			t.Errorf("expected assignment NodeID %v, got %v", nodeID, resp.Assignment.NodeID)
 		}
 
 		if resp.Assignment.Offset != offset {
@@ -204,11 +204,11 @@ func TestGet(t *testing.T) {
 		handler := New(logrus.New(), policy, svc)
 
 		ownerID := uuid.New()
-		entityID := uuid.New()
+		nodeID := uuid.New()
 		offset := 0
 		length := 10
 
-		assignment, err := svc.Create(ownerID, entityID, offset, length)
+		assignment, err := svc.Create(ownerID, nodeID, offset, length)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -231,7 +231,7 @@ func TestGet(t *testing.T) {
 	})
 }
 
-func TestListByEntityID(t *testing.T) {
+func TestListByNodeID(t *testing.T) {
 	t.Run("returns assignments for entity ID", func(t *testing.T) {
 		repo := mem.New()
 		svc := service.New(repo)
@@ -239,21 +239,21 @@ func TestListByEntityID(t *testing.T) {
 		handler := New(logrus.New(), policy, svc)
 
 		ownerID := uuid.New()
-		entityID := uuid.New()
+		nodeID := uuid.New()
 		offset := 0
 		length := 10
 
 		assignments := []*dto.Assignment{
 			{
-				OwnerID:  ownerID.String(),
-				EntityID: entityID.String(),
-				Offset:   offset,
-				Length:   length,
+				OwnerID: ownerID.String(),
+				NodeID:  nodeID.String(),
+				Offset:  offset,
+				Length:  length,
 			},
 		}
 
 		for _, a := range assignments {
-			_, err := svc.Create(uuid.MustParse(a.OwnerID), uuid.MustParse(a.EntityID), a.Offset, a.Length)
+			_, err := svc.Create(uuid.MustParse(a.OwnerID), uuid.MustParse(a.NodeID), a.Offset, a.Length)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -263,12 +263,12 @@ func TestListByEntityID(t *testing.T) {
 
 		tc, _ := gin.CreateTestContext(w)
 
-		tc.Params = gin.Params{{Key: "entity_id", Value: entityID.String()}}
+		tc.Params = gin.Params{{Key: "node_id", Value: nodeID.String()}}
 
-		tc.Request = httptest.NewRequest("GET", "/entities/"+entityID.String()+"/assignments", nil).
+		tc.Request = httptest.NewRequest("GET", "/entities/"+nodeID.String()+"/assignments", nil).
 			WithContext(auth.WithUser(context.Background(), &user.User{ID: ownerID}))
 
-		handler.ListByEntityID(tc)
+		handler.ListByNodeID(tc)
 
 		if w.Code != 200 {
 			t.Fatalf("expected status code 200, got %v", w.Code)
@@ -290,8 +290,8 @@ func TestListByEntityID(t *testing.T) {
 				t.Errorf("expected assignment OwnerID %v, got %v", a.OwnerID, resp.Assignments[i].OwnerID)
 			}
 
-			if resp.Assignments[i].EntityID != a.EntityID {
-				t.Errorf("expected assignment EntityID %v, got %v", a.EntityID, resp.Assignments[i].EntityID)
+			if resp.Assignments[i].NodeID != a.NodeID {
+				t.Errorf("expected assignment NodeID %v, got %v", a.NodeID, resp.Assignments[i].NodeID)
 			}
 
 			if resp.Assignments[i].Offset != a.Offset {
@@ -313,11 +313,11 @@ func TestUpdate(t *testing.T) {
 		handler := New(logrus.New(), policy, svc)
 
 		ownerID := uuid.New()
-		entityID := uuid.New()
+		nodeID := uuid.New()
 		offset := 0
 		length := 10
 
-		assignment, err := svc.Create(ownerID, entityID, offset, length)
+		assignment, err := svc.Create(ownerID, nodeID, offset, length)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -364,8 +364,8 @@ func TestUpdate(t *testing.T) {
 			t.Errorf("expected assignment OwnerID %v, got %v", ownerID, resp.Assignment.OwnerID)
 		}
 
-		if resp.Assignment.EntityID != entityID.String() {
-			t.Errorf("expected assignment EntityID %v, got %v", entityID, resp.Assignment.EntityID)
+		if resp.Assignment.NodeID != nodeID.String() {
+			t.Errorf("expected assignment NodeID %v, got %v", nodeID, resp.Assignment.NodeID)
 		}
 
 		if resp.Assignment.Offset != newOffset {
@@ -386,11 +386,11 @@ func TestDelete(t *testing.T) {
 		handler := New(logrus.New(), policy, svc)
 
 		ownerID := uuid.New()
-		entityID := uuid.New()
+		nodeID := uuid.New()
 		offset := 0
 		length := 10
 
-		assignment, err := svc.Create(ownerID, entityID, offset, length)
+		assignment, err := svc.Create(ownerID, nodeID, offset, length)
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)

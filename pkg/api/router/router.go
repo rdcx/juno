@@ -59,7 +59,7 @@ func New(
 		authGroup.PUT("/balancers", balancerHandler.Update)
 		authGroup.DELETE("/balancers/:id", balancerHandler.Delete)
 
-		authGroup.GET("/entities/:entity_id/assignments", assignmentHandler.ListByEntityID)
+		authGroup.GET("/entities/:node_id/assignments", assignmentHandler.ListByNodeID)
 		authGroup.PUT("/assignments/:id", assignmentHandler.Update)
 		authGroup.POST("/assignments", assignmentHandler.Create)
 		authGroup.DELETE("/assignments/:id", assignmentHandler.Delete)

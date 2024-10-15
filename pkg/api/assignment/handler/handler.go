@@ -35,7 +35,7 @@ func (h *Handler) Create(c *gin.Context) {
 		return
 	}
 
-	parsedEntityID, err := uuid.Parse(req.EntityID)
+	parsedNodeID, err := uuid.Parse(req.NodeID)
 
 	if err != nil {
 		c.JSON(400, dto.NewErrorCreateAssignmentResponse(err))
@@ -44,7 +44,7 @@ func (h *Handler) Create(c *gin.Context) {
 
 	h.policy.CanCreate().
 		Allow(func() {
-			assignment, err := h.service.Create(u.ID, parsedEntityID, req.Offset, req.Length)
+			assignment, err := h.service.Create(u.ID, parsedNodeID, req.Offset, req.Length)
 
 			if err != nil {
 				h.logger.WithError(err).Error("failed to create assignment")
@@ -94,15 +94,15 @@ func (h *Handler) Get(c *gin.Context) {
 		})
 }
 
-func (h *Handler) ListByEntityID(c *gin.Context) {
-	entityID, err := uuid.Parse(c.Param("entity_id"))
+func (h *Handler) ListByNodeID(c *gin.Context) {
+	nodeID, err := uuid.Parse(c.Param("node_id"))
 
 	if err != nil {
 		c.JSON(400, dto.NewErrorListAssignmentsResponse(err))
 		return
 	}
 
-	assignments, err := h.service.ListByEntityID(entityID)
+	assignments, err := h.service.ListByNodeID(nodeID)
 
 	if err != nil {
 		h.logger.WithError(err).Error("failed to list assignments")

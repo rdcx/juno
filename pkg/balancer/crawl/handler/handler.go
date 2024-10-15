@@ -26,7 +26,5 @@ func (h *Handler) Crawl(c *gin.Context) {
 		return
 	}
 
-	go h.crawlService.Crawl(req)
-
 	c.JSON(http.StatusOK, gin.H{"message": "ok"})
 }

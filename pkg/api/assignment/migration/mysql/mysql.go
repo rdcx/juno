@@ -7,7 +7,7 @@ var migrations = map[string]string{
 		CREATE TABLE IF NOT EXISTS assignments (
 			id VARCHAR(36) PRIMARY KEY,
 			owner_id VARCHAR(36) NOT NULL,
-			entity_id VARCHAR(36) NOT NULL,
+			node_id VARCHAR(36) NOT NULL,
 			offset INT NOT NULL,
 			length INT NOT NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

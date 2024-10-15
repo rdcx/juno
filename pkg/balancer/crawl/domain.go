@@ -2,7 +2,6 @@ package crawl
 
 import (
 	"errors"
-	"juno/pkg/balancer/crawl/dto"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,5 +13,4 @@ type Handler interface {
 }
 
 type Service interface {
-	Crawl(req dto.CrawlRequest) (dto.CrawlResponse, error)
 }

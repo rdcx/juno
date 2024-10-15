@@ -8,18 +8,18 @@ const (
 )
 
 type Assignment struct {
-	ID       string `json:"id"`
-	OwnerID  string `json:"owner_id"`
-	EntityID string `json:"entity_id"`
-	Offset   int    `json:"offset"`
-	Length   int    `json:"length"`
+	ID      string `json:"id"`
+	OwnerID string `json:"owner_id"`
+	NodeID  string `json:"node_id"`
+	Offset  int    `json:"offset"`
+	Length  int    `json:"length"`
 }
 
 type CreateAssignmentRequest struct {
-	OwnerID  string `json:"owner_id"`
-	EntityID string `json:"entity_id"`
-	Offset   int    `json:"offset"`
-	Length   int    `json:"length"`
+	OwnerID string `json:"owner_id"`
+	NodeID  string `json:"node_id"`
+	Offset  int    `json:"offset"`
+	Length  int    `json:"length"`
 }
 
 type CreateAssignmentResponse struct {
@@ -31,11 +31,11 @@ type CreateAssignmentResponse struct {
 
 func NewAssignmentFromDomain(a *assignment.Assignment) *Assignment {
 	return &Assignment{
-		ID:       a.ID.String(),
-		OwnerID:  a.OwnerID.String(),
-		EntityID: a.EntityID.String(),
-		Offset:   a.Offset,
-		Length:   a.Length,
+		ID:      a.ID.String(),
+		OwnerID: a.OwnerID.String(),
+		NodeID:  a.NodeID.String(),
+		Offset:  a.Offset,
+		Length:  a.Length,
 	}
 }
 
@@ -100,9 +100,9 @@ func NewErrorListAssignmentsResponse(err error) *ListAssignmentsResponse {
 }
 
 type UpdateAssignmentRequest struct {
-	EntityID string `json:"entity_id"`
-	Offset   int    `json:"offset"`
-	Length   int    `json:"length"`
+	NodeID string `json:"node_id"`
+	Offset int    `json:"offset"`
+	Length int    `json:"length"`
 }
 
 type UpdateAssignmentResponse struct {
