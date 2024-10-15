@@ -33,6 +33,7 @@ func New(
 
 	r.POST("/auth/token", authHandler.Token)
 	r.POST("/users", userHandler.Create)
+	r.GET("/shards", nodeHandler.AllShardsNodes)
 
 	authGroup := r.Group("/")
 
@@ -49,7 +50,6 @@ func New(
 		authGroup.PUT("/nodes/:id", nodeHandler.Update)
 		authGroup.DELETE("/nodes/:id", nodeHandler.Delete)
 
-		authGroup.GET("/shards", nodeHandler.AllShardsNodes)
 	}
 
 	return r
