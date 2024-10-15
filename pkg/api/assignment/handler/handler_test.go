@@ -263,7 +263,7 @@ func TestListByNodeID(t *testing.T) {
 
 		tc, _ := gin.CreateTestContext(w)
 
-		tc.Params = gin.Params{{Key: "node_id", Value: nodeID.String()}}
+		tc.Params = gin.Params{{Key: "id", Value: nodeID.String()}}
 
 		tc.Request = httptest.NewRequest("GET", "/entities/"+nodeID.String()+"/assignments", nil).
 			WithContext(auth.WithUser(context.Background(), &user.User{ID: ownerID}))

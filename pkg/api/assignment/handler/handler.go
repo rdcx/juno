@@ -95,7 +95,7 @@ func (h *Handler) Get(c *gin.Context) {
 }
 
 func (h *Handler) ListByNodeID(c *gin.Context) {
-	nodeID, err := uuid.Parse(c.Param("node_id"))
+	nodeID, err := uuid.Parse(c.Param("id"))
 
 	if err != nil {
 		c.JSON(400, dto.NewErrorListAssignmentsResponse(err))
