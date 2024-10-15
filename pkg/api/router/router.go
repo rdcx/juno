@@ -1,6 +1,7 @@
 package router
 
 import (
+	"juno/pkg/api/assignment"
 	"juno/pkg/api/auth"
 	"juno/pkg/api/balancer"
 	"juno/pkg/api/middleware"
@@ -18,6 +19,7 @@ func New(
 	userHandler user.Handler,
 	authHandler auth.Handler,
 	balancerHandler balancer.Handler,
+	assignmentHandler assignment.Handler,
 ) *gin.Engine {
 	r := gin.Default()
 
@@ -56,6 +58,11 @@ func New(
 		authGroup.POST("/balancers", balancerHandler.Create)
 		authGroup.PUT("/balancers", balancerHandler.Update)
 		authGroup.DELETE("/balancers/:id", balancerHandler.Delete)
+
+		authGroup.GET("/entities/:entity_id/assignments", assignmentHandler.ListByEntityID)
+		authGroup.PUT("/assignments/:id", assignmentHandler.Update)
+		authGroup.POST("/assignments", assignmentHandler.Create)
+		authGroup.DELETE("/assignments/:id", assignmentHandler.Delete)
 	}
 
 	return r

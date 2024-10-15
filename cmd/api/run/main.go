@@ -15,6 +15,12 @@ import (
 	balancerRepo "juno/pkg/api/balancer/repo/mysql"
 	balancerSvc "juno/pkg/api/balancer/service"
 
+	assignmentHandler "juno/pkg/api/assignment/handler"
+	assignmentMig "juno/pkg/api/assignment/migration/mysql"
+	assignmentPolicy "juno/pkg/api/assignment/policy"
+	assignmentRepo "juno/pkg/api/assignment/repo/mysql"
+	assignmentSvc "juno/pkg/api/assignment/service"
+
 	userHandler "juno/pkg/api/user/handler"
 	userMig "juno/pkg/api/user/migration/mysql"
 	userPolicy "juno/pkg/api/user/policy"
@@ -31,7 +37,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func setupDatabases() (*sql.DB, *sql.DB, *sql.DB) {
+func setupDatabases() (*sql.DB, *sql.DB, *sql.DB, *sql.DB) {
 	nodeDB, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/node?parseTime=true")
 
 	if err != nil {
@@ -68,7 +74,19 @@ func setupDatabases() (*sql.DB, *sql.DB, *sql.DB) {
 		panic(err)
 	}
 
-	return nodeDB, userDB, balancerDB
+	assignmentDB, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/assignment?parseTime=true")
+
+	if err != nil {
+		panic(err)
+	}
+
+	err = assignmentMig.ExecuteMigrations(assignmentDB)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return nodeDB, userDB, balancerDB, assignmentDB
 }
 
 func main() {
@@ -78,7 +96,7 @@ func main() {
 
 	flag.Parse()
 
-	nodeDB, userDB, balancerDB := setupDatabases()
+	nodeDB, userDB, balancerDB, assignmentDB := setupDatabases()
 
 	logger := logrus.New()
 
@@ -101,11 +119,17 @@ func main() {
 	balancerPolicy := balancerPolicy.New()
 	balancerHandler := balancerHandler.New(logger, balancerPolicy, balancerSvc)
 
+	assignmentRepo := assignmentRepo.New(assignmentDB)
+	assignmentSvc := assignmentSvc.New(assignmentRepo)
+	assignmentPolicy := assignmentPolicy.New()
+	assignmentHandler := assignmentHandler.New(logger, assignmentPolicy, assignmentSvc)
+
 	r := router.New(
 		nodeHandler,
 		userHandler,
 		authHandler,
 		balancerHandler,
+		assignmentHandler,
 	)
 
 	r.Run(":" + portFlag)
