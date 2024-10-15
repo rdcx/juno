@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func testNodeMatches(t *testing.T, id, ownerID uuid.UUID, address string, shards []int, n *node.Node) bool {
+func testNodeMatches(t *testing.T, id, ownerID uuid.UUID, address string, n *node.Node) bool {
 	if n.ID != id {
 		t.Errorf("Expected ID %s, got %s", id, n.ID)
 		return false
@@ -23,18 +23,6 @@ func testNodeMatches(t *testing.T, id, ownerID uuid.UUID, address string, shards
 		return false
 	}
 
-	if len(n.Shards) != len(shards) {
-		t.Errorf("Expected %d shards, got %d", len(shards), len(n.Shards))
-		return false
-	}
-
-	for i, shard := range shards {
-		if n.Shards[i] != shard {
-			t.Errorf("Expected shard %d, got %d", shard, n.Shards[i])
-			return false
-		}
-	}
-
 	return true
 }
 
@@ -44,7 +32,6 @@ func TestCreate(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
 			Address: "http://example.com",
-			Shards:  []int{1, 2, 3},
 		}
 
 		repo := New()
@@ -57,7 +44,7 @@ func TestCreate(t *testing.T) {
 
 		node := repo.nodes[n.ID]
 
-		if !testNodeMatches(t, n.ID, n.OwnerID, n.Address, n.Shards, node) {
+		if !testNodeMatches(t, n.ID, n.OwnerID, n.Address, node) {
 			t.Errorf("Node does not match")
 		}
 	})
@@ -67,7 +54,6 @@ func TestCreate(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
 			Address: "http://example.com",
-			Shards:  []int{1, 2, 3},
 		}
 
 		repo := New()
@@ -90,7 +76,6 @@ func TestGet(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
 			Address: "http://example.com",
-			Shards:  []int{1, 2, 3},
 		}
 
 		repo := New()
@@ -105,7 +90,7 @@ func TestGet(t *testing.T) {
 			t.Errorf("Unexpected error: %s", err)
 		}
 
-		if !testNodeMatches(t, n.ID, n.OwnerID, n.Address, n.Shards, node) {
+		if !testNodeMatches(t, n.ID, n.OwnerID, n.Address, node) {
 			t.Errorf("Node does not match")
 		}
 	})
@@ -115,7 +100,6 @@ func TestGet(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
 			Address: "http://example.com",
-			Shards:  []int{1, 2, 3},
 		}
 
 		repo := New()
@@ -134,13 +118,11 @@ func TestListByOwnerID(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: ownerID,
 			Address: "http://example.com",
-			Shards:  []int{1, 2, 3},
 		}
 		n2 := node.Node{
 			ID:      uuid.New(),
 			OwnerID: ownerID,
 			Address: "http://example.org",
-			Shards:  []int{4, 5, 6},
 		}
 
 		repo := New()
@@ -164,11 +146,11 @@ func TestListByOwnerID(t *testing.T) {
 			t.Errorf("Expected 2 nodes, got %d", len(nodes))
 		}
 
-		if !testNodeMatches(t, n1.ID, n1.OwnerID, n1.Address, n1.Shards, nodes[0]) {
+		if !testNodeMatches(t, n1.ID, n1.OwnerID, n1.Address, nodes[0]) {
 			t.Errorf("Node 1 does not match")
 		}
 
-		if !testNodeMatches(t, n2.ID, n2.OwnerID, n2.Address, n2.Shards, nodes[1]) {
+		if !testNodeMatches(t, n2.ID, n2.OwnerID, n2.Address, nodes[1]) {
 			t.Errorf("Node 2 does not match")
 		}
 	})
@@ -189,7 +171,6 @@ func TestUpdate(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
 			Address: "http://example.com",
-			Shards:  []int{1, 2, 3},
 		}
 
 		repo := New()
@@ -200,7 +181,6 @@ func TestUpdate(t *testing.T) {
 		}
 
 		n.Address = "http://example.org"
-		n.Shards = []int{4, 5, 6}
 
 		err = repo.Update(&n)
 		if err != nil {
@@ -209,7 +189,7 @@ func TestUpdate(t *testing.T) {
 
 		node := repo.nodes[n.ID]
 
-		if !testNodeMatches(t, n.ID, n.OwnerID, n.Address, n.Shards, node) {
+		if !testNodeMatches(t, n.ID, n.OwnerID, n.Address, node) {
 			t.Errorf("Node does not match")
 		}
 	})
@@ -219,7 +199,6 @@ func TestUpdate(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
 			Address: "http://example.com",
-			Shards:  []int{1, 2, 3},
 		}
 
 		repo := New()
@@ -237,7 +216,6 @@ func TestDelete(t *testing.T) {
 			ID:      uuid.New(),
 			OwnerID: uuid.New(),
 			Address: "http://example.com",
-			Shards:  []int{1, 2, 3},
 		}
 
 		repo := New()

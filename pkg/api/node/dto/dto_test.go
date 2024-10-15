@@ -8,8 +8,6 @@ func TestNodeToDomain(t *testing.T) {
 			ID:      "00000000-0000-0000-0000-000000000000",
 			OwnerID: "00000000-0000-0000-0000-000000000001",
 			Address: "http://node.com",
-			Offset:  100,
-			Shards:  50,
 		}
 
 		d, err := n.ToDomain()
@@ -30,13 +28,6 @@ func TestNodeToDomain(t *testing.T) {
 			t.Errorf("Expected Address %s, got %s", n.Address, d.Address)
 		}
 
-		if d.Offset != n.Offset {
-			t.Errorf("Expected Offset %d, got %d", n.Offset, d.Offset)
-		}
-
-		if d.Shards != n.Shards {
-			t.Errorf("Expected %d shards, got %d", n.Shards, d.Shards)
-		}
 	})
 
 	t.Run("invalid id", func(t *testing.T) {
@@ -44,8 +35,6 @@ func TestNodeToDomain(t *testing.T) {
 			ID:      "00000000-0000-0000-0000-000000000000",
 			OwnerID: "00000000-0000-0000-0000-000000000001",
 			Address: "http://node.com",
-			Offset:  1,
-			Shards:  3,
 		}
 
 		n.ID = "invalid"
@@ -62,8 +51,6 @@ func TestNodeToDomain(t *testing.T) {
 			ID:      "00000000-0000-0000-0000-000000000000",
 			OwnerID: "00000000-0000-0000-0000-000000000001",
 			Address: "http://node.com",
-			Offset:  0,
-			Shards:  1000,
 		}
 
 		n.OwnerID = "invalid"

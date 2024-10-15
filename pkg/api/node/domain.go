@@ -28,7 +28,7 @@ type Repository interface {
 type Service interface {
 	Get(id uuid.UUID) (*Node, error)
 	ListByOwnerID(ownerID uuid.UUID) ([]*Node, error)
-	Create(ownerID uuid.UUID, addr string, offset, shards int) (*Node, error)
+	Create(ownerID uuid.UUID, addr string) (*Node, error)
 	Update(id uuid.UUID, n *Node) (*Node, error)
 	Delete(id uuid.UUID) error
 }

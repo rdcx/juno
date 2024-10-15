@@ -15,8 +15,6 @@ type Node struct {
 	ID      string `json:"id"`
 	OwnerID string `json:"owner_id"`
 	Address string `json:"address"`
-	Offset  int    `json:"offset"`
-	Shards  int    `json:"shards"`
 }
 
 func NewNodeFromDomain(n *node.Node) *Node {
@@ -24,7 +22,6 @@ func NewNodeFromDomain(n *node.Node) *Node {
 		ID:      n.ID.String(),
 		OwnerID: n.OwnerID.String(),
 		Address: n.Address,
-		Shards:  n.Shards,
 	}
 }
 
@@ -38,7 +35,7 @@ func (n Node) ToDomain() (*node.Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	return node.New(id, ownerID, n.Address, n.Offset, n.Shards), nil
+	return node.New(id, ownerID, n.Address), nil
 }
 
 type ListNodesResponse struct {
@@ -89,15 +86,12 @@ func NewErrorGetNodeResponse(message string) GetNodeResponse {
 
 type CreateNodeRequest struct {
 	Address string `json:"address"`
-	Offset  int    `json:"offset"`
-	Shards  int    `json:"shards"`
 }
 
 func (r CreateNodeRequest) ToDomain() node.Node {
 	return node.Node{
 		ID:      uuid.New(),
 		Address: r.Address,
-		Shards:  r.Shards,
 	}
 }
 
@@ -132,8 +126,6 @@ type UpdateNodeRequest struct {
 func (r UpdateNodeRequest) ToDomain() (*node.Node, error) {
 	return &node.Node{
 		Address: r.Address,
-		Offset:  r.Offset,
-		Shards:  r.Shards,
 	}, nil
 }
 
