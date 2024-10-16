@@ -58,7 +58,7 @@ func (r *Repository) GetPage(id page.PageID) (*page.Page, error) {
 		// Fetch the page by ID
 		data := b.Get(id[:])
 		if data == nil {
-			return fmt.Errorf("page not found")
+			return page.ErrPageNotFound
 		}
 
 		// Deserialize JSON into a Page struct
@@ -84,7 +84,7 @@ func (r *Repository) AddVersion(pageID page.PageID, version page.Version) error 
 		// Fetch the page by ID
 		data := b.Get(pageID[:])
 		if data == nil {
-			return fmt.Errorf("page not found")
+			return page.ErrPageNotFound
 		}
 
 		var p page.Page
@@ -116,7 +116,7 @@ func (r *Repository) GetVersions(pageID page.PageID) ([]page.Version, error) {
 		// Fetch the page by ID
 		data := b.Get(pageID[:])
 		if data == nil {
-			return fmt.Errorf("page not found")
+			return page.ErrPageNotFound
 		}
 
 		var p page.Page

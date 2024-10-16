@@ -29,7 +29,7 @@ func TestFetchPage(t *testing.T) {
 			Reply(200).
 			BodyString(clothesPage)
 
-		body, status, finalURL, err := FetchPage(context.Background(), "https://shop.com/clothes")
+		body, status, finalURL, err := (&Service{}).FetchPage(context.Background(), "https://shop.com/clothes")
 
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
@@ -55,7 +55,7 @@ func TestFetchPage(t *testing.T) {
 			Get("/clothes").
 			Reply(400)
 
-		body, status, finalURL, err := FetchPage(context.Background(), "https://shop.com/clothes")
+		body, status, finalURL, err := (&Service{}).FetchPage(context.Background(), "https://shop.com/clothes")
 
 		if !errors.Is(err, crawl.Err400) {
 			t.Errorf("Expected error to be Err400, got %s", err)
@@ -81,7 +81,7 @@ func TestFetchPage(t *testing.T) {
 			Get("/clothes").
 			Reply(404)
 
-		body, status, finalURL, err := FetchPage(context.Background(), "https://shop.com/clothes")
+		body, status, finalURL, err := (&Service{}).FetchPage(context.Background(), "https://shop.com/clothes")
 
 		if err == nil {
 			t.Error("Expected an error, got nil")
@@ -107,7 +107,7 @@ func TestFetchPage(t *testing.T) {
 			Get("/clothes").
 			ReplyError(errors.New("network error"))
 
-		body, status, finalURL, err := FetchPage(context.Background(), "https://shop.com/clothes")
+		body, status, finalURL, err := (&Service{}).FetchPage(context.Background(), "https://shop.com/clothes")
 
 		if !strings.Contains(err.Error(), "network error") {
 			t.Errorf("Expected error to contain 'network error', got %s", err)
@@ -133,7 +133,7 @@ func TestFetchPage(t *testing.T) {
 			Get("/clothes").
 			Reply(429)
 
-		body, status, finalURL, err := FetchPage(context.Background(), "https://shop.com/clothes")
+		body, status, finalURL, err := (&Service{}).FetchPage(context.Background(), "https://shop.com/clothes")
 
 		if err != crawl.Err429 {
 			t.Errorf("Expected error to be Err429, got %s", err)
@@ -162,7 +162,7 @@ func TestFetchPage(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*50)
 		defer cancel()
 
-		body, status, finalURL, err := FetchPage(ctx, "https://shop.com/clothes")
+		body, status, finalURL, err := (&Service{}).FetchPage(ctx, "https://shop.com/clothes")
 
 		if err != crawl.ErrContextDone {
 			t.Errorf("Expected error to be ErrContextDone, got %s", err)

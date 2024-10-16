@@ -85,6 +85,10 @@ func (s *Service) fetchShards() {
 		return
 	}
 
+	for i := 0; i < shard.SHARDS; i++ {
+		s.shards[i] = []string{}
+	}
+
 	for shard, nodes := range res.Shards {
 		s.shards[shard] = nodes
 	}

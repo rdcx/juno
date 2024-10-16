@@ -8,6 +8,8 @@ var (
 	Err404         = errors.New("fetch returned 404")
 	Err400         = errors.New("fetch returned 400")
 	ErrContextDone = errors.New("context was canceled or timed out")
+
+	ErrNon200Response = errors.New("non-200 response")
 )
 var ErrFailedCrawlRequest = errors.New("failed to send crawl request")
 

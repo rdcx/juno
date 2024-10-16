@@ -1,19 +1,30 @@
 package service
 
 import (
-	"juno/pkg/api/client"
+	apiClient "juno/pkg/api/client"
+	balancerClient "juno/pkg/balancer/client"
 	"juno/pkg/shard"
+	"juno/pkg/url"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 type Service struct {
-	apiClient *client.Client
+	logger    *logrus.Logger
+	apiClient *apiClient.Client
 	balancers [shard.SHARDS][]string
 }
 
-func WithApiClient(api *client.Client) func(s *Service) {
+func WithApiClient(api *apiClient.Client) func(s *Service) {
 	return func(s *Service) {
 		s.apiClient = api
+	}
+}
+
+func WithLogger(logger *logrus.Logger) func(s *Service) {
+	return func(s *Service) {
+		s.logger = logger
 	}
 }
 
@@ -41,4 +52,57 @@ func New(options ...func(s *Service)) *Service {
 	}
 
 	return s
+}
+
+func (s *Service) fetchBalancers() {
+	res, err := s.apiClient.GetBalancers()
+
+	if err != nil {
+		return
+	}
+
+	for shardNum := range s.balancers {
+		s.balancers[shardNum] = []string{}
+	}
+
+	for shardNum, b := range res.Shards {
+		s.balancers[shardNum] = b
+	}
+}
+
+func (s *Service) ReportURLProcessed(urlStr string) {
+	// TODO: implement
+}
+
+func (s *Service) SendCrawlRequest(urlStr string) {
+	host, err := url.ToHostname(urlStr)
+
+	if err != nil {
+		if s.logger != nil {
+			s.logger.Error(err)
+		}
+		return
+	}
+
+	shardNum := shard.GetShard(host)
+	balancers := s.balancers[shardNum]
+
+	if len(balancers) == 0 {
+		if s.logger != nil {
+			s.logger.Error("no balancers found for shard")
+		}
+		return
+	}
+
+	for _, b := range balancers {
+		balancerClient := balancerClient.New(b)
+
+		err := balancerClient.Crawl(urlStr)
+
+		if err != nil {
+			if s.logger != nil {
+				s.logger.Error(err)
+			}
+		}
+	}
 }

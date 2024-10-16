@@ -1,7 +1,6 @@
 package mem
 
 import (
-	"fmt"
 	"juno/pkg/node/page"
 	"sync"
 	"time"
@@ -26,7 +25,7 @@ func (r *Repository) CreatePage(p *page.Page) error {
 
 	// Check if the page already exists
 	if _, exists := r.pages[p.ID]; exists {
-		return fmt.Errorf("page with ID %s already exists", p.ID)
+		return page.ErrPageAlreadyExists
 	}
 
 	r.pages[p.ID] = p
@@ -40,7 +39,7 @@ func (r *Repository) GetPage(id page.PageID) (*page.Page, error) {
 
 	p, exists := r.pages[id]
 	if !exists {
-		return nil, fmt.Errorf("page not found")
+		return nil, page.ErrPageNotFound
 	}
 	return p, nil
 }
@@ -53,7 +52,7 @@ func (r *Repository) AddVersion(pageID page.PageID, version page.Version) error 
 	// Check if the page exists
 	p, exists := r.pages[pageID]
 	if !exists {
-		return fmt.Errorf("page not found")
+		return page.ErrPageNotFound
 	}
 
 	// Add the new version to the page
@@ -69,7 +68,7 @@ func (r *Repository) GetVersions(pageID page.PageID) ([]page.Version, error) {
 
 	p, exists := r.pages[pageID]
 	if !exists {
-		return nil, fmt.Errorf("page not found")
+		return nil, page.ErrPageNotFound
 	}
 
 	return p.Versions, nil

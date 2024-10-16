@@ -8,7 +8,13 @@ import (
 	"net/http"
 )
 
-func FetchPage(ctx context.Context, url string) (
+type Service struct{}
+
+func New() *Service {
+	return &Service{}
+}
+
+func (s *Service) FetchPage(ctx context.Context, url string) (
 	body []byte,
 	status int,
 	finalURL string,

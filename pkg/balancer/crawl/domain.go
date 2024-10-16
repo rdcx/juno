@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var ErrFailedCrawlRequest = errors.New("failed to crawl request")
 var ErrNoNodesAvailableInShard = errors.New("no nodes available in shard")
 var ErrTooManyTries = errors.New("too many tries")
 

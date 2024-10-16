@@ -3,8 +3,12 @@ package page
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"time"
 )
+
+var ErrPageNotFound = errors.New("page not found")
+var ErrPageAlreadyExists = errors.New("page already exists")
 
 type PageID [16]byte
 
@@ -39,6 +43,13 @@ func NewVersionHash(data []byte) VersionHash {
 type Version struct {
 	Hash      VersionHash `json:"hash"`
 	CreatedAt time.Time   `json:"created_at"`
+}
+
+func NewVersion(hash VersionHash) Version {
+	return Version{
+		Hash:      hash,
+		CreatedAt: time.Now(),
+	}
 }
 
 type Page struct {

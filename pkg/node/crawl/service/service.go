@@ -2,40 +2,80 @@ package service
 
 import (
 	"context"
+	"juno/pkg/node/balancer"
+	"juno/pkg/node/crawl"
+	"juno/pkg/node/fetcher"
 	"juno/pkg/node/page"
-	"juno/pkg/shard"
+	"juno/pkg/node/storage"
+	"time"
 )
 
 const CRAWL_TIMEOUT = time.Second * 10
 
 type Service struct {
-	balancers [shard.SHARDS][]string
-	pageService page.Service
+	balancerService balancer.Service
+	pageService     page.Service
+	storageService  storage.Service
+	fetcher         fetcher.Service
 }
 
-func New() *Service {
-	return &Service{}
+func New(
+	balancerService balancer.Service,
+	pageService page.Service,
+	storageService storage.Service,
+	fetcher fetcher.Service,
+) *Service {
+	return &Service{
+		balancerService: balancerService,
+		pageService:     pageService,
+		storageService:  storageService,
+		fetcher:         fetcher,
+	}
 }
 
 func (s *Service) Crawl(ctx context.Context, urlStr string) error {
-	body, status, finalURL, err := FetchPage(context.WithTimeout(ctx, CRAWL_TIMEOUT), urlStr)
+	ctx, cancel := context.WithTimeout(ctx, CRAWL_TIMEOUT)
+
+	defer cancel()
+	body, status, finalURL, err := s.fetcher.FetchPage(ctx, urlStr)
 
 	if err != nil {
 		return err
 	}
 
 	if status != 200 {
-		return crawl.ErrNon200
+		return crawl.ErrNon200Response
 	}
 
-	links, err := s.domService.ExtractLinks(body)
+	p, err := s.pageService.Get(page.NewPageID(finalURL))
+
+	if err == page.ErrPageNotFound {
+		p = page.NewPage(finalURL)
+		err = s.pageService.Create(p)
+
+		if err != nil {
+			return err
+		}
+	} else if err != nil {
+		return err
+	}
+
+	vHash := page.NewVersionHash(body)
+
+	err = s.storageService.Write(
+		vHash,
+		body,
+	)
 
 	if err != nil {
 		return err
 	}
 
+	err = s.pageService.AddVersion(p.ID, page.NewVersion(vHash))
 
+	if err != nil {
+		return err
+	}
 
-
-
-
+	return s.balancerService.ReportURLProcessed(urlStr, status)
+}
