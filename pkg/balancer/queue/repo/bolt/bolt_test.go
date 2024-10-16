@@ -13,7 +13,7 @@ func TestNewURLQueueRepository(t *testing.T) {
 	defer os.Remove(dbPath) // Clean up after test
 
 	// Initialize the queue repository
-	repo, err := NewURLQueueRepository(dbPath)
+	repo, err := New(dbPath)
 	if err != nil {
 		t.Fatalf("failed to create repository: %v", err)
 	}
@@ -37,7 +37,7 @@ func TestPush(t *testing.T) {
 	defer os.Remove(dbPath) // Clean up after test
 
 	// Initialize the queue repository
-	repo, err := NewURLQueueRepository(dbPath)
+	repo, err := New(dbPath)
 	if err != nil {
 		t.Fatalf("failed to create repository: %v", err)
 	}
@@ -84,7 +84,7 @@ func TestPop(t *testing.T) {
 	defer os.Remove(dbPath) // Clean up after test
 
 	// Initialize the queue repository
-	repo, err := NewURLQueueRepository(dbPath)
+	repo, err := New(dbPath)
 	if err != nil {
 		t.Fatalf("failed to create repository: %v", err)
 	}

@@ -4,35 +4,29 @@ import (
 	"encoding/json"
 	"fmt"
 	"juno/pkg/balancer/crawl/dto"
-	"juno/pkg/balancer/crawl/service"
+	crawlService "juno/pkg/balancer/crawl/service"
+	queueRepo "juno/pkg/balancer/queue/repo/mem"
+	queueService "juno/pkg/balancer/queue/service"
 	"juno/pkg/shard"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/h2non/gock"
 	"github.com/sirupsen/logrus"
 )
 
 func TestCrawl(t *testing.T) {
 	t.Run("should return ok", func(t *testing.T) {
 
-		defer gock.Off()
-
-		gock.New("http://node1.com:9090").
-			Post("/crawl").
-			Times(1).
-			Reply(200).
-			JSON(gin.H{"message": "ok"})
-
-		svc := service.New(service.WithLogger(logrus.New()))
+		repo := queueRepo.New()
+		queueSvc := queueService.New(logrus.New(), repo)
+		svc := crawlService.New(crawlService.WithLogger(logrus.New()), crawlService.WithQueueService(queueSvc))
 		svc.SetShards([shard.SHARDS][]string{
 			72435: {"node1.com:9090"},
 		})
-		h := New(svc)
+		h := New(logrus.New(), queueSvc)
 
 		req := dto.CrawlRequest{
 			URL: "http://example.com",
@@ -64,11 +58,14 @@ func TestCrawl(t *testing.T) {
 			t.Errorf("expected %s but got %s", dto.OK, res.Status)
 		}
 
-		// allow for the crawl goroutine to finish
-		time.Sleep(10 * time.Millisecond)
+		// check url has been added to queue
+		pop, err := repo.Pop()
+		if err != nil {
+			t.Errorf("expected no error but got %v", err)
+		}
 
-		if !gock.IsDone() {
-			t.Errorf("Not all expectations were met")
+		if pop != req.URL {
+			t.Errorf("expected %s but got %s", req.URL, pop)
 		}
 	})
 }
