@@ -89,8 +89,8 @@ func TestCrawl(t *testing.T) {
 			JSON(map[string]string{"url": url})
 
 		svc := New(WithLogger(logrus.New()))
-		svc.setShards([shard.SHARDS][]string{
-			72435: {"http://node1.com:8080"},
+		svc.SetShards([shard.SHARDS][]string{
+			72435: {"node1.com:8080"},
 		})
 
 		svc.Crawl(url)

@@ -13,4 +13,5 @@ type Handler interface {
 }
 
 type Service interface {
+	Crawl(url string) error
 }

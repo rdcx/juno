@@ -80,7 +80,7 @@ func (s *Service) fetchShards() {
 	s.logger.Infof("shards fetched: %d", len(res.Shards))
 }
 
-func (s *Service) setShards(shards [shard.SHARDS][]string) {
+func (s *Service) SetShards(shards [shard.SHARDS][]string) {
 	s.shards = shards
 }
 
@@ -92,11 +92,11 @@ func (s *Service) randomNode(shard int) (string, error) {
 	return s.shards[shard][rand.Intn(len(s.shards[shard]))], nil
 }
 
-func (s *Service) Crawl(url string) {
+func (s *Service) Crawl(url string) error {
 
 	hostname, err := link.ToHostname(url)
 	if err != nil {
-		return
+		return err
 	}
 	shard := shard.GetShard(hostname)
 
@@ -105,7 +105,7 @@ func (s *Service) Crawl(url string) {
 		node, err := s.randomNode(shard)
 		if err == crawl.ErrNoNodesAvailableInShard {
 			s.logger.Errorf("no nodes available in shard %d", shard)
-			return
+			return err
 		}
 		err = client.SendCrawlRequest(node, url)
 		if err == nil {
@@ -116,4 +116,6 @@ func (s *Service) Crawl(url string) {
 	}
 
 	s.logger.Errorf("failed to send link %s to shard: %v", url, err)
+
+	return err
 }

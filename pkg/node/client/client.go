@@ -21,7 +21,7 @@ func SendCrawlRequest(node string, url string) error {
 		return err
 	}
 
-	res, err := http.Post(node+"/crawl", "application/json", bytes.NewBuffer(b))
+	res, err := http.Post("http://"+node+"/crawl", "application/json", bytes.NewBuffer(b))
 
 	if err != nil {
 		return err

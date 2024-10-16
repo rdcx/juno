@@ -20,7 +20,7 @@ func TestSendCrawlRequest(t *testing.T) {
 			Times(1).
 			Reply(200)
 
-		err := SendCrawlRequest("http://example.com", "http://shop.org")
+		err := SendCrawlRequest("example.com", "http://shop.org")
 
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
@@ -54,7 +54,7 @@ func TestSendCrawlRequest(t *testing.T) {
 					Times(1).
 					Reply(test.statusCode)
 
-				err := SendCrawlRequest("http://example.com", "http://shop.org")
+				err := SendCrawlRequest("example.com", "http://shop.org")
 
 				if err == nil {
 					t.Errorf("Expected an error")
