@@ -26,6 +26,8 @@ func main() {
 	flag.StringVar(&pageDBPath, "page-db-path", "page.db", "Path to the page database")
 	var storageDir string
 	flag.StringVar(&storageDir, "storage-dir", "storage", "Directory to store downloaded HTML files")
+	var port string
+	flag.StringVar(&port, "port", "9090", "Port to run the server on")
 
 	flag.Parse()
 
@@ -69,5 +71,5 @@ func main() {
 		crawlHandler,
 	)
 
-	r.Run(":8081")
+	r.Run(":" + port)
 }

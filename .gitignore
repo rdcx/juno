@@ -1,1 +1,6 @@
 *.env
+
+cmd/node/run/storage
+cmd/node/run/page.db
+cmd/balancer/run/policy.db
+cmd/balancer/run/queue.db

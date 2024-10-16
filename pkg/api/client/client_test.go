@@ -23,7 +23,7 @@ func TestGetShards(t *testing.T) {
 		defer gock.Off()
 
 		gock.New(baseURL).
-			Get("/shards").
+			Get("/shards/nodes").
 			Reply(200).
 			JSON(expected)
 
@@ -50,7 +50,7 @@ func TestGetShards(t *testing.T) {
 		defer gock.Off()
 
 		gock.New(baseURL).
-			Get("/shards").
+			Get("/shards/nodes").
 			Reply(500)
 
 		_, err := client.GetShards()
@@ -75,7 +75,7 @@ func TestGetBalancers(t *testing.T) {
 		defer gock.Off()
 
 		gock.New(baseURL).
-			Get("/balancers").
+			Get("/shards/balancers").
 			Reply(200).
 			JSON(expected)
 
@@ -102,7 +102,7 @@ func TestGetBalancers(t *testing.T) {
 		defer gock.Off()
 
 		gock.New(baseURL).
-			Get("/balancers").
+			Get("/shards/balancers").
 			Reply(500)
 
 		_, err := client.GetBalancers()

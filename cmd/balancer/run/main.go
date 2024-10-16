@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"juno/pkg/api/client"
+	"time"
 
 	queueRepo "juno/pkg/balancer/queue/repo/bolt"
 	queueService "juno/pkg/balancer/queue/service"
@@ -31,6 +32,9 @@ func main() {
 
 	var queueDBPath string
 	flag.StringVar(&queueDBPath, "queue-db", "queue.db", "Queue DB Path")
+
+	var port string
+	flag.StringVar(&port, "port", "7070", "Port to run the server on")
 
 	flag.Parse()
 
@@ -64,6 +68,7 @@ func main() {
 		crawlService.WithApiClient(apiClient),
 		crawlService.WithQueueService(queueService),
 		crawlService.WithPolicyService(policyService),
+		crawlService.WithShardFetchInterval(time.Minute),
 	)
 
 	crawlHandler := crawlHandler.New(
@@ -77,5 +82,5 @@ func main() {
 
 	r := router.New(crawlHandler)
 
-	r.Run(":8080")
+	r.Run(":" + port)
 }

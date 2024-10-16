@@ -10,6 +10,12 @@ type Service struct {
 }
 
 func New(dir string) *Service {
+
+	// create if not exists
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		os.Mkdir(dir, 0755)
+	}
+
 	return &Service{
 		dir: dir,
 	}

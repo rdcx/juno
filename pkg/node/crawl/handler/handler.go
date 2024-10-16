@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"juno/pkg/node/crawl"
 	"juno/pkg/node/crawl/dto"
 
@@ -29,7 +30,7 @@ func (h *Handler) Crawl(c *gin.Context) {
 		return
 	}
 
-	err := h.crawlService.Crawl(req.URL)
+	err := h.crawlService.Crawl(context.Background(), req.URL)
 
 	if err != nil {
 		c.JSON(500, dto.NewErrorCrawlResponse(err.Error()))

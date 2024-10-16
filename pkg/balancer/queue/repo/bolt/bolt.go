@@ -2,6 +2,7 @@ package bolt
 
 import (
 	"fmt"
+	"juno/pkg/balancer/queue"
 
 	bolt "go.etcd.io/bbolt"
 )
@@ -56,7 +57,7 @@ func (r *Repository) Pop() (string, error) {
 		key, value := cursor.First()
 
 		if key == nil {
-			return fmt.Errorf("queue is empty")
+			return queue.ErrNoURLsInQueue
 		}
 
 		// Store the first value (URL)

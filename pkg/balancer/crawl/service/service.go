@@ -10,6 +10,7 @@ import (
 	"juno/pkg/shard"
 	"juno/pkg/url"
 	"math/rand"
+	"sync"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -60,6 +61,7 @@ type Service struct {
 	logger        *logrus.Logger
 	apiClient     *apiClient.Client
 	shards        [shard.SHARDS][]string
+	shardsLock    sync.Mutex
 	queueService  queue.Service
 	policyService policy.Service
 }
@@ -85,6 +87,9 @@ func (s *Service) fetchShards() {
 		return
 	}
 
+	s.shardsLock.Lock()
+	defer s.shardsLock.Unlock()
+
 	for i := 0; i < shard.SHARDS; i++ {
 		s.shards[i] = []string{}
 	}
@@ -102,10 +107,14 @@ func (s *Service) fetchShards() {
 }
 
 func (s *Service) SetShards(shards [shard.SHARDS][]string) {
+	s.shardsLock.Lock()
+	defer s.shardsLock.Unlock()
 	s.shards = shards
 }
 
 func (s *Service) randomNode(shard int) (string, error) {
+	s.shardsLock.Lock()
+	defer s.shardsLock.Unlock()
 	if len(s.shards[shard]) == 0 {
 		return "", crawl.ErrNoNodesAvailableInShard
 	}
@@ -137,6 +146,9 @@ func (s *Service) ProcessQueue(ctx context.Context) error {
 				case <-time.After(500 * time.Millisecond):
 					// continue after sleep
 				}
+				continue
+			} else if err != nil {
+				s.logger.Errorf("failed to pop url from queue: %v", err)
 				continue
 			}
 

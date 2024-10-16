@@ -1,6 +1,7 @@
 package bolt
 
 import (
+	"juno/pkg/balancer/queue"
 	"os"
 	"testing"
 
@@ -117,7 +118,7 @@ func TestPop(t *testing.T) {
 
 	// Try to pop from an empty queue
 	_, err = repo.Pop()
-	if err == nil {
+	if err != queue.ErrNoURLsInQueue {
 		t.Error("expected error when popping from empty queue, got nil")
 	}
 }

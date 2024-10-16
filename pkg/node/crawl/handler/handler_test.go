@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"errors"
 	"net/http/httptest"
 	"strings"
@@ -15,7 +16,7 @@ type mockCrawlService struct {
 	withError error
 }
 
-func (m *mockCrawlService) Crawl(url string) error {
+func (m *mockCrawlService) Crawl(ctx context.Context, url string) error {
 	return m.withError
 }
 

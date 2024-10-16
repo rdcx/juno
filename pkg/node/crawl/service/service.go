@@ -8,6 +8,7 @@ import (
 	"juno/pkg/node/html"
 	"juno/pkg/node/page"
 	"juno/pkg/node/storage"
+	"juno/pkg/url"
 	"time"
 )
 
@@ -82,11 +83,14 @@ func (s *Service) Crawl(ctx context.Context, urlStr string) error {
 	}
 
 	for _, link := range links {
-		err = s.balancerService.SendCrawlRequest(link)
+		full, err := url.LinkToFullURL(finalURL, link)
 
 		if err != nil {
 			return err
 		}
+
+		go s.balancerService.SendCrawlRequest(full)
+
 	}
 
 	err = s.pageService.AddVersion(p.ID, page.NewVersion(vHash))

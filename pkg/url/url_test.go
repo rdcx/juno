@@ -45,3 +45,73 @@ func TestToHostname(t *testing.T) {
 		})
 	}
 }
+
+func TestLinkToFullURL(t *testing.T) {
+	tests := []struct {
+		baseURL   string
+		link      string
+		expected  string
+		shouldErr bool
+	}{
+		// Absolute link, should return the same link
+		{
+			baseURL:   "https://example.com/subdir/",
+			link:      "https://otherdomain.com/resource",
+			expected:  "https://otherdomain.com/resource",
+			shouldErr: false,
+		},
+		// Relative link, should be resolved against the base URL
+		{
+			baseURL:   "https://example.com/subdir/",
+			link:      "path/to/resource",
+			expected:  "https://example.com/subdir/path/to/resource",
+			shouldErr: false,
+		},
+		// Relative link starting with a slash, should be resolved to root
+		{
+			baseURL:   "https://example.com/subdir/",
+			link:      "/path/to/resource",
+			expected:  "https://example.com/path/to/resource",
+			shouldErr: false,
+		},
+		// Relative link with "..", should be resolved to parent directory
+		{
+			baseURL:   "https://example.com/subdir/",
+			link:      "../resource",
+			expected:  "https://example.com/resource",
+			shouldErr: false,
+		},
+		// Invalid base URL, should return an error
+		{
+			baseURL:   "://invalid-url",
+			link:      "path/to/resource",
+			expected:  "",
+			shouldErr: true,
+		},
+		// Invalid relative link, should return an error
+		{
+			baseURL:   "https://example.com/subdir/",
+			link:      "://invalid-link",
+			expected:  "",
+			shouldErr: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.link, func(t *testing.T) {
+			result, err := LinkToFullURL(test.baseURL, test.link)
+
+			if test.shouldErr && err == nil {
+				t.Fatalf("expected error but got none")
+			}
+
+			if !test.shouldErr && err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if result != test.expected {
+				t.Errorf("expected %v, got %v", test.expected, result)
+			}
+		})
+	}
+}

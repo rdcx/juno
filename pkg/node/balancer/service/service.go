@@ -6,15 +6,19 @@ import (
 	balancerClient "juno/pkg/balancer/client"
 	"juno/pkg/shard"
 	"juno/pkg/url"
+	"sync"
 	"time"
+
+	"math/rand"
 
 	"github.com/sirupsen/logrus"
 )
 
 type Service struct {
-	logger    *logrus.Logger
-	apiClient *apiClient.Client
-	balancers [shard.SHARDS][]string
+	logger        *logrus.Logger
+	apiClient     *apiClient.Client
+	balancers     [shard.SHARDS][]string
+	balancersLock sync.Mutex
 }
 
 func WithApiClient(api *apiClient.Client) func(s *Service) {
@@ -62,6 +66,9 @@ func (s *Service) fetchBalancers() {
 		return
 	}
 
+	s.balancersLock.Lock()
+	defer s.balancersLock.Unlock()
+
 	for shardNum := range s.balancers {
 		s.balancers[shardNum] = []string{}
 	}
@@ -81,6 +88,17 @@ func (s *Service) ReportURLProcessed(urlStr string, status int) error {
 	return nil
 }
 
+func randomisedBalancersList(balancers []string) []string {
+
+	// Shuffle the list of balancers to randomize the order
+	rand.Seed(time.Now().UnixNano()) // Seed with the current time
+	rand.Shuffle(len(balancers), func(i, j int) {
+		balancers[i], balancers[j] = balancers[j], balancers[i]
+	})
+
+	return balancers
+}
+
 func (s *Service) SendCrawlRequest(urlStr string) error {
 	host, err := url.ToHostname(urlStr)
 
@@ -92,7 +110,7 @@ func (s *Service) SendCrawlRequest(urlStr string) error {
 	}
 
 	shardNum := shard.GetShard(host)
-	balancers := s.balancers[shardNum]
+	balancers := randomisedBalancersList(s.balancers[shardNum])
 
 	if len(balancers) == 0 {
 		if s.logger != nil {

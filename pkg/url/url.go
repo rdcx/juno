@@ -1,6 +1,7 @@
 package url
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -64,4 +65,30 @@ func ToHostname(link string) (string, error) {
 	}
 
 	return parsedURL.Hostname(), nil
+}
+
+// LinkToFullURL maps a relative URL to a full URL based on a provided base URL.
+func LinkToFullURL(baseURL, link string) (string, error) {
+	// Parse the base URL
+	base, err := url.Parse(baseURL)
+	if err != nil {
+		return "", errors.New("invalid base URL")
+	}
+
+	// Parse the provided link
+	u, err := url.Parse(link)
+	if err != nil {
+		return "", errors.New("invalid link")
+	}
+
+	// If the link is already absolute, return it
+	if u.IsAbs() {
+		return u.String(), nil
+	}
+
+	// Otherwise, resolve the relative link against the base URL
+	fullURL := base.ResolveReference(u)
+
+	// Return the full URL
+	return fullURL.String(), nil
 }
