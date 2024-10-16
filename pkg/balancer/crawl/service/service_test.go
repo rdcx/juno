@@ -77,23 +77,49 @@ func TestWithShardFetchInterval(t *testing.T) {
 }
 
 func TestCrawl(t *testing.T) {
-	t.Run("sends crawl request to random shard node", func(t *testing.T) {
+	t.Run("should return ok", func(t *testing.T) {
 
 		defer gock.Off()
 
-		url := "http://example.com"
-
-		gock.New("http://node1.com:8080").
+		gock.New("http://node1.com:9090").
 			Post("/crawl").
-			MatchType("json").
-			JSON(map[string]string{"url": url})
+			JSON(map[string]string{"url": "http://example.com"}).
+			Times(1).
+			Reply(200).
+			JSON(map[string]string{"message": "ok"})
 
 		svc := New(WithLogger(logrus.New()))
 		svc.SetShards([shard.SHARDS][]string{
-			72435: {"node1.com:8080"},
+			72435: {"node1.com:9090"},
 		})
 
-		svc.Crawl(url)
+		svc.Crawl("http://example.com")
+
+		if !gock.IsDone() {
+			t.Errorf("Not all expectations were met")
+		}
+	})
+
+	t.Run("tries 3 times before giving up", func(t *testing.T) {
+		defer gock.Off()
+
+		gock.New("http://node1.com:9090").
+			Post("/crawl").
+			JSON(map[string]string{"url": "http://example.com"}).
+			Times(3).
+			Reply(500).
+			JSON(map[string]string{"message": "internal server error"})
+
+		svc := New(WithLogger(logrus.New()))
+		svc.SetShards([shard.SHARDS][]string{
+			72435: {"node1.com:9090"},
+		})
+
+		err := svc.Crawl("http://example.com")
+
+		if err == nil {
+			t.Errorf("expected an error")
+		}
 
 		if !gock.IsDone() {
 			t.Errorf("Not all expectations were met")

@@ -93,9 +93,9 @@ func (s *Service) randomNode(shard int) (string, error) {
 }
 
 func (s *Service) Crawl(url string) error {
-
 	hostname, err := link.ToHostname(url)
 	if err != nil {
+		s.logger.Errorf("failed to parse hostname: %v", err)
 		return err
 	}
 	shard := shard.GetShard(hostname)
@@ -117,5 +117,5 @@ func (s *Service) Crawl(url string) error {
 
 	s.logger.Errorf("failed to send link %s to shard: %v", url, err)
 
-	return err
+	return crawl.ErrTooManyTries
 }

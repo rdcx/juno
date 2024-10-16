@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"juno/pkg/node/crawl/domain"
+	domain "juno/pkg/node/crawl"
 	"juno/pkg/node/crawl/dto"
 	"juno/pkg/util"
 	"net/http"

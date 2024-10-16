@@ -7,6 +7,8 @@ var migrations = map[string]string{
 		CREATE TABLE IF NOT EXISTS nodes (
 			id VARCHAR(36) PRIMARY KEY,
 			owner_id VARCHAR(36) NOT NULL,
+			status VARCHAR(16) NOT NULL DEFAULT 'unverified',
+			last_verified_at TIMESTAMP,
 			address VARCHAR(255) NOT NULL,
 			shard_assignments MEDIUMTEXT NOT NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

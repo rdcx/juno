@@ -7,6 +7,7 @@ import (
 )
 
 var ErrNoNodesAvailableInShard = errors.New("no nodes available in shard")
+var ErrTooManyTries = errors.New("too many tries")
 
 type Handler interface {
 	Crawl(c *gin.Context)
