@@ -1,35 +1,98 @@
 package service
 
 import (
+	apiClient "juno/pkg/api/client"
 	"juno/pkg/balancer/crawl"
 	"juno/pkg/link"
 	"juno/pkg/node/client"
 	"juno/pkg/shard"
-	"log"
 	"math/rand"
+	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
+func WithLogger(logger *logrus.Logger) func(s *Service) {
+	return func(s *Service) {
+		s.logger = logger
+	}
+}
+
+func WithApiClient(apiClient *apiClient.Client) func(s *Service) {
+	return func(s *Service) {
+		s.apiClient = apiClient
+	}
+}
+
+func WithShardFetchInterval(interval time.Duration) func(s *Service) {
+	return func(s *Service) {
+
+		if s.apiClient == nil {
+			panic("api client is required")
+		}
+
+		go func() {
+			s.fetchShards()
+			for {
+				time.Sleep(interval)
+				s.fetchShards()
+			}
+		}()
+	}
+}
+
 type Service struct {
-	nodes [shard.SHARDS][]string
+	logger    *logrus.Logger
+	apiClient *apiClient.Client
+	shards    [shard.SHARDS][]string
 }
 
-func New() *Service {
-	return &Service{}
+func New(options ...func(s *Service)) *Service {
+	s := &Service{}
+
+	for _, option := range options {
+		option(s)
+	}
+
+	if s.logger == nil {
+		panic("logger is required")
+	}
+
+	return s
 }
 
-func (lb *Service) SetNodes(nodes [shard.SHARDS][]string) {
-	lb.nodes = nodes
+func (s *Service) fetchShards() {
+	res, err := s.apiClient.GetShards()
+	if err != nil {
+		s.logger.Printf("failed to fetch shards: %v", err)
+		return
+	}
+
+	for shard, nodes := range res.Shards {
+		s.shards[shard] = nodes
+	}
+
+	if len(res.Shards) != shard.SHARDS {
+		s.logger.Errorf("expected %d shards, got %d", shard.SHARDS, len(res.Shards))
+		return
+	}
+
+	s.logger.Infof("shards fetched: %d", len(res.Shards))
 }
 
-func (lb *Service) randomNode(shard int) (string, error) {
-	if len(lb.nodes[shard]) == 0 {
+func (s *Service) setShards(shards [shard.SHARDS][]string) {
+	s.shards = shards
+}
+
+func (s *Service) randomNode(shard int) (string, error) {
+	if len(s.shards[shard]) == 0 {
 		return "", crawl.ErrNoNodesAvailableInShard
 	}
 
-	return lb.nodes[shard][rand.Intn(len(lb.nodes[shard]))], nil
+	return s.shards[shard][rand.Intn(len(s.shards[shard]))], nil
 }
 
-func (lb *Service) Crawl(url string) {
+func (s *Service) Crawl(url string) {
 
 	hostname, err := link.ToHostname(url)
 	if err != nil {
@@ -39,9 +102,9 @@ func (lb *Service) Crawl(url string) {
 
 	tries := 0
 	for tries < 3 {
-		node, err := lb.randomNode(shard)
+		node, err := s.randomNode(shard)
 		if err == crawl.ErrNoNodesAvailableInShard {
-			log.Printf("no nodes available in shard %d", shard)
+			s.logger.Errorf("no nodes available in shard %d", shard)
 			return
 		}
 		err = client.SendCrawlRequest(node, url)
@@ -52,5 +115,5 @@ func (lb *Service) Crawl(url string) {
 		tries++
 	}
 
-	log.Printf("failed to send link %s to shard: %v", url, err)
+	s.logger.Errorf("failed to send link %s to shard: %v", url, err)
 }
