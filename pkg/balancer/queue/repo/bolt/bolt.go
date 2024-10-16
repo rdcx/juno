@@ -6,12 +6,12 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
-type URLQueueRepository struct {
+type Repository struct {
 	db *bolt.DB
 }
 
 // NewURLQueueRepository initializes the BoltDB store for the queue.
-func NewURLQueueRepository(dbPath string) (*URLQueueRepository, error) {
+func New(dbPath string) (*Repository, error) {
 	db, err := bolt.Open(dbPath, 0600, nil)
 	if err != nil {
 		return nil, err
@@ -26,11 +26,11 @@ func NewURLQueueRepository(dbPath string) (*URLQueueRepository, error) {
 		return nil, err
 	}
 
-	return &URLQueueRepository{db: db}, nil
+	return &Repository{db: db}, nil
 }
 
 // Push adds a URL to the queue by appending it to the end.
-func (r *URLQueueRepository) Push(url string) error {
+func (r *Repository) Push(url string) error {
 	return r.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("url_queue"))
 
@@ -46,7 +46,7 @@ func (r *URLQueueRepository) Push(url string) error {
 }
 
 // Pop removes and returns the first URL in the queue.
-func (r *URLQueueRepository) Pop() (string, error) {
+func (r *Repository) Pop() (string, error) {
 	var url string
 	err := r.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("url_queue"))

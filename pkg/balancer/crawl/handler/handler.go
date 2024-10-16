@@ -1,21 +1,27 @@
 package handler
 
 import (
-	"juno/pkg/balancer/crawl"
 	"juno/pkg/balancer/crawl/dto"
+	"juno/pkg/balancer/queue"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 type Handler struct {
-	crawlService crawl.Service
+	logger       *logrus.Logger
+	queueService queue.Service
 }
 
 func New(
-	crawlService crawl.Service,
+	logger *logrus.Logger,
+	queueService queue.Service,
 ) *Handler {
-	return &Handler{crawlService: crawlService}
+	return &Handler{
+		logger:       logger,
+		queueService: queueService,
+	}
 }
 
 func (h *Handler) Crawl(c *gin.Context) {
@@ -26,7 +32,11 @@ func (h *Handler) Crawl(c *gin.Context) {
 		return
 	}
 
-	go h.crawlService.Crawl(req.URL)
+	if err := h.queueService.Push(req.URL); err != nil {
+		h.logger.WithError(err).Error("failed to push url to queue")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
 	c.JSON(http.StatusOK, dto.NewOKCrawlResponse())
 }
