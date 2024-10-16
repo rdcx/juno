@@ -75,8 +75,10 @@ func (s *Service) SetBalancers(balancers [shard.SHARDS][]string) {
 	s.balancers = balancers
 }
 
-func (s *Service) ReportURLProcessed(urlStr string) {
+func (s *Service) ReportURLProcessed(urlStr string, status int) error {
 	// TODO: implement
+
+	return nil
 }
 
 func (s *Service) SendCrawlRequest(urlStr string) error {

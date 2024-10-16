@@ -2,9 +2,11 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"juno/pkg/node/balancer"
 	"juno/pkg/node/crawl"
 	"juno/pkg/node/fetcher"
+	"juno/pkg/node/html"
 	"juno/pkg/node/page"
 	"juno/pkg/node/storage"
 	"time"
@@ -16,6 +18,7 @@ type Service struct {
 	balancerService balancer.Service
 	pageService     page.Service
 	storageService  storage.Service
+	htmlService     html.Service
 	fetcher         fetcher.Service
 }
 
@@ -24,12 +27,14 @@ func New(
 	pageService page.Service,
 	storageService storage.Service,
 	fetcher fetcher.Service,
+	htmlService html.Service,
 ) *Service {
 	return &Service{
 		balancerService: balancerService,
 		pageService:     pageService,
 		storageService:  storageService,
 		fetcher:         fetcher,
+		htmlService:     htmlService,
 	}
 }
 
@@ -69,6 +74,22 @@ func (s *Service) Crawl(ctx context.Context, urlStr string) error {
 
 	if err != nil {
 		return err
+	}
+
+	links, err := s.htmlService.ExtractLinks(body)
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(links)
+
+	for _, link := range links {
+		err = s.balancerService.SendCrawlRequest(link)
+
+		if err != nil {
+			return err
+		}
 	}
 
 	err = s.pageService.AddVersion(p.ID, page.NewVersion(vHash))
