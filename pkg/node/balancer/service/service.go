@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	apiClient "juno/pkg/api/client"
 	balancerClient "juno/pkg/balancer/client"
 	"juno/pkg/shard"
@@ -70,18 +71,22 @@ func (s *Service) fetchBalancers() {
 	}
 }
 
+func (s *Service) SetBalancers(balancers [shard.SHARDS][]string) {
+	s.balancers = balancers
+}
+
 func (s *Service) ReportURLProcessed(urlStr string) {
 	// TODO: implement
 }
 
-func (s *Service) SendCrawlRequest(urlStr string) {
+func (s *Service) SendCrawlRequest(urlStr string) error {
 	host, err := url.ToHostname(urlStr)
 
 	if err != nil {
 		if s.logger != nil {
 			s.logger.Error(err)
 		}
-		return
+		return err
 	}
 
 	shardNum := shard.GetShard(host)
@@ -91,18 +96,25 @@ func (s *Service) SendCrawlRequest(urlStr string) {
 		if s.logger != nil {
 			s.logger.Error("no balancers found for shard")
 		}
-		return
+		return errors.New("no balancers found for shard")
 	}
 
 	for _, b := range balancers {
-		balancerClient := balancerClient.New(b)
+		balancerClient := balancerClient.New(
+			"http://" + b,
+		)
 
 		err := balancerClient.Crawl(urlStr)
 
 		if err != nil {
 			if s.logger != nil {
 				s.logger.Error(err)
+				continue
 			}
 		}
+
+		return nil
 	}
+
+	return errors.New("failed to send crawl request")
 }
