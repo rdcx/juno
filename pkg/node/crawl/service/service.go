@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"juno/pkg/node/balancer"
 	"juno/pkg/node/crawl"
 	"juno/pkg/node/fetcher"
@@ -81,8 +80,6 @@ func (s *Service) Crawl(ctx context.Context, urlStr string) error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Println(links)
 
 	for _, link := range links {
 		err = s.balancerService.SendCrawlRequest(link)

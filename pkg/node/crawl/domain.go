@@ -1,6 +1,10 @@
 package crawl
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/gin-gonic/gin"
+)
 
 var (
 	Err500         = errors.New("fetch returned 500")
@@ -15,4 +19,8 @@ var ErrFailedCrawlRequest = errors.New("failed to send crawl request")
 
 type Service interface {
 	Crawl(url string) error
+}
+
+type Handler interface {
+	Crawl(c *gin.Context) error
 }
