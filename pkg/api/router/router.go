@@ -2,6 +2,7 @@ package router
 
 import (
 	"juno/pkg/api/auth"
+	"juno/pkg/api/balancer"
 	"juno/pkg/api/middleware"
 	"juno/pkg/api/node"
 	"juno/pkg/api/user"
@@ -14,6 +15,7 @@ import (
 
 func New(
 	nodeHandler node.Handler,
+	balancerHandler balancer.Handler,
 	userHandler user.Handler,
 	authHandler auth.Handler,
 ) *gin.Engine {
@@ -34,6 +36,7 @@ func New(
 	r.POST("/auth/token", authHandler.Token)
 	r.POST("/users", userHandler.Create)
 	r.GET("/shards", nodeHandler.AllShardsNodes)
+	r.GET("/balancers", balancerHandler.AllShardsBalancers)
 
 	authGroup := r.Group("/")
 
