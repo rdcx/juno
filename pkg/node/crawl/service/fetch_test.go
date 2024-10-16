@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"juno/pkg/node/crawl"
 	"strings"
 	"testing"
 	"time"
@@ -28,7 +29,7 @@ func TestFetchPage(t *testing.T) {
 			Reply(200).
 			BodyString(clothesPage)
 
-		status, finalURL, page, err := FetchPage(context.Background(), "https://shop.com/clothes")
+		body, status, finalURL, err := FetchPage(context.Background(), "https://shop.com/clothes")
 
 		if err != nil {
 			t.Errorf("Unexpected error: %s", err)
@@ -42,8 +43,8 @@ func TestFetchPage(t *testing.T) {
 			t.Errorf("Expected finalURL to be https://shop.com/clothes, got %s", finalURL)
 		}
 
-		if string(page) != clothesPage {
-			t.Errorf("Expected page to be %s, got %s", clothesPage, page)
+		if string(body) != clothesPage {
+			t.Errorf("Expected page to be %s, got %s", clothesPage, body)
 		}
 	})
 
@@ -54,9 +55,9 @@ func TestFetchPage(t *testing.T) {
 			Get("/clothes").
 			Reply(400)
 
-		status, finalURL, page, err := FetchPage(context.Background(), "https://shop.com/clothes")
+		body, status, finalURL, err := FetchPage(context.Background(), "https://shop.com/clothes")
 
-		if !errors.Is(err, Err400) {
+		if !errors.Is(err, crawl.Err400) {
 			t.Errorf("Expected error to be Err400, got %s", err)
 		}
 
@@ -68,8 +69,8 @@ func TestFetchPage(t *testing.T) {
 			t.Errorf("Expected finalURL to be https://shop.com/clothes, got %s", finalURL)
 		}
 
-		if page != nil {
-			t.Errorf("Expected page to be nil, got %s", page)
+		if body != nil {
+			t.Errorf("Expected page to be nil, got %s", body)
 		}
 	})
 
@@ -80,7 +81,7 @@ func TestFetchPage(t *testing.T) {
 			Get("/clothes").
 			Reply(404)
 
-		status, finalURL, page, err := FetchPage(context.Background(), "https://shop.com/clothes")
+		body, status, finalURL, err := FetchPage(context.Background(), "https://shop.com/clothes")
 
 		if err == nil {
 			t.Error("Expected an error, got nil")
@@ -94,8 +95,8 @@ func TestFetchPage(t *testing.T) {
 			t.Errorf("Expected finalURL to be https://shop.com/clothes, got %s", finalURL)
 		}
 
-		if page != nil {
-			t.Errorf("Expected page to be nil, got %s", page)
+		if body != nil {
+			t.Errorf("Expected page to be nil, got %s", body)
 		}
 	})
 
@@ -106,7 +107,7 @@ func TestFetchPage(t *testing.T) {
 			Get("/clothes").
 			ReplyError(errors.New("network error"))
 
-		status, finalURL, page, err := FetchPage(context.Background(), "https://shop.com/clothes")
+		body, status, finalURL, err := FetchPage(context.Background(), "https://shop.com/clothes")
 
 		if !strings.Contains(err.Error(), "network error") {
 			t.Errorf("Expected error to contain 'network error', got %s", err)
@@ -120,8 +121,8 @@ func TestFetchPage(t *testing.T) {
 			t.Errorf("Expected finalURL to be empty, got %s", finalURL)
 		}
 
-		if page != nil {
-			t.Errorf("Expected page to be nil, got %s", page)
+		if body != nil {
+			t.Errorf("Expected page to be nil, got %s", body)
 		}
 	})
 
@@ -132,9 +133,9 @@ func TestFetchPage(t *testing.T) {
 			Get("/clothes").
 			Reply(429)
 
-		status, finalURL, page, err := FetchPage(context.Background(), "https://shop.com/clothes")
+		body, status, finalURL, err := FetchPage(context.Background(), "https://shop.com/clothes")
 
-		if err != Err429 {
+		if err != crawl.Err429 {
 			t.Errorf("Expected error to be Err429, got %s", err)
 		}
 
@@ -146,8 +147,8 @@ func TestFetchPage(t *testing.T) {
 			t.Errorf("Expected finalURL to be https://shop.com/clothes, got %s", finalURL)
 		}
 
-		if page != nil {
-			t.Errorf("Expected page to be nil, got %s", page)
+		if body != nil {
+			t.Errorf("Expected page to be nil, got %s", body)
 		}
 	})
 
@@ -161,9 +162,9 @@ func TestFetchPage(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*50)
 		defer cancel()
 
-		status, finalURL, page, err := FetchPage(ctx, "https://shop.com/clothes")
+		body, status, finalURL, err := FetchPage(ctx, "https://shop.com/clothes")
 
-		if err != ErrContextDone {
+		if err != crawl.ErrContextDone {
 			t.Errorf("Expected error to be ErrContextDone, got %s", err)
 		}
 
@@ -175,8 +176,8 @@ func TestFetchPage(t *testing.T) {
 			t.Errorf("Expected finalURL to be empty, got %s", finalURL)
 		}
 
-		if page != nil {
-			t.Errorf("Expected page to be nil, got %s", page)
+		if body != nil {
+			t.Errorf("Expected page to be nil, got %s", body)
 		}
 	})
 }

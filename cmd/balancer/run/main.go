@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"juno/pkg/api/client"
 
@@ -71,7 +72,7 @@ func main() {
 	)
 
 	go func() {
-
+		crawlService.ProcessQueue(context.Background())
 	}()
 
 	r := router.New(crawlHandler)

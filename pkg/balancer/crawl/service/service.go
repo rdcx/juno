@@ -6,9 +6,9 @@ import (
 	"juno/pkg/balancer/crawl"
 	"juno/pkg/balancer/policy"
 	"juno/pkg/balancer/queue"
-	"juno/pkg/link"
 	"juno/pkg/node/client"
 	"juno/pkg/shard"
+	"juno/pkg/url"
 	"math/rand"
 	"time"
 
@@ -124,7 +124,7 @@ func (s *Service) ProcessQueue(ctx context.Context) error {
 		case <-ctx.Done():
 			return queue.ErrProcessQueueCancelled
 		default:
-			url, err := s.queueService.Pop()
+			u, err := s.queueService.Pop()
 
 			if err == queue.ErrNoURLsInQueue {
 				select {
@@ -136,7 +136,7 @@ func (s *Service) ProcessQueue(ctx context.Context) error {
 				continue
 			}
 
-			hostname, err := link.ToHostname(url)
+			hostname, err := url.ToHostname(u)
 
 			if err != nil {
 				s.logger.Errorf("failed to get hostname from url: %v", err)
@@ -153,7 +153,7 @@ func (s *Service) ProcessQueue(ctx context.Context) error {
 			}
 
 			if !s.policyService.CanCrawl(pol) {
-				err = s.queueService.Push(url)
+				err = s.queueService.Push(u)
 
 				if err != nil {
 					s.logger.Errorf("failed to push url to queue: %v", err)
@@ -162,7 +162,7 @@ func (s *Service) ProcessQueue(ctx context.Context) error {
 				continue
 			}
 
-			err = s.Crawl(url)
+			err = s.Crawl(u)
 
 			if err == nil {
 				err = s.policyService.RecordCrawl(pol)
@@ -177,8 +177,8 @@ func (s *Service) ProcessQueue(ctx context.Context) error {
 	}
 }
 
-func (s *Service) Crawl(url string) error {
-	hostname, err := link.ToHostname(url)
+func (s *Service) Crawl(u string) error {
+	hostname, err := url.ToHostname(u)
 	if err != nil {
 		s.logger.Errorf("failed to parse hostname: %v", err)
 		return err
@@ -192,7 +192,7 @@ func (s *Service) Crawl(url string) error {
 			s.logger.Errorf("no nodes available in shard %d", shard)
 			return err
 		}
-		err = client.SendCrawlRequest(node, url)
+		err = client.SendCrawlRequest(node, u)
 		if err == nil {
 			return nil
 		}
@@ -200,7 +200,7 @@ func (s *Service) Crawl(url string) error {
 		tries++
 	}
 
-	s.logger.Errorf("failed to send link %s to shard: %v", url, err)
+	s.logger.Errorf("failed to send link %s to shard: %v", u, err)
 
 	return crawl.ErrTooManyTries
 }
