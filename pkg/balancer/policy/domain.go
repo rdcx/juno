@@ -5,23 +5,36 @@ import (
 	"time"
 )
 
+const DefaultCrawlInterval = 30 * time.Second
+
 var ErrPolicyNotFound = errors.New("policy not found")
 
-type Policy struct {
+type CrawlPolicy struct {
 	Hostname      string
 	CrawlInterval time.Duration
 	LastCrawled   time.Time
 
 	// The number of times the hostname has been crawled
-	Crawled int
+	TimesCrawled int
+}
+
+func New(hostname string) *CrawlPolicy {
+	return &CrawlPolicy{
+		Hostname:      hostname,
+		CrawlInterval: DefaultCrawlInterval,
+		LastCrawled:   time.Time{},
+		TimesCrawled:  0,
+	}
 }
 
 type Repository interface {
-	Get(hostname string) (*Policy, error)
-	Set(hostname string, policy *Policy) error
+	Get(hostname string) (*CrawlPolicy, error)
+	Set(hostname string, policy *CrawlPolicy) error
 }
 
 type Service interface {
-	CanCrawl(hostname string) (bool, error)
-	Update(policy *Policy) error
+	Get(hostname string) (*CrawlPolicy, error)
+	Set(hostname string, policy *CrawlPolicy) error
+	CanCrawl(p *CrawlPolicy) bool
+	RecordCrawl(p *CrawlPolicy) error
 }

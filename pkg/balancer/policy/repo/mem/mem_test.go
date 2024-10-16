@@ -24,7 +24,7 @@ func TestRepo(t *testing.T) {
 	t.Run("should return policy when found", func(t *testing.T) {
 		repo := New()
 
-		repo.Set("example.com", &policy.HostnamePolicy{
+		repo.Set("example.com", &policy.CrawlPolicy{
 			Hostname:      "example.com",
 			LastCrawled:   time.Now().Add(-10 * time.Minute),
 			CrawlInterval: 5 * time.Second,
@@ -50,7 +50,7 @@ func TestSet(t *testing.T) {
 	t.Run("should set policy", func(t *testing.T) {
 		repo := New()
 
-		repo.Set("example.com", &policy.HostnamePolicy{
+		repo.Set("example.com", &policy.CrawlPolicy{
 			Hostname:      "example.com",
 			LastCrawled:   time.Now().Add(-10 * time.Minute),
 			CrawlInterval: 5 * time.Second,

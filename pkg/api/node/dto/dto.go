@@ -38,7 +38,7 @@ func (n Node) ToDomain() (*node.Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	return node.New(id, ownerID, n.Address), nil
+	return node.New(id, ownerID, n.Address, n.ShardAssignments), nil
 }
 
 type ListNodesResponse struct {

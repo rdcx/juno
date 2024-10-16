@@ -48,7 +48,7 @@ func TestAllShardsNodes(t *testing.T) {
 	n1 := &node.Node{
 		ID:               uuid.New(),
 		OwnerID:          uuid.New(),
-		Address:          "http://example.com",
+		Address:          "example.com",
 		ShardAssignments: [][2]int{{0, 1000}, {1000, 1000}},
 	}
 
@@ -60,7 +60,7 @@ func TestAllShardsNodes(t *testing.T) {
 	n2 := &node.Node{
 		ID:               uuid.New(),
 		OwnerID:          uuid.New(),
-		Address:          "http://example.org",
+		Address:          "example.org",
 		ShardAssignments: [][2]int{{2000, 1000}, {3000, 2000}},
 	}
 

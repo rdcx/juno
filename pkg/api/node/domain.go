@@ -59,10 +59,11 @@ type Node struct {
 	ShardAssignments [][2]int  `json:"shard_assignments"`
 }
 
-func New(id, ownerID uuid.UUID, address string) *Node {
+func New(id, ownerID uuid.UUID, address string, shardAssignments [][2]int) *Node {
 	return &Node{
-		ID:      id,
-		OwnerID: ownerID,
-		Address: address,
+		ID:               id,
+		OwnerID:          ownerID,
+		Address:          address,
+		ShardAssignments: shardAssignments,
 	}
 }
