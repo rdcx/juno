@@ -17,6 +17,7 @@ var ErrEmailAlreadyExists = errors.New("email already exists")
 var ErrInvalidEmail = errors.New("invalid email")
 var ErrInvalidPassword = errors.New("invalid password")
 var ErrInvalidID = errors.New("invalid id")
+var ErrInvalidName = errors.New("invalid name")
 
 type User struct {
 	ID       uuid.UUID `json:"id"`
@@ -34,7 +35,7 @@ type Repository interface {
 }
 
 type Service interface {
-	Create(email, password string) (*User, error)
+	Create(name, email, password string) (*User, error)
 	Get(id uuid.UUID) (*User, error)
 	FirstWhereEmail(email string) (*User, error)
 	Update(u *User) error

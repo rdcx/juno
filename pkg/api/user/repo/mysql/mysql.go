@@ -18,7 +18,7 @@ func New(db *sql.DB) *Repo {
 }
 
 func (r *Repo) Create(u *user.User) error {
-	_, err := r.db.Exec("INSERT INTO users (id, email, password) VALUES (?, ?, ?)", u.ID, u.Email, u.Password)
+	_, err := r.db.Exec("INSERT INTO users (id, name, email, password) VALUES (?, ?, ?, ?)", u.ID, u.Name, u.Email, u.Password)
 
 	return err
 }
@@ -26,7 +26,7 @@ func (r *Repo) Create(u *user.User) error {
 func (r *Repo) Get(id uuid.UUID) (*user.User, error) {
 	var u user.User
 
-	err := r.db.QueryRow("SELECT id, email, password FROM users WHERE id = ?", id).Scan(&u.ID, &u.Email, &u.Password)
+	err := r.db.QueryRow("SELECT id, name, email, password FROM users WHERE id = ?", id).Scan(&u.ID, &u.Name, &u.Email, &u.Password)
 
 	if err != nil {
 		return nil, user.ErrNotFound
@@ -38,7 +38,7 @@ func (r *Repo) Get(id uuid.UUID) (*user.User, error) {
 func (r *Repo) FirstWhereEmail(email string) (*user.User, error) {
 	var u user.User
 
-	err := r.db.QueryRow("SELECT id, email, password FROM users WHERE email = ?", email).Scan(&u.ID, &u.Email, &u.Password)
+	err := r.db.QueryRow("SELECT id, name, email, password FROM users WHERE email = ?", email).Scan(&u.ID, &u.Name, &u.Email, &u.Password)
 
 	if err != nil {
 		return nil, user.ErrNotFound
@@ -48,7 +48,7 @@ func (r *Repo) FirstWhereEmail(email string) (*user.User, error) {
 }
 
 func (r *Repo) Update(u *user.User) error {
-	_, err := r.db.Exec("UPDATE users SET email = ?, password = ? WHERE id = ?", u.Email, u.Password, u.ID)
+	_, err := r.db.Exec("UPDATE users SET name = ?, email = ?, password = ? WHERE id = ?", u.Name, u.Email, u.Password, u.ID)
 
 	return err
 }

@@ -105,7 +105,7 @@ func TestCreate(t *testing.T) {
 		email := randomEmail()
 		pass := "password"
 
-		u, err := s.Create(email, pass)
+		u, err := s.Create("ross", email, pass)
 
 		if err != nil {
 			t.Errorf("expected err to be nil, got %v", err)
@@ -141,7 +141,11 @@ func TestCreate(t *testing.T) {
 
 		email := "invalid"
 
-		_, err := s.Create(email, "short")
+		_, err := s.Create("", email, "short")
+
+		if !strings.Contains(err.Error(), "invalid name") {
+			t.Errorf("expected error to contain 'invalid name', got %v", err)
+		}
 
 		if !strings.Contains(err.Error(), "invalid email") {
 			t.Errorf("expected error to contain 'invalid email', got %v", err)
@@ -160,13 +164,13 @@ func TestCreate(t *testing.T) {
 		email := randomEmail()
 		pass := "password"
 
-		_, err := s.Create(email, pass)
+		_, err := s.Create("ross", email, pass)
 
 		if err != nil {
 			t.Errorf("expected err to be nil, got %v", err)
 		}
 
-		_, err = s.Create(email, pass)
+		_, err = s.Create("ross", email, pass)
 
 		if err != user.ErrEmailAlreadyExists {
 			t.Errorf("expected error to be ErrEmailAlreadyExists, got %v", err)

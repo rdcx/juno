@@ -9,6 +9,7 @@ const (
 
 type User struct {
 	ID    string `json:"id" validate:"required,uuid"`
+	Name  string `json:"name" validate:"required"`
 	Email string `json:"email" validate:"required,email"`
 }
 
@@ -22,6 +23,7 @@ type GetUserResponse struct {
 func NewUserFromDomain(u *user.User) *User {
 	return &User{
 		ID:    u.ID.String(),
+		Name:  u.Name,
 		Email: u.Email,
 	}
 }
@@ -42,6 +44,7 @@ func NewErrorGetUserResponse(message string) GetUserResponse {
 }
 
 type CreateUserRequest struct {
+	Name     string `json:"name" validate:"required"`
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=8"`
 }

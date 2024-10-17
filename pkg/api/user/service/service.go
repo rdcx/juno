@@ -44,9 +44,21 @@ func (s *Service) FirstWhereEmail(email string) (*user.User, error) {
 	return s.userRepo.FirstWhereEmail(email)
 }
 
-func (s *Service) Create(email, password string) (*user.User, error) {
+func validateName(name string) error {
+	if name == "" {
+		return user.ErrInvalidName
+	}
+
+	return nil
+}
+
+func (s *Service) Create(name, email, password string) (*user.User, error) {
 
 	var errs []error
+
+	if err := validateName(name); err != nil {
+		errs = append(errs, err)
+	}
 
 	if err := validateEmail(email); err != nil {
 		errs = append(errs, err)

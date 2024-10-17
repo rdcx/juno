@@ -95,7 +95,7 @@ func (h *Handler) Create(c *gin.Context) {
 
 	h.policy.CanCreate().
 		Allow(func() {
-			u, err := h.userService.Create(req.Email, req.Password)
+			u, err := h.userService.Create(req.Name, req.Email, req.Password)
 
 			if err != nil {
 				h.logger.Error(err)

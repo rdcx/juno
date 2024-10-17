@@ -16,6 +16,7 @@ func TestNewSuccessGetUserResponse(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		u := &user.User{
 			ID:    uuid.New(),
+			Name:  "John Doe",
 			Email: randomEmail(),
 		}
 
@@ -31,6 +32,10 @@ func TestNewSuccessGetUserResponse(t *testing.T) {
 
 		if resp.User.ID != u.ID.String() {
 			t.Errorf("expected user ID to be %s, got %s", u.ID.String(), resp.User.ID)
+		}
+
+		if resp.User.Name != u.Name {
+			t.Errorf("expected user name to be %s, got %s", u.Name, resp.User.Name)
 		}
 
 		if resp.User.Email != u.Email {

@@ -265,6 +265,10 @@ func testCreateResponse(t *testing.T, w *httptest.ResponseRecorder, expectedCode
 		t.Fatalf("Expected user ID to be set, got %s", resp.User.ID)
 	}
 
+	if resp.User.Name != expectedUser.Name {
+		t.Fatalf("Expected user name %s, got %s", expectedUser.Name, resp.User.Name)
+	}
+
 	if resp.User.Email != expectedUser.Email {
 		t.Fatalf("Expected user email %s, got %s", expectedUser.Email, resp.User.Email)
 	}
@@ -279,10 +283,23 @@ func TestCreate(t *testing.T) {
 		handler := New(logger, policy, svc)
 		w := httptest.NewRecorder()
 
+		name := "John Doe"
 		email := randomEmail()
 		pass := "password"
 
-		req := httptest.NewRequest("POST", "/users", bytes.NewBuffer([]byte(`{"email":"`+email+`","password":"`+pass+`"}`)))
+		request := dto.CreateUserRequest{
+			Name:     name,
+			Email:    email,
+			Password: pass,
+		}
+
+		reqBody, err := json.Marshal(request)
+
+		if err != nil {
+			t.Fatalf("Error marshalling request: %s", err)
+		}
+
+		req := httptest.NewRequest("POST", "/users", bytes.NewBuffer(reqBody))
 		tc, _ := gin.CreateTestContext(w)
 		tc.Request = req.WithContext(
 			auth.WithUser(context.Background(), &user.User{
@@ -295,6 +312,28 @@ func TestCreate(t *testing.T) {
 		testCreateResponse(t, w, http.StatusCreated, dto.SUCCESS, "", &user.User{
 			Email: email,
 		})
+	})
+
+	t.Run("invalid name", func(t *testing.T) {
+		logger := logrus.New()
+		repo := mem.New()
+		svc := service.New(logger, repo)
+		policy := policy.New()
+		handler := New(logger, policy, svc)
+		w := httptest.NewRecorder()
+
+		req := httptest.NewRequest("POST", "/users", bytes.NewBuffer([]byte(`{"email":"`+randomEmail()+`","password":"password"}`)))
+
+		tc, _ := gin.CreateTestContext(w)
+		tc.Request = req.WithContext(
+			auth.WithUser(context.Background(), &user.User{
+				ID: uuid.New(),
+			}),
+		)
+
+		handler.Create(tc)
+
+		testCreateResponse(t, w, 400, dto.ERROR, user.ErrInvalidName.Error(), nil)
 	})
 
 	t.Run("invalid email", func(t *testing.T) {

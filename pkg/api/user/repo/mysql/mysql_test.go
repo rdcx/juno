@@ -25,13 +25,13 @@ func randomEmail() string {
 	return uuid.New().String() + "@example.com"
 }
 
-func testUserMatches(t *testing.T, conn *sql.DB, id uuid.UUID, email, password string) bool {
-	sqlCheck := "SELECT id, email, password FROM users WHERE id = ?"
+func testUserMatches(t *testing.T, conn *sql.DB, id uuid.UUID, name, email, password string) bool {
+	sqlCheck := "SELECT id, name, email, password FROM users WHERE id = ?"
 
 	row := conn.QueryRow(sqlCheck, id)
 
 	var user user.User
-	err := row.Scan(&user.ID, &user.Email, &user.Password)
+	err := row.Scan(&user.ID, &user.Name, &user.Email, &user.Password)
 	if err != nil {
 		t.Errorf("Error getting user: %s", err)
 		return false
@@ -39,6 +39,16 @@ func testUserMatches(t *testing.T, conn *sql.DB, id uuid.UUID, email, password s
 
 	if user.ID != id {
 		t.Errorf("Expected ID %s, got %s", id, user.ID)
+		return false
+	}
+
+	if user.Name != name {
+		t.Errorf("Expected Name %s, got %s", name, user.Name)
+		return false
+	}
+
+	if user.Email != email {
+		t.Errorf("Expected Email %s, got %s", email, user.Email)
 		return false
 	}
 
@@ -90,7 +100,7 @@ func TestCreate(t *testing.T) {
 			t.Errorf("Unexpected error: %s", err)
 		}
 
-		if !testUserMatches(t, db, u.ID, u.Email, u.Password) {
+		if !testUserMatches(t, db, u.ID, u.Name, u.Email, u.Password) {
 			t.Errorf("User does not match")
 		}
 
@@ -120,6 +130,7 @@ func TestCreate(t *testing.T) {
 
 		u := user.User{
 			ID:       uuid.New(),
+			Name:     "name",
 			Email:    email,
 			Password: "password",
 		}
@@ -164,6 +175,7 @@ func TestGet(t *testing.T) {
 
 		u := user.User{
 			ID:       uuid.New(),
+			Name:     "name",
 			Email:    email,
 			Password: "password",
 		}
@@ -182,6 +194,10 @@ func TestGet(t *testing.T) {
 
 		if usr.ID != u.ID {
 			t.Errorf("Expected ID %s, got %s", u.ID, usr.ID)
+		}
+
+		if usr.Name != u.Name {
+			t.Errorf("Expected Name %s, got %s", u.Name, usr.Name)
 		}
 
 		if usr.Email != u.Email {
@@ -261,6 +277,7 @@ func TestFirstWhereEmail(t *testing.T) {
 
 		u := user.User{
 			ID:       uuid.New(),
+			Name:     "name",
 			Email:    email,
 			Password: "password",
 		}
@@ -279,6 +296,10 @@ func TestFirstWhereEmail(t *testing.T) {
 
 		if usr.ID != u.ID {
 			t.Errorf("Expected ID %s, got %s", u.ID, usr.ID)
+		}
+
+		if usr.Name != u.Name {
+			t.Errorf("Expected Name %s, got %s", u.Name, usr.Name)
 		}
 
 		if usr.Email != u.Email {
@@ -315,6 +336,7 @@ func TestFirstWhereEmail(t *testing.T) {
 
 		u := user.User{
 			ID:       uuid.New(),
+			Name:     "name",
 			Email:    email,
 			Password: "password",
 		}
@@ -352,6 +374,7 @@ func TestUpdate(t *testing.T) {
 
 		u := user.User{
 			ID:       uuid.New(),
+			Name:     "name",
 			Email:    email,
 			Password: "password",
 		}
@@ -370,7 +393,7 @@ func TestUpdate(t *testing.T) {
 			t.Errorf("Unexpected error: %s", err)
 		}
 
-		if !testUserMatches(t, db, u.ID, u.Email, u.Password) {
+		if !testUserMatches(t, db, u.ID, u.Name, u.Email, u.Password) {
 			t.Errorf("User does not match")
 		}
 
@@ -400,6 +423,7 @@ func TestUpdate(t *testing.T) {
 
 		u := user.User{
 			ID:       uuid.New(),
+			Name:     "name",
 			Email:    email,
 			Password: "password",
 		}
