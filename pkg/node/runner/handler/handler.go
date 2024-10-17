@@ -24,6 +24,18 @@ func New(
 	}
 }
 
+func (h *Handler) Titles(c *gin.Context) {
+	titles, err := h.runnerService.Titles()
+
+	if err != nil {
+		h.logger.WithError(err).Error("failed to get titles")
+		c.JSON(http.StatusInternalServerError, nil)
+		return
+	}
+
+	c.JSON(http.StatusOK, titles)
+}
+
 func (h *Handler) Execute(c *gin.Context) {
 	var req dto.ExecuteRequest
 

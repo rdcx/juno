@@ -77,7 +77,7 @@ func main() {
 	crawlHandler := crawlHandler.New(logger, crawlService)
 
 	monkeyService := monkeyService.New()
-	runnerService := runnerService.New(logger, pageService, storageService, monkeyService)
+	runnerService := runnerService.New(logger, pageService, storageService, htmlService, monkeyService)
 	runnerHandler := runnerHandler.New(logger, runnerService)
 
 	r := router.New(

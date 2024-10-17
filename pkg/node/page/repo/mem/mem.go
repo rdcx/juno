@@ -18,6 +18,19 @@ func New() *Repository {
 	}
 }
 
+func (r *Repository) Iterator(callback func(*page.Page)) error {
+
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	// Example iteration logic over a collection of pages
+	for _, p := range r.pages {
+		// Call the provided callback function for each page
+		callback(p)
+	}
+	return nil
+}
+
 // CreatePage adds a new page to the in-memory store.
 func (r *Repository) CreatePage(p *page.Page) error {
 	r.mu.Lock()

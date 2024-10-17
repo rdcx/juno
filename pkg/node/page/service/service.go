@@ -12,6 +12,10 @@ func New(repo page.Repository) *Service {
 	}
 }
 
+func (s *Service) Iterator(fn func(*page.Page)) error {
+	return s.repo.Iterator(fn)
+}
+
 func (s *Service) GetByURL(url string) (*page.Page, error) {
 	return s.repo.GetPage(page.NewPageID(url))
 }

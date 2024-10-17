@@ -32,6 +32,23 @@ func New(dbPath string) (*Repository, error) {
 	return &Repository{db: db}, nil
 }
 
+func (r *Repository) Iterator(fn func(*page.Page)) error {
+	return r.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("pages"))
+
+		// Iterate over all pages
+		return b.ForEach(func(k, v []byte) error {
+			var p page.Page
+			if err := json.Unmarshal(v, &p); err != nil {
+				return fmt.Errorf("failed to unmarshal page: %w", err)
+			}
+
+			fn(&p)
+			return nil
+		})
+	})
+}
+
 // CreatePage adds a new page to the BoltDB store.
 func (r *Repository) CreatePage(p *page.Page) error {
 	return r.db.Update(func(tx *bolt.Tx) error {

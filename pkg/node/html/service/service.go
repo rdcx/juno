@@ -28,3 +28,13 @@ func (s *Service) ExtractLinks(body []byte) ([]string, error) {
 
 	return links, nil
 }
+
+func (s *Service) Title(body []byte) (string, error) {
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(body))
+
+	if err != nil {
+		return "", err
+	}
+
+	return doc.Find("title").Text(), nil
+}

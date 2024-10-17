@@ -13,6 +13,44 @@ func setupTestService() *Service {
 	return New(repo)
 }
 
+func TestService_Iterator(t *testing.T) {
+	service := setupTestService()
+
+	// Create a test page using NewPageID
+	testPage := &page.Page{
+		ID:  page.NewPageID("https://example.com"),
+		URL: "https://example.com",
+	}
+	err := service.Create(testPage)
+	if err != nil {
+		t.Fatalf("failed to create page: %v", err)
+	}
+
+	// Create a test page using NewPageID
+	anotherPage := &page.Page{
+		ID:  page.NewPageID("https://example.com/another"),
+		URL: "https://example.com/another",
+	}
+	err = service.Create(anotherPage)
+	if err != nil {
+		t.Fatalf("failed to create page: %v", err)
+	}
+
+	// Iterate over pages
+	pages := []*page.Page{}
+	err = service.Iterator(func(p *page.Page) {
+		pages = append(pages, p)
+	})
+	if err != nil {
+		t.Fatalf("failed to iterate over pages: %v", err)
+	}
+
+	// Verify that both pages were iterated over
+	if len(pages) != 2 {
+		t.Errorf("expected 2 pages, got %d", len(pages))
+	}
+}
+
 func TestService_CreatePage(t *testing.T) {
 	service := setupTestService()
 

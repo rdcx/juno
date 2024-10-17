@@ -15,6 +15,7 @@ func New(
 
 	r.POST("/crawl", crawlHandler.Crawl)
 	r.POST("/runner/execute", runnerHandler.Execute)
+	r.POST("/runner/titles", runnerHandler.Titles)
 
 	return r
 }

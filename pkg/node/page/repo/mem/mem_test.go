@@ -11,6 +11,46 @@ func setupTestRepo() *Repository {
 	return New()
 }
 
+func TestRepository_Iterator(t *testing.T) {
+	repo := setupTestRepo()
+
+	// Create a test page using NewPageID
+	testPage := &page.Page{
+		ID:  page.NewPageID("https://example.com"),
+		URL: "https://example.com",
+	}
+	err := repo.CreatePage(testPage)
+	if err != nil {
+		t.Fatalf("failed to create page: %v", err)
+	}
+
+	// Create a test page using NewPageID
+	anotherPage := &page.Page{
+		ID:  page.NewPageID("https://example.com/another"),
+		URL: "https://example.com/another",
+	}
+	err = repo.CreatePage(anotherPage)
+	if err != nil {
+		t.Fatalf("failed to create page: %v", err)
+	}
+
+	// Iterate over pages
+	pages := []*page.Page{}
+	err = repo.Iterator(
+		func(p *page.Page) {
+			pages = append(pages, p)
+		},
+	)
+	if err != nil {
+		t.Fatalf("failed to iterate over pages: %v", err)
+	}
+
+	// Verify that both pages were iterated over
+	if len(pages) != 2 {
+		t.Errorf("expected 2 pages, got %d", len(pages))
+	}
+}
+
 func TestRepository_CreatePage(t *testing.T) {
 	repo := setupTestRepo()
 
