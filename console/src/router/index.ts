@@ -33,6 +33,16 @@ const router = createRouter({
       path: '/queries',
       name: 'queries',
       component: () => import('../views/QueriesView.vue'),
+    },
+    {
+      path: '/tokens',
+      name: 'tokens',
+      component: () => import('../views/TokensView.vue'),
+    },
+    {
+      path: '/crawl',
+      name: 'crawl',
+      component: () => import('../views/CrawlView.vue'),
     }
   ],
 })
