@@ -119,7 +119,6 @@ func New(l *lexer.Lexer) *Parser {
 
 	// Register prefix-functions
 	p.prefixParseFns = make(map[token.Type]prefixParseFn)
-	p.registerPrefix(token.BACKTICK, p.parseBacktickLiteral)
 	p.registerPrefix(token.BANG, p.parsePrefixExpression)
 	p.registerPrefix(token.DEFINE_FUNCTION, p.parseFunctionDefinition)
 	p.registerPrefix(token.EOF, p.parsingBroken)
@@ -879,11 +878,6 @@ func (p *Parser) parseRegexpLiteral() ast.Expression {
 		}
 	}
 	return &ast.RegexpLiteral{Token: p.curToken, Value: val, Flags: flags}
-}
-
-// parseBacktickLiteral parses a backtick-expression.
-func (p *Parser) parseBacktickLiteral() ast.Expression {
-	return &ast.BacktickLiteral{Token: p.curToken, Value: p.curToken.Literal}
 }
 
 // parseArrayLiteral parses an array literal.

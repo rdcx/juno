@@ -54,6 +54,7 @@ func NewVersion(hash VersionHash) Version {
 
 type Page struct {
 	ID       PageID    `json:"id"`
+	Shard    int       `json:"shard"`
 	URL      string    `json:"url"`
 	Versions []Version `json:"versions"`
 }

@@ -38,7 +38,7 @@ func TestExecute(t *testing.T) {
 	handler := New(logger, service)
 
 	t.Run("success", func(t *testing.T) {
-		src := `[0, "hello world"]`
+		src := `10 == 10`
 		req := dto.ExecuteRequest{
 			Src: src,
 		}
@@ -61,7 +61,7 @@ func TestExecute(t *testing.T) {
 			t.Errorf("expected no error but got %v", err)
 		}
 
-		if string(res.Data) != `[0, "hello world"]` {
+		if string(res.Data) != `true` {
 			t.Errorf("expected Hello, World! but got %s", string(res.Data))
 		}
 	})

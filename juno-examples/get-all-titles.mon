@@ -1,0 +1,10 @@
+
+let titles = []
+
+pages().iterate(function(page, file) {
+    title = domquery(file).extract("title")
+
+    titles[] = { url: page.url, } 
+})
+
+return title

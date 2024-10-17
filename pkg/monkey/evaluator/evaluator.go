@@ -3,14 +3,10 @@
 package evaluator
 
 import (
-	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"math"
 	"os"
-	"os/exec"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"unicode"
@@ -173,8 +169,6 @@ func EvalContext(ctx context.Context, node ast.Node, env *object.Environment) ob
 		return &object.String{Value: node.Value}
 	case *ast.RegexpLiteral:
 		return &object.Regexp{Value: node.Value, Flags: node.Flags}
-	case *ast.BacktickLiteral:
-		return backTickOperation(node.Value)
 	case *ast.IndexExpression:
 		left := EvalContext(ctx, node.Left, env)
 		if isError(left) {
@@ -1064,77 +1058,6 @@ func parseCommandLine(command string) ([]string, error) {
 	// Flush any remaining argument and return the parsed arguments.
 	flush()
 	return args, nil
-}
-
-// backTickOperation executes a shell command and returns a hash object containing the result.
-// The hash includes 'stdout', 'stderr', and 'code' fields.
-// If the command is empty or parsing fails, an error hash is returned.
-func backTickOperation(command string) object.Object {
-	var (
-		args []string
-		err  error
-	)
-
-	// Trim leading and trailing whitespace from the command.
-	if command = strings.TrimSpace(command); command != "" {
-		// Split the command into arguments.
-		if args, err = parseCommandLine(command); err != nil {
-			// Return an error hash for parsing failure.
-			return createCommandExecHash(&object.String{Value: ""}, &object.String{Value: "parse error: " + err.Error()},
-				&object.Integer{Value: -1})
-		}
-	}
-
-	// Check if the command is empty after parsing.
-	if len(args) == 0 {
-		// Return an error hash for an empty command.
-		return createCommandExecHash(&object.String{Value: ""}, &object.String{Value: "no command"},
-			&object.Integer{Value: -1})
-	}
-
-	// Run the command.
-	cmd := exec.Command(filepath.Clean(args[0]), args[1:]...)
-
-	// Capture the command's stdout and stderr.
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-
-	var exitCode int64 = 0
-
-	// Execute the command and handle errors.
-	err = cmd.Run()
-	if err != nil {
-		var exitError *exec.ExitError
-		if !errors.As(err, &exitError) {
-			// Handle non-ExitError errors (e.g., command not found).
-			return createCommandExecHash(&object.String{Value: ""}, &object.String{Value: fmt.Sprintf("Failed to run '%s' -> %s\n", command, err.Error())},
-				&object.Integer{Value: -1})
-		}
-		exitCode = int64(exitError.ExitCode())
-	}
-
-	// Create a hash with 'stdout', 'stderr', and 'code' fields.
-	return createCommandExecHash(&object.String{Value: stdout.String()}, &object.String{Value: stderr.String()},
-		&object.Integer{Value: exitCode})
-}
-
-// createCommandExecHash Create a hash with 'stdout', 'stderr', and 'code' fields.
-func createCommandExecHash(stdoutObj, stderrObj, errorObj object.Object) object.Object {
-	// Create keys for the hash.
-	stdoutKey := &object.String{Value: "stdout"}
-	stderrKey := &object.String{Value: "stderr"}
-	exitCodeKey := &object.String{Value: "exitCode"}
-
-	// Populate the hash with key-value pairs.
-	hashPairs := map[object.HashKey]object.HashPair{
-		stdoutKey.HashKey():   {Key: stdoutKey, Value: stdoutObj},
-		stderrKey.HashKey():   {Key: stderrKey, Value: stderrObj},
-		exitCodeKey.HashKey(): {Key: exitCodeKey, Value: errorObj},
-	}
-
-	// Create and return the hash object.
-	return &object.Hash{Pairs: hashPairs}
 }
 
 func evalIndexExpression(left, index object.Object) object.Object {

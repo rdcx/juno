@@ -3,14 +3,22 @@ package main
 import (
 	"flag"
 	"juno/pkg/api/client"
-	balancerService "juno/pkg/node/balancer/service"
+
 	crawlHandler "juno/pkg/node/crawl/handler"
 	crawlService "juno/pkg/node/crawl/service"
-	fetcherService "juno/pkg/node/fetcher/service"
-	htmlService "juno/pkg/node/html/service"
+
 	pageRepo "juno/pkg/node/page/repo/bolt"
 	pageService "juno/pkg/node/page/service"
+
+	balancerService "juno/pkg/node/balancer/service"
+	fetcherService "juno/pkg/node/fetcher/service"
+	htmlService "juno/pkg/node/html/service"
 	storageService "juno/pkg/node/storage/service"
+
+	runnerHandler "juno/pkg/node/runner/handler"
+	runnerService "juno/pkg/node/runner/service"
+
+	monkeyService "juno/pkg/monkey/service"
 	"time"
 
 	"juno/pkg/node/router"
@@ -67,8 +75,14 @@ func main() {
 	)
 
 	crawlHandler := crawlHandler.New(logger, crawlService)
+
+	monkeyService := monkeyService.New()
+	runnerService := runnerService.New(logger, pageService, storageService, monkeyService)
+	runnerHandler := runnerHandler.New(logger, runnerService)
+
 	r := router.New(
 		crawlHandler,
+		runnerHandler,
 	)
 
 	r.Run(":" + port)
