@@ -10,6 +10,16 @@ func New() *Repository {
 	return &Repository{}
 }
 
+func (r *Repository) Exists(url string) (bool, error) {
+	for _, u := range r.urls {
+		if u == url {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
 func (r *Repository) Push(url string) error {
 	r.urls = append(r.urls, url)
 	return nil

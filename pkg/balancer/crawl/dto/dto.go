@@ -25,3 +25,23 @@ func NewErrorCrawlResponse() CrawlResponse {
 		Status: ERROR,
 	}
 }
+
+type CrawlURLsRequest struct {
+	URLs []string `json:"urls"`
+}
+
+type CrawlURLsResponse struct {
+	Status string `json:"status"`
+}
+
+func NewOKCrawlURLsResponse() CrawlURLsResponse {
+	return CrawlURLsResponse{
+		Status: OK,
+	}
+}
+
+func NewErrorCrawlURLsResponse() CrawlURLsResponse {
+	return CrawlURLsResponse{
+		Status: ERROR,
+	}
+}

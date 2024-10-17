@@ -82,16 +82,24 @@ func (s *Service) Crawl(ctx context.Context, urlStr string) error {
 		return err
 	}
 
+	var fullLinks []string
+
 	for _, link := range links {
 		full, err := url.LinkToFullURL(finalURL, link)
 
 		if err != nil {
-			return err
+			continue
 		}
 
-		go s.balancerService.SendCrawlRequest(full)
+		if !url.IsHTTPOrHTTPS(full) {
+			continue
+		}
+
+		fullLinks = append(fullLinks, full)
 
 	}
+
+	go s.balancerService.SendBatchedLinks(fullLinks)
 
 	err = s.pageService.AddVersion(p.ID, page.NewVersion(vHash))
 

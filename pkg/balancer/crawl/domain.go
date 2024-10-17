@@ -12,6 +12,7 @@ var ErrTooManyTries = errors.New("too many tries")
 
 type Handler interface {
 	Crawl(c *gin.Context)
+	CrawlURLs(c *gin.Context)
 }
 
 type Service interface {

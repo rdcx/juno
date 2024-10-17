@@ -115,3 +115,57 @@ func TestLinkToFullURL(t *testing.T) {
 		})
 	}
 }
+
+func TestIsHTTPOrHTTPS(t *testing.T) {
+	tests := []struct {
+		name     string
+		url      string
+		expected bool
+	}{
+		{
+			name:     "http",
+			url:      "http://example.com",
+			expected: true,
+		},
+		{
+			name:     "https",
+			url:      "https://example.com",
+			expected: true,
+		},
+		{
+			name:     "ftp",
+			url:      "ftp://example.com",
+			expected: false,
+		},
+		{
+			name:     "mailto",
+			url:      "mailto:",
+			expected: false,
+		},
+		{
+			name:     "tel",
+			url:      "tel:",
+			expected: false,
+		},
+		{
+			name:     "data",
+			url:      "data:",
+			expected: false,
+		},
+		{
+			name:     "javascript",
+			url:      "javascript:",
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := IsHTTPOrHTTPS(tt.url)
+
+			if got != tt.expected {
+				t.Errorf("IsHTTPOrHTTPS() = %v, want %v", got, tt.expected)
+			}
+		})
+	}
+}

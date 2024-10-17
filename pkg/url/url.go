@@ -49,12 +49,6 @@ func parseValidURL(rawURL string) (*url.URL, error) {
 		return nil, fmt.Errorf("invalid hostname: %s", parsedURL.Hostname())
 	}
 
-	// Check path (no illegal characters)
-	pathRegex := regexp.MustCompile(`^[\/A-Za-z0-9._~!$&'()*+,;=:@-]*$`)
-	if !pathRegex.MatchString(parsedURL.Path) {
-		return nil, fmt.Errorf("invalid path: %s", parsedURL.Path)
-	}
-
 	return parsedURL, nil
 }
 
@@ -91,4 +85,13 @@ func LinkToFullURL(baseURL, link string) (string, error) {
 
 	// Return the full URL
 	return fullURL.String(), nil
+}
+
+func IsHTTPOrHTTPS(link string) bool {
+	u, err := url.Parse(link)
+	if err != nil {
+		return false
+	}
+
+	return u.Scheme == "http" || u.Scheme == "https"
 }

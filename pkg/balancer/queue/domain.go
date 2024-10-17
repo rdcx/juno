@@ -11,6 +11,7 @@ type Service interface {
 }
 
 type Repository interface {
+	Exists(url string) (bool, error)
 	Push(url string) error
 	Pop() (string, error)
 }

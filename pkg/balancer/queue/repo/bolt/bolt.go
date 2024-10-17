@@ -30,6 +30,29 @@ func New(dbPath string) (*Repository, error) {
 	return &Repository{db: db}, nil
 }
 
+// Exists checks if a URL is already in the queue.
+func (r *Repository) Exists(url string) (bool, error) {
+	var exists bool
+	err := r.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("url_queue"))
+
+		// Iterate over each item in the bucket
+		cursor := b.Cursor()
+		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
+			if string(v) == url {
+				exists = true
+				break
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
+}
+
 // Push adds a URL to the queue by appending it to the end.
 func (r *Repository) Push(url string) error {
 	return r.db.Update(func(tx *bolt.Tx) error {

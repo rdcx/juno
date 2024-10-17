@@ -63,7 +63,7 @@ func TestCrawl(t *testing.T) {
 			t.Errorf("Not all expectations were met")
 		}
 
-		if w.Code != 500 {
+		if w.Code != 400 {
 			t.Errorf("Expected status code 500, got %d", w.Code)
 		}
 

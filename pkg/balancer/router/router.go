@@ -12,6 +12,7 @@ func New(
 	r := gin.Default()
 
 	r.POST("/crawl", crawlHandler.Crawl)
+	r.POST("/crawl/urls", crawlHandler.CrawlURLs)
 
 	return r
 }

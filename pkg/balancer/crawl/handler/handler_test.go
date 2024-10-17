@@ -17,6 +17,55 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+func TestCrawlURLs(t *testing.T) {
+	t.Run("should return ok", func(t *testing.T) {
+
+		repo := queueRepo.New()
+		queueSvc := queueService.New(logrus.New(), repo)
+		h := New(logrus.New(), queueSvc)
+
+		req := dto.CrawlURLsRequest{
+			URLs: []string{"http://example.com"},
+		}
+
+		w := httptest.NewRecorder()
+
+		c, _ := gin.CreateTestContext(w)
+
+		c.Request, _ = http.NewRequest(http.MethodPost, "/crawl/urls", strings.NewReader(fmt.Sprintf(`{"urls": ["%s"]}`, req.URLs[0])))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		// When
+		h.CrawlURLs(c)
+
+		// Then
+		if c.Writer.Status() != http.StatusOK {
+			t.Errorf("expected status 200 but got %d", c.Writer.Status())
+		}
+
+		var res dto.CrawlResponse
+		err := json.Unmarshal(w.Body.Bytes(), &res)
+
+		if err != nil {
+			t.Errorf("expected no error but got %v", err)
+		}
+
+		if res.Status != dto.OK {
+			t.Errorf("expected %s but got %s", dto.OK, res.Status)
+		}
+
+		// check url has been added to queue
+		pop, err := repo.Pop()
+		if err != nil {
+			t.Errorf("expected no error but got %v", err)
+		}
+
+		if pop != req.URLs[0] {
+			t.Errorf("expected %s but got %s", req.URLs[0], pop)
+		}
+	})
+}
+
 func TestCrawl(t *testing.T) {
 	t.Run("should return ok", func(t *testing.T) {
 

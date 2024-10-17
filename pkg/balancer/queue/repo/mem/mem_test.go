@@ -2,6 +2,45 @@ package mem
 
 import "testing"
 
+func TestExists(t *testing.T) {
+	t.Run("should return false when url does not exist", func(t *testing.T) {
+		// Given
+		repo := New()
+		url := "http://example.com"
+
+		// When
+		exists, err := repo.Exists(url)
+
+		// Then
+		if err != nil {
+			t.Errorf("expected no error but got %v", err)
+		}
+
+		if exists {
+			t.Errorf("expected false but got true")
+		}
+	})
+
+	t.Run("should return true when url exists", func(t *testing.T) {
+		// Given
+		repo := New()
+		url := "http://example.com"
+		repo.urls = []string{url}
+
+		// When
+		exists, err := repo.Exists(url)
+
+		// Then
+		if err != nil {
+			t.Errorf("expected no error but got %v", err)
+		}
+
+		if !exists {
+			t.Errorf("expected true but got false")
+		}
+	})
+}
+
 func TestPush(t *testing.T) {
 	t.Run("should push url", func(t *testing.T) {
 		// Given

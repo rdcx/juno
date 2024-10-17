@@ -90,13 +90,60 @@ func (s *Service) ReportURLProcessed(urlStr string, status int) error {
 
 func randomisedBalancersList(balancers []string) []string {
 
-	// Shuffle the list of balancers to randomize the order
-	rand.Seed(time.Now().UnixNano()) // Seed with the current time
 	rand.Shuffle(len(balancers), func(i, j int) {
 		balancers[i], balancers[j] = balancers[j], balancers[i]
 	})
 
 	return balancers
+}
+
+func (s *Service) SendBatchedLinks(links []string) error {
+	// group by shard
+	groupedLinks := map[int][]string{}
+
+	for _, link := range links {
+		host, err := url.ToHostname(link)
+
+		if err != nil {
+			if s.logger != nil {
+				s.logger.Error(err)
+			}
+			continue
+		}
+
+		shardNum := shard.GetShard(host)
+		groupedLinks[shardNum] = append(groupedLinks[shardNum], link)
+	}
+
+	for shardNum, links := range groupedLinks {
+		balancers := randomisedBalancersList(s.balancers[shardNum])
+
+		if len(balancers) == 0 {
+			if s.logger != nil {
+				s.logger.Error("no balancers found for shard")
+			}
+			continue
+		}
+
+		for _, b := range balancers {
+			balancerClient := balancerClient.New(
+				"http://" + b,
+			)
+
+			err := balancerClient.CrawlURLs(links)
+
+			if err != nil {
+				if s.logger != nil {
+					s.logger.Error(err)
+					continue
+				}
+			}
+
+			return nil
+		}
+	}
+
+	return errors.New("failed to send batched links")
 }
 
 func (s *Service) SendCrawlRequest(urlStr string) error {

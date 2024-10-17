@@ -178,16 +178,14 @@ func (s *Service) ProcessQueue(ctx context.Context) error {
 				continue
 			}
 
-			err = s.Crawl(u)
+			crawlErr := s.Crawl(u)
 
-			if err == nil {
-				err = s.policyService.RecordCrawl(pol)
-
-				if err != nil {
-					s.logger.Errorf("failed to set policy for url: %v", err)
-				}
-
-				continue
+			if crawlErr != nil {
+				s.logger.Errorf("failed to crawl url: %v", crawlErr)
+			}
+			err = s.policyService.RecordCrawl(pol)
+			if err != nil {
+				s.logger.Errorf("failed to set policy for url: %v", err)
 			}
 		}
 	}

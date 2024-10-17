@@ -33,7 +33,7 @@ func (h *Handler) Crawl(c *gin.Context) {
 	err := h.crawlService.Crawl(context.Background(), req.URL)
 
 	if err != nil {
-		c.JSON(500, dto.NewErrorCrawlResponse(err.Error()))
+		c.JSON(400, dto.NewErrorCrawlResponse(err.Error()))
 		return
 	}
 

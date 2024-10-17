@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"testing"
+	"time"
 
 	balancerService "juno/pkg/node/balancer/service"
 	fetcherService "juno/pkg/node/fetcher/service"
@@ -60,8 +61,8 @@ func TestCrawl(t *testing.T) {
 			BodyString(string(testFile))
 
 		gock.New("http://balancer1:8080").
-			Post("/crawl").
-			JSON(map[string]string{"url": "http://example.com/about"}).
+			Post("/crawl/urls").
+			JSON(map[string][]string{"urls": {"http://example.com/about"}}).
 			Reply(200)
 
 		err := s.Crawl(context.Background(), "http://example.com/home")
@@ -97,6 +98,8 @@ func TestCrawl(t *testing.T) {
 		if string(data) != string(testFile) {
 			t.Errorf("expected %s but got %s", testFile, data)
 		}
+
+		time.Sleep(75 * time.Millisecond)
 
 		if !gock.IsDone() {
 			t.Errorf("Not all expectations were met")
