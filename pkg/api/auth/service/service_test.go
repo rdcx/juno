@@ -22,6 +22,7 @@ import (
 func generateTestJWT(userID uuid.UUID, email string, secret string, exp time.Time) string {
 	claims := jwt.MapClaims{
 		"id":    userID.String(),
+		"name":  "Test User",
 		"email": email,
 		"exp":   exp.Unix(),
 	}
@@ -50,6 +51,11 @@ func TestTokenToUser(t *testing.T) {
 		if u.ID != userID {
 			t.Errorf("Expected user ID %v, got %v", userID, u.ID)
 		}
+
+		if u.Name != "Test User" {
+			t.Errorf("Expected name Test User, got %v", u.Name)
+		}
+
 		if u.Email != email {
 			t.Errorf("Expected email %v, got %v", email, u.Email)
 		}

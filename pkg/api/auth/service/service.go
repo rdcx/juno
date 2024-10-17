@@ -65,6 +65,7 @@ func TokenToUser(token string) (*user.User, error) {
 
 	u := &user.User{
 		ID:    parseID,
+		Name:  claims["name"].(string),
 		Email: claims["email"].(string),
 	}
 
@@ -74,6 +75,7 @@ func TokenToUser(token string) (*user.User, error) {
 func Token(u *user.User) (string, error) {
 	claims := jwt.MapClaims{
 		"id":    u.ID.String(),
+		"name":  u.Name,
 		"email": u.Email,
 		"exp":   time.Now().Add(time.Hour * 1).Unix(),
 	}

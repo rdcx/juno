@@ -125,6 +125,10 @@ func TestCreate(t *testing.T) {
 			t.Errorf("expected user email to be %s, got %s", email, u.Email)
 		}
 
+		if u.Name != "ross" {
+			t.Errorf("expected user name to be ross, got %s", u.Name)
+		}
+
 		if u.Password == pass {
 			t.Errorf("expected user password to be hashed, got %s", u.Password)
 		}

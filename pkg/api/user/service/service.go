@@ -84,6 +84,7 @@ func (s *Service) Create(name, email, password string) (*user.User, error) {
 
 	u := &user.User{
 		ID:       uuid.New(),
+		Name:     name,
 		Email:    email,
 		Password: hash,
 	}

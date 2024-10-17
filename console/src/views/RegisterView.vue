@@ -4,7 +4,7 @@
             <div class="mx-auto w-[32rem] relative group rounded">
                 <div class="relative group h-full w-full p-2">
                     <div
-                        class="hidden dark:block absolute -inset-0.5 blur transition opacity-30 rounded-lg bg-gradient-to-r from-emerald-800 to-emerald-950 rounded-lg dark:from-emerald-600 dark:to-emerald-800">
+                        class="hidden dark:block absolute -inset-10 blur transition opacity-10 rounded-lg bg-gradient-to-r from-emerald-800 to-emerald-950 rounded-lg dark:from-emerald-600 dark:to-gray-950">
                     </div>
                     <div class="relative dark:bg-gray-950 p-8 rounded-xl">
                         <h1 class="text-3xl dark:text-white"><span
@@ -15,7 +15,7 @@
                             <div class="mb-4">
                                 <label for="name"
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-200">Name</label>
-                                <input type="name" id="name" v-model="name"
+                                <input type="name" id="name" v-model="name" placeholder="John"
                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
                                     required>
                             </div>
@@ -23,7 +23,7 @@
                             <div class="mb-4">
                                 <label for="email"
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-200">Email</label>
-                                <input type="email" id="email" v-model="email"
+                                <input type="email" id="email" v-model="email" placeholder="john@example.com"
                                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
                                     required>
                             </div>

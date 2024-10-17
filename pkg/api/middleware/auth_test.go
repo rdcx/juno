@@ -18,6 +18,7 @@ func generateValidJWT(userID uuid.UUID, email string) string {
 	claims := jwt.MapClaims{
 		"id":    userID.String(),
 		"email": email,
+		"name":  "Test User",
 		"exp":   time.Now().Add(time.Hour * 1).Unix(),
 	}
 

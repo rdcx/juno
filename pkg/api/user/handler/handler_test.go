@@ -53,6 +53,10 @@ func testGetResponse(t *testing.T, w *httptest.ResponseRecorder, expectedCode in
 		t.Fatalf("Expected user ID %s, got %s", expectedUser.ID, resp.User.ID)
 	}
 
+	if resp.User.Name != expectedUser.Name {
+		t.Fatalf("Expected user name %s, got %s", expectedUser.Name, resp.User.Name)
+	}
+
 	if resp.User.Email != expectedUser.Email {
 		t.Fatalf("Expected user email %s, got %s", expectedUser.Email, resp.User.Email)
 	}
@@ -215,6 +219,7 @@ func TestProfile(t *testing.T) {
 
 		u := &user.User{
 			ID:    uuid.New(),
+			Name:  "Ross",
 			Email: randomEmail(),
 		}
 
