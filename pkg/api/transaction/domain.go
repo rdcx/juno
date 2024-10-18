@@ -1,6 +1,7 @@
 package transaction
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
@@ -45,4 +46,8 @@ type Service interface {
 	) error
 	Balance(userID uuid.UUID) (int, error)
 	GetTransactionsByUserID(userID uuid.UUID) ([]*Transaction, error)
+}
+
+type Handler interface {
+	List(c *gin.Context)
 }

@@ -6,6 +6,7 @@ import (
 	"juno/pkg/api/middleware"
 	"juno/pkg/api/node"
 	"juno/pkg/api/token"
+	"juno/pkg/api/transaction"
 	"juno/pkg/api/user"
 	"time"
 
@@ -17,6 +18,7 @@ import (
 func New(
 	nodeHandler node.Handler,
 	balancerHandler balancer.Handler,
+	transactionHandler transaction.Handler,
 	tokenHandler token.Handler,
 	userHandler user.Handler,
 	authHandler auth.Handler,
@@ -62,6 +64,8 @@ func New(
 
 		authGroup.GET("/tokens/balance", tokenHandler.Balance)
 		authGroup.POST("/tokens/deposit", tokenHandler.Deposit)
+
+		authGroup.GET("/transactions", transactionHandler.List)
 	}
 
 	return r

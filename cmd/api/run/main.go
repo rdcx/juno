@@ -9,6 +9,7 @@ import (
 	nodeRepo "juno/pkg/api/node/repo/mysql"
 	nodeSvc "juno/pkg/api/node/service"
 
+	tranHandler "juno/pkg/api/transaction/handler"
 	tranMig "juno/pkg/api/transaction/migration/mysql"
 	tranRepo "juno/pkg/api/transaction/repo/mysql"
 	tranSvc "juno/pkg/api/transaction/service"
@@ -108,6 +109,8 @@ func main() {
 
 	tranRepo := tranRepo.New(tranDB)
 	tranSvc := tranSvc.New(logger, tranRepo)
+	tranHandler := tranHandler.New(tranSvc)
+
 	tokenSvc := tokenService.New(tranSvc)
 	tokenHandler := tokenHandler.New(logger, tokenSvc)
 
@@ -128,6 +131,7 @@ func main() {
 	r := router.New(
 		nodeHandler,
 		balancerHandler,
+		tranHandler,
 		tokenHandler,
 		userHandler,
 		authHandler,
