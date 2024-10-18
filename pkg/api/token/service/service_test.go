@@ -84,7 +84,7 @@ func TestDeposit(t *testing.T) {
 
 		userID := uuid.New()
 
-		err := tokenService.Deposit(userID, -100)
+		err := tokenService.Deposit(userID, 0)
 		if err == nil {
 			t.Errorf("Expected error, got nil")
 		}

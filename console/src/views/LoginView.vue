@@ -58,9 +58,9 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
-import { AuthService } from '@/api';
+import { AuthService } from '@/services';
 import type { AuthResponse, LoginPayload } from '@/types/AuthTypes';
-import { ProfileService } from '@/api';
+import { ProfileService } from '@/services';
 import { useRouter } from 'vue-router';
 import type { ProfileResponse } from '@/types/ProfileTypes';
 

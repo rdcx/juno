@@ -24,7 +24,7 @@ func (s *Service) Balance(userID uuid.UUID) (int, error) {
 
 func (s *Service) Deposit(userID uuid.UUID, amount int) error {
 
-	if amount < 0 {
+	if amount <= 0 {
 		return token.ErrInvalidAmount
 	}
 

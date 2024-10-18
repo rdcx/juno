@@ -47,7 +47,7 @@ func (h *Handler) Deposit(c *gin.Context) {
 	}
 
 	if err := h.tokenService.Deposit(u.ID, req.Amount); err != nil {
-		c.JSON(500, dto.NewErrorBalanceResponse(err.Error()))
+		c.JSON(400, dto.NewErrorBalanceResponse(err.Error()))
 		return
 	}
 
