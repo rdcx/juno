@@ -9,6 +9,13 @@ import (
 	nodeRepo "juno/pkg/api/node/repo/mysql"
 	nodeSvc "juno/pkg/api/node/service"
 
+	tranMig "juno/pkg/api/transaction/migration/mysql"
+	tranRepo "juno/pkg/api/transaction/repo/mysql"
+	tranSvc "juno/pkg/api/transaction/service"
+
+	tokenHandler "juno/pkg/api/token/handler"
+	tokenService "juno/pkg/api/token/service"
+
 	balancerHandler "juno/pkg/api/balancer/handler"
 	balancerMig "juno/pkg/api/balancer/migration/mysql"
 	balancerPolicy "juno/pkg/api/balancer/policy"
@@ -31,7 +38,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func setupDatabases() (*sql.DB, *sql.DB, *sql.DB) {
+func setupDatabases() (*sql.DB, *sql.DB, *sql.DB, *sql.DB) {
 	nodeDB, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/node?parseTime=true")
 
 	if err != nil {
@@ -68,7 +75,19 @@ func setupDatabases() (*sql.DB, *sql.DB, *sql.DB) {
 		panic(err)
 	}
 
-	return nodeDB, userDB, balancerDB
+	tranDB, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/transaction?parseTime=true")
+
+	if err != nil {
+		panic(err)
+	}
+
+	err = tranMig.ExecuteMigrations(tranDB)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return nodeDB, userDB, balancerDB, tranDB
 }
 
 func main() {
@@ -78,7 +97,7 @@ func main() {
 
 	flag.Parse()
 
-	nodeDB, userDB, balancerDB := setupDatabases()
+	nodeDB, userDB, balancerDB, tranDB := setupDatabases()
 
 	logger := logrus.New()
 
@@ -86,6 +105,11 @@ func main() {
 	nodeSvc := nodeSvc.New(nodeRepo)
 	nodePolicy := nodePolicy.New()
 	nodeHandler := nodeHandler.New(logger, nodePolicy, nodeSvc)
+
+	tranRepo := tranRepo.New(tranDB)
+	tranSvc := tranSvc.New(logger, tranRepo)
+	tokenSvc := tokenService.New(tranSvc)
+	tokenHandler := tokenHandler.New(logger, tokenSvc)
 
 	balancerRepo := balancerRepo.New(balancerDB)
 	balancerSvc := balancerSvc.New(balancerRepo)
@@ -104,6 +128,7 @@ func main() {
 	r := router.New(
 		nodeHandler,
 		balancerHandler,
+		tokenHandler,
 		userHandler,
 		authHandler,
 	)

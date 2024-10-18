@@ -5,6 +5,7 @@ import (
 	"juno/pkg/api/balancer"
 	"juno/pkg/api/middleware"
 	"juno/pkg/api/node"
+	"juno/pkg/api/token"
 	"juno/pkg/api/user"
 	"time"
 
@@ -16,6 +17,7 @@ import (
 func New(
 	nodeHandler node.Handler,
 	balancerHandler balancer.Handler,
+	tokenHandler token.Handler,
 	userHandler user.Handler,
 	authHandler auth.Handler,
 ) *gin.Engine {
@@ -58,6 +60,8 @@ func New(
 		authGroup.POST("/balancers", balancerHandler.Create)
 		authGroup.PUT("/balancers/:id", balancerHandler.Update)
 
+		authGroup.GET("/tokens/balance", tokenHandler.Balance)
+		authGroup.POST("/tokens/deposit", tokenHandler.Deposit)
 	}
 
 	return r

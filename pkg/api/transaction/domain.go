@@ -1,8 +1,6 @@
 package transaction
 
 import (
-	"juno/pkg/api/user"
-
 	"github.com/google/uuid"
 )
 
@@ -39,13 +37,12 @@ type Repository interface {
 }
 
 type Service interface {
-	PurchaseTokens(u *user.User, amount int) error
-	Balance(u *user.User) (int, error)
-	TokenPrice() float64
 	CreateTransaction(
-		u *user.User,
+		userID uuid.UUID,
 		amount int,
 		key TransactionKey,
 		meta map[string]string,
 	) error
+	Balance(userID uuid.UUID) (int, error)
+	GetTransactionsByUserID(userID uuid.UUID) ([]*Transaction, error)
 }
