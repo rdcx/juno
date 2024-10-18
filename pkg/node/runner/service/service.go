@@ -33,8 +33,8 @@ func New(
 	}
 }
 
-func (s *Service) Titles() ([]string, error) {
-	var titles []string
+func (s *Service) Titles() (map[string]string, error) {
+	titles := make(map[string]string, 0)
 	s.pageService.Iterator(func(p *page.Page) {
 		for _, v := range p.Versions {
 			data, err := s.storageService.Read(v.Hash)
@@ -51,7 +51,9 @@ func (s *Service) Titles() ([]string, error) {
 				return
 			}
 
-			titles = append(titles, title)
+			titles[p.URL] = title
+
+			return
 		}
 	})
 

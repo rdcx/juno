@@ -10,6 +10,6 @@ type Handler interface {
 }
 
 type Service interface {
-	Titles() ([]string, error)
+	Titles() (map[string]string, error)
 	Execute(src string) ([]byte, error)
 }
