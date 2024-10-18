@@ -4,6 +4,7 @@ import { TokenService } from '@/services';
 import { TransactionService } from '@/services';
 import { computed, ref } from 'vue';
 import { useNotificationStore } from '@/stores/notification';
+import { Transaction } from '@/types/TransactionTypes';
 
 const notificationStore = useNotificationStore();
 const balance = ref(0);
@@ -33,7 +34,7 @@ const deposit = async () => {
     fetchTransactions();
 };
 
-const transactions = ref([]);
+const transactions = ref<Array<Transaction>>([]);
 
 const fetchTransactions = async () => {
     transactions.value = (await TransactionService.list()).transactions;
@@ -55,7 +56,7 @@ fetchTransactions();
             <div class="grid grid-cols-4 p-4 gap-4">
                 <div class="col-span-2 border dark:border-gray-700 rounded-lg p-4">
                     <h2 class="text-lg font-semibold dark:text-gray-300">Tokens</h2>
-                    <div class="text-xl dark:text-gray-300">{{ formattedBalance }}</div>
+                    <div class="mt-4 text-3xl dark:text-gray-300">{{ formattedBalance }}</div>
                 </div>
 
                 <div class="col-span-2 border dark:border-gray-700 rounded-lg p-4 ml-4">
