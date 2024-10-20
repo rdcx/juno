@@ -10,7 +10,7 @@ const (
 type Transaction struct {
 	ID     string            `json:"id"`
 	UserID string            `json:"user_id"`
-	Amount int               `json:"amount"`
+	Amount float64           `json:"amount"`
 	Key    string            `json:"key"`
 	Meta   map[string]string `json:"meta"`
 }

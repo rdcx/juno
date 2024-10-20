@@ -42,7 +42,7 @@ func TestCreateTransaction(t *testing.T) {
 		}
 
 		if transactions[0].Amount != tran.Amount {
-			t.Errorf("Expected %d, got %d", 138492, transactions[0].Amount)
+			t.Errorf("Expected %f, got %f", 138492.0, transactions[0].Amount)
 		}
 	})
 }
@@ -94,8 +94,8 @@ func TestBalance(t *testing.T) {
 			t.Fatalf("Expected nil, got %v", err)
 		}
 
-		if balance != 137492 {
-			t.Errorf("Expected 137492, got %d", balance)
+		if balance != 137492.0 {
+			t.Errorf("Expected 137492, got %f", balance)
 		}
 	})
 }

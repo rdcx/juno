@@ -17,12 +17,12 @@ const (
 type Transaction struct {
 	ID     uuid.UUID
 	UserID uuid.UUID
-	Amount int
+	Amount float64
 	Key    TransactionKey
 	Meta   map[string]string
 }
 
-func NewTransaction(userID uuid.UUID, amount int, key TransactionKey, meta map[string]string) *Transaction {
+func NewTransaction(userID uuid.UUID, amount float64, key TransactionKey, meta map[string]string) *Transaction {
 	return &Transaction{
 		ID:     uuid.New(),
 		UserID: userID,
@@ -40,7 +40,7 @@ type Repository interface {
 type Service interface {
 	CreateTransaction(
 		userID uuid.UUID,
-		amount int,
+		amount float64,
 		key TransactionKey,
 		meta map[string]string,
 	) error

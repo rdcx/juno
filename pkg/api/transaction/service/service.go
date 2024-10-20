@@ -19,7 +19,7 @@ func New(logger *logrus.Logger, transactionRepo transaction.Repository) *Service
 	}
 }
 
-func (s *Service) CreateTransaction(userID uuid.UUID, amount int, key transaction.TransactionKey, meta map[string]string) error {
+func (s *Service) CreateTransaction(userID uuid.UUID, amount float64, key transaction.TransactionKey, meta map[string]string) error {
 	return s.transactionRepo.CreateTransaction(
 		transaction.NewTransaction(userID, amount, key, meta),
 	)
@@ -29,14 +29,14 @@ func (s *Service) GetTransactionsByUserID(userID uuid.UUID) ([]*transaction.Tran
 	return s.transactionRepo.GetTransactionsByUserID(userID)
 }
 
-func (s *Service) Balance(userID uuid.UUID) (int, error) {
+func (s *Service) Balance(userID uuid.UUID) (float64, error) {
 	transactions, err := s.GetTransactionsByUserID(userID)
 
 	if err != nil {
 		return 0, err
 	}
 
-	balance := 0
+	balance := 0.0
 
 	for _, t := range transactions {
 		balance += t.Amount

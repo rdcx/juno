@@ -3,14 +3,16 @@ package mysql
 import "database/sql"
 
 var migrations = map[string]string{
-	"create_transactions_table": `
-		CREATE TABLE IF NOT EXISTS transactions (
+	"create_queries_table": `
+		CREATE TABLE IF NOT EXISTS queries (
 			id VARCHAR(36) PRIMARY KEY,
 			user_id VARCHAR(36) NOT NULL,
-			type VARCHAR(16) NOT NULL,
-			amount FLOAT NOT NULL,
-			meta MEDIUMTEXT NOT NULL,
-			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+			status VARCHAR(16) NOT NULL DEFAULT 'pending',
+			query_type VARCHAR(16) NOT NULL,
+			basic_query_version VARCHAR(16) NOT NULL,
+			basic_query MEDIUMTEXT NOT NULL,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 		);`,
 }
 

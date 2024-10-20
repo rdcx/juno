@@ -25,7 +25,7 @@ func (m *mockTransactionService) GetTransactionsByUserID(userID uuid.UUID) ([]*t
 	return m.transactions, m.withErr
 }
 
-func (m *mockTransactionService) CreateTransaction(userID uuid.UUID, amount int, key transaction.TransactionKey, meta map[string]string) error {
+func (m *mockTransactionService) CreateTransaction(userID uuid.UUID, amount float64, key transaction.TransactionKey, meta map[string]string) error {
 	return m.withErr
 }
 
@@ -91,7 +91,7 @@ func TestList(t *testing.T) {
 			}
 
 			if tran.Amount != service.transactions[i].Amount {
-				t.Errorf("Expected %d, got %d", service.transactions[i].Amount, tran.Amount)
+				t.Errorf("Expected %f, got %f", service.transactions[i].Amount, tran.Amount)
 			}
 
 			if tran.Key != string(service.transactions[i].Key) {

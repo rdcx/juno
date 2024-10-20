@@ -115,7 +115,7 @@ func TestGetTransactionsByUserID(t *testing.T) {
 	}
 
 	if transactions[0].Amount != tran.Amount {
-		t.Errorf("Expected %d, got %d", tran.Amount, transactions[0].Amount)
+		t.Errorf("Expected %f, got %f", tran.Amount, transactions[0].Amount)
 	}
 
 	if transactions[0].Key != tran.Key {
