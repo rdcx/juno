@@ -7,6 +7,10 @@ import (
 	crawlService "juno/pkg/balancer/crawl/service"
 	queueRepo "juno/pkg/balancer/queue/repo/mem"
 	queueService "juno/pkg/balancer/queue/service"
+
+	robotstxtRepo "juno/pkg/balancer/robotstxt/repo/mem"
+	robotstxtService "juno/pkg/balancer/robotstxt/service"
+
 	"juno/pkg/shard"
 	"net/http"
 	"net/http/httptest"
@@ -22,7 +26,8 @@ func TestCrawlURLs(t *testing.T) {
 
 		repo := queueRepo.New()
 		queueSvc := queueService.New(logrus.New(), repo)
-		h := New(logrus.New(), queueSvc)
+
+		h := New(logrus.New(), queueSvc, robotstxtService.New(robotstxtRepo.New()))
 
 		req := dto.CrawlURLsRequest{
 			URLs: []string{"http://example.com"},
@@ -75,7 +80,7 @@ func TestCrawl(t *testing.T) {
 		svc.SetShards([shard.SHARDS][]string{
 			72435: {"node1.com:9090"},
 		})
-		h := New(logrus.New(), queueSvc)
+		h := New(logrus.New(), queueSvc, robotstxtService.New(robotstxtRepo.New()))
 
 		req := dto.CrawlRequest{
 			URL: "http://example.com",

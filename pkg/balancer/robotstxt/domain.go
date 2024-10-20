@@ -12,5 +12,4 @@ type Repository interface {
 
 type Service interface {
 	CanCrawlURL(url string) bool
-	FetchRobotsTxt(hostname string) error
 }
