@@ -50,14 +50,6 @@ func TestDeposit(t *testing.T) {
 
 		userID := uuid.New()
 
-		tranRepo.CreateTransaction(&transaction.Transaction{
-			ID:     uuid.New(),
-			UserID: userID,
-			Amount: 100,
-			Key:    transaction.DepositKey,
-			Meta:   map[string]string{"provider": "paddle"},
-		})
-
 		err := tokenService.Deposit(userID, 100)
 
 		if err != nil {

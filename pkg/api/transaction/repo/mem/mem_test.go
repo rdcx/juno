@@ -34,10 +34,10 @@ func TestGetTransactionsByUserID(t *testing.T) {
 	repo := New()
 
 	userID := uuid.New()
-	tran := token.NewTransaction(
+	tran := transaction.NewTransaction(
 		userID,
 		1,
-		token.TransactionQueryExecution,
+		transaction.QueryExecutionKey,
 		map[string]string{"query_id": uuid.New().String()},
 	)
 

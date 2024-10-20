@@ -32,6 +32,7 @@ func TestExecute(t *testing.T) {
 		logger,
 		pageService,
 		storageService,
+		nil,
 		monkeyService,
 	)
 

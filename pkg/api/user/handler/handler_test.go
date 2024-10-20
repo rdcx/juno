@@ -315,6 +315,7 @@ func TestCreate(t *testing.T) {
 		handler.Create(tc)
 
 		testCreateResponse(t, w, http.StatusCreated, dto.SUCCESS, "", &user.User{
+			Name:  name,
 			Email: email,
 		})
 	})

@@ -58,7 +58,7 @@ func TestTitles(t *testing.T) {
 		t.Errorf("expected 1 title, got %d", len(titles))
 	}
 
-	if titles[0] != "Test" {
-		t.Errorf("expected title to be 'Test', got %s", titles[0])
+	if titles["http://example.com"] != "Test" {
+		t.Errorf("expected title to be 'Test', got %s", titles["http://example.com"])
 	}
 }
