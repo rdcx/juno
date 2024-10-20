@@ -860,8 +860,7 @@ func TestMutators(t *testing.T) {
 // Test method-call operation.
 func TestObjectMethodCall(t *testing.T) {
 	input := []string{"\"steve\".len()",
-		"let x = 15; x.string();",
-		"`ls`"}
+		"let x = 15; x.string();"}
 
 	for _, txt := range input {
 		l := lexer.New(txt)

@@ -392,10 +392,12 @@ func TestCreate(t *testing.T) {
 		handler := New(logger, policy, svc)
 		w := httptest.NewRecorder()
 
+		name := "John Doe"
 		email := randomEmail()
 		pass := "password"
 
 		u := &user.User{
+			Name:  name,
 			Email: email,
 		}
 
@@ -405,7 +407,7 @@ func TestCreate(t *testing.T) {
 			t.Errorf("expected err to be nil, got %v", err)
 		}
 
-		req := httptest.NewRequest("POST", "/users", bytes.NewBuffer([]byte(`{"email":"`+email+`","password":"`+pass+`"}`)))
+		req := httptest.NewRequest("POST", "/users", bytes.NewBuffer([]byte(`{"email":"`+email+`","name": "`+name+`", "password":"`+pass+`"}`)))
 		tc, _ := gin.CreateTestContext(w)
 		tc.Request = req.WithContext(
 			auth.WithUser(context.Background(), &user.User{

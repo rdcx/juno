@@ -12,6 +12,9 @@ import (
 	policyRepo "juno/pkg/balancer/policy/repo/bolt"
 	policyService "juno/pkg/balancer/policy/service"
 
+	robotstxtRepo "juno/pkg/balancer/robotstxt/repo/mem"
+	robotstxtService "juno/pkg/balancer/robotstxt/service"
+
 	crawlHandler "juno/pkg/balancer/crawl/handler"
 	crawlService "juno/pkg/balancer/crawl/service"
 
@@ -63,6 +66,10 @@ func main() {
 		queueRepo,
 	)
 
+	robotstxtService := robotstxtService.New(
+		robotstxtRepo.New(),
+	)
+
 	crawlService := crawlService.New(
 		crawlService.WithLogger(logger),
 		crawlService.WithApiClient(apiClient),
@@ -74,6 +81,7 @@ func main() {
 	crawlHandler := crawlHandler.New(
 		logger,
 		queueService,
+		robotstxtService,
 	)
 
 	go func() {
