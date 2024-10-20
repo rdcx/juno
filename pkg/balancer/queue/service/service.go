@@ -23,6 +23,16 @@ func New(
 }
 
 func (s *Service) Push(url string) error {
+	exists, err := s.repo.Exists(url)
+
+	if err != nil {
+		return err
+	}
+
+	if exists {
+		return nil
+	}
+
 	return s.repo.Push(url)
 }
 

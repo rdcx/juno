@@ -72,7 +72,7 @@ fetchTransactions();
                 </div>
             </div>
             <div class="w-full p-4">
-                <div class="w-full border rounded-lg dark:border-gray-700 p-4">
+                <div class="w-full border rounded-lg text-gray-800 dark:text-gray-300 dark:border-gray-700 p-4">
                     Transactions
 
                     <table class="min-w-full divide-y divide-gray-700">
@@ -81,25 +81,25 @@ fetchTransactions();
                                 <th scope="col"
                                     class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-white sm:pl-0">ID
                                 </th>
-                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">Amount
+                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold dark:text-white">Amount
                                 </th>
-                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">Type
+                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold dark:text-white">Type
                                 </th>
-                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">Meta</th>
+                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold dark:text-white">Meta</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-800">
                             <tr v-for="tran in transactions">
-                                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-0">
+                                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium dark:text-white sm:pl-0">
                                     {{ tran.id }}
                                 </td>
-                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-300">
+                                <td class="whitespace-nowrap px-3 py-4 text-sm dark:text-gray-300">
                                     {{ tran.amount.toLocaleString() }}
                                 </td>
-                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-300">
+                                <td class="whitespace-nowrap px-3 py-4 text-sm dark:text-gray-300">
                                     {{ tran.key }}
                                 </td>
-                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-300">
+                                <td class="whitespace-nowrap px-3 py-4 text-sm dark:text-gray-300">
                                     {{ tran.meta }}
                                 </td>
                             </tr>

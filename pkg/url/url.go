@@ -95,3 +95,21 @@ func IsHTTPOrHTTPS(link string) bool {
 
 	return u.Scheme == "http" || u.Scheme == "https"
 }
+
+func IsHTTP(link string) bool {
+	u, err := url.Parse(link)
+	if err != nil {
+		return false
+	}
+
+	return u.Scheme == "http"
+}
+
+func IsHTTPS(link string) bool {
+	u, err := url.Parse(link)
+	if err != nil {
+		return false
+	}
+
+	return u.Scheme == "https"
+}
