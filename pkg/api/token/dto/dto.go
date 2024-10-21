@@ -9,10 +9,10 @@ type BalanceResponse struct {
 	Status  string `json:"status"`
 	Message string `json:"message,omitempty"`
 
-	Balance int `json:"balance"`
+	Balance float64 `json:"balance"`
 }
 
-func NewSuccessBalanceResponse(balance int) *BalanceResponse {
+func NewSuccessBalanceResponse(balance float64) *BalanceResponse {
 	return &BalanceResponse{
 		Status:  SUCCESS,
 		Balance: balance,
@@ -27,7 +27,7 @@ func NewErrorBalanceResponse(message string) *BalanceResponse {
 }
 
 type DepositRequest struct {
-	Amount int `json:"amount"`
+	Amount float64 `json:"amount"`
 }
 
 type DepositResponse struct {

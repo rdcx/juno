@@ -17,17 +17,17 @@ import (
 )
 
 type mockTokenService struct {
-	balance int
+	balance float64
 	withErr error
 
-	depositAmount int
+	depositAmount float64
 }
 
-func (m *mockTokenService) Balance(userID uuid.UUID) (int, error) {
+func (m *mockTokenService) Balance(userID uuid.UUID) (float64, error) {
 	return m.balance, m.withErr
 }
 
-func (m *mockTokenService) Deposit(userID uuid.UUID, amount int) error {
+func (m *mockTokenService) Deposit(userID uuid.UUID, amount float64) error {
 	if m.withErr != nil {
 		return m.withErr
 	}
@@ -67,7 +67,7 @@ func TestBalance(t *testing.T) {
 		}
 
 		if res.Balance != 100 {
-			t.Errorf("Expected 100, got %d", res.Balance)
+			t.Errorf("Expected 100, got %f", res.Balance)
 		}
 	})
 
@@ -150,7 +150,7 @@ func TestDeposit(t *testing.T) {
 		}
 
 		if mockTokenService.depositAmount != 100 {
-			t.Errorf("Expected 100, got %d", mockTokenService.depositAmount)
+			t.Errorf("Expected 100, got %f", mockTokenService.depositAmount)
 		}
 	})
 
@@ -200,7 +200,7 @@ func TestDeposit(t *testing.T) {
 		}
 
 		if mockTokenService.depositAmount != 0 {
-			t.Errorf("Expected 0, got %d", mockTokenService.depositAmount)
+			t.Errorf("Expected 0, got %f", mockTokenService.depositAmount)
 		}
 	})
 

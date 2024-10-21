@@ -18,11 +18,11 @@ func New(transactionService transaction.Service) *Service {
 	}
 }
 
-func (s *Service) Balance(userID uuid.UUID) (int, error) {
+func (s *Service) Balance(userID uuid.UUID) (float64, error) {
 	return s.transactionService.Balance(userID)
 }
 
-func (s *Service) Deposit(userID uuid.UUID, amount int) error {
+func (s *Service) Deposit(userID uuid.UUID, amount float64) error {
 
 	if amount <= 0 {
 		return token.ErrInvalidAmount
@@ -39,7 +39,7 @@ func (s *Service) Deposit(userID uuid.UUID, amount int) error {
 	)
 }
 
-func (s *Service) Debit(userID uuid.UUID, tranKey transaction.TransactionKey, amount int, meta map[string]string) error {
+func (s *Service) Debit(userID uuid.UUID, tranKey transaction.TransactionKey, amount float64, meta map[string]string) error {
 
 	if amount < 0 {
 		return token.ErrInvalidAmount

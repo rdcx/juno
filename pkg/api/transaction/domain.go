@@ -44,7 +44,7 @@ type Service interface {
 		key TransactionKey,
 		meta map[string]string,
 	) error
-	Balance(userID uuid.UUID) (int, error)
+	Balance(userID uuid.UUID) (float64, error)
 	GetTransactionsByUserID(userID uuid.UUID) ([]*Transaction, error)
 }
 

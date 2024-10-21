@@ -34,8 +34,8 @@ func TestBalance(t *testing.T) {
 			t.Errorf("Expected nil, got %v", err)
 		}
 
-		if balance != 100 {
-			t.Errorf("Expected 100, got %d", balance)
+		if balance != 100.00 {
+			t.Errorf("Expected 100, got %f", balance)
 		}
 	})
 }
@@ -63,7 +63,7 @@ func TestDeposit(t *testing.T) {
 		}
 
 		if balance != 100 {
-			t.Errorf("Expected 100, got %d", balance)
+			t.Errorf("Expected 100, got %f", balance)
 		}
 	})
 
@@ -113,8 +113,8 @@ func TestDebit(t *testing.T) {
 			t.Errorf("Expected nil, got %v", err)
 		}
 
-		if balance != 0 {
-			t.Errorf("Expected -100, got %d", balance)
+		if balance != 0.00 {
+			t.Errorf("Expected 0.00, got %f", balance)
 		}
 	})
 

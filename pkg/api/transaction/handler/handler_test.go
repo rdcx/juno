@@ -29,7 +29,7 @@ func (m *mockTransactionService) CreateTransaction(userID uuid.UUID, amount floa
 	return m.withErr
 }
 
-func (m *mockTransactionService) Balance(userID uuid.UUID) (int, error) {
+func (m *mockTransactionService) Balance(userID uuid.UUID) (float64, error) {
 	return 0, m.withErr
 }
 

@@ -11,8 +11,8 @@ var ErrInsufficientBalance = errors.New("insufficient balance")
 var ErrInvalidAmount = errors.New("invalid amount")
 
 type Service interface {
-	Balance(userID uuid.UUID) (int, error)
-	Deposit(userID uuid.UUID, amount int) error
+	Balance(userID uuid.UUID) (float64, error)
+	Deposit(userID uuid.UUID, amount float64) error
 }
 
 type Handler interface {
