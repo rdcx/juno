@@ -4,10 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"juno/pkg/node"
 	domain "juno/pkg/node/crawl"
 	"juno/pkg/node/crawl/dto"
 	"juno/pkg/util"
 	"net/http"
+
+	queryDto "juno/pkg/api/query/dto"
 )
 
 func SendCrawlRequest(node string, url string) error {
@@ -35,4 +38,35 @@ func SendCrawlRequest(node string, url string) error {
 	}
 
 	return nil
+}
+
+func SendQueryRequest(nodeAddr string, query queryDto.Query) (interface{}, error) {
+	b, err := json.Marshal(query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := http.Post("http://"+nodeAddr+"/query", "application/json", bytes.NewBuffer(b))
+
+	if err != nil {
+		return nil, err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return nil, util.WrapErr(
+			node.ErrFailedQueryRequest,
+			fmt.Sprintf("status code: %d", res.StatusCode),
+		)
+	}
+
+	var response interface{}
+
+	err = json.NewDecoder(res.Body).Decode(&response)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }

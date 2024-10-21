@@ -4,7 +4,6 @@ import (
 	"juno/pkg/node/runner"
 	"juno/pkg/node/runner/dto"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -34,19 +33,18 @@ func (h *Handler) Titles(c *gin.Context) {
 		return
 	}
 
-	// if query param is set, filter titles
-	if query := c.Query("query"); query != "" {
-		filteredTitles := make(map[string]string, 0)
+	// // if query param is set, filter titles
+	// if query := c.Query("query"); query != "" {
+	// 	filteredTitles := make(map[string]string, 0)
 
-		for _, title := range titles {
-			if strings.Contains(strings.ToLower(title), strings.ToLower(query)) {
-				filteredTitles[title] = title
-				break
-			}
-		}
+	// 	for url, title := range titles {
+	// 		if strings.Contains(strings.ToLower(title), strings.ToLower(query)) {
+	// 			filteredTitles[url] = title
+	// 		}
+	// 	}
 
-		titles = filteredTitles
-	}
+	// 	titles = filteredTitles
+	// }
 
 	c.JSON(http.StatusOK, titles)
 }

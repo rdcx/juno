@@ -36,5 +36,5 @@ func (s *Service) Title(body []byte) (string, error) {
 		return "", err
 	}
 
-	return doc.Find("title").Text(), nil
+	return doc.Find("title").First().Text(), nil
 }

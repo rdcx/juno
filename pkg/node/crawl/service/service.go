@@ -8,6 +8,7 @@ import (
 	"juno/pkg/node/html"
 	"juno/pkg/node/page"
 	"juno/pkg/node/storage"
+	"juno/pkg/shard"
 	"juno/pkg/url"
 	"time"
 )
@@ -56,6 +57,16 @@ func (s *Service) Crawl(ctx context.Context, urlStr string) error {
 
 	if err == page.ErrPageNotFound {
 		p = page.NewPage(finalURL)
+
+		hostname, err := url.ToHostname(finalURL)
+
+		if err != nil {
+			return err
+		}
+
+		shard := shard.GetShard(hostname)
+		p.Shard = shard
+
 		err = s.pageService.Create(p)
 
 		if err != nil {

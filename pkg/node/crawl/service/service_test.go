@@ -85,6 +85,10 @@ func TestCrawl(t *testing.T) {
 			t.Errorf("expected 1 version but got %d", len(p.Versions))
 		}
 
+		if p.Shard != 72435 {
+			t.Errorf("expected 72435 but got %d", p.Shard)
+		}
+
 		if p.Versions[0].Hash != page.NewVersionHash(testFile) {
 			t.Errorf("expected %s but got %s", page.NewVersionHash(testFile), p.Versions[0].Hash)
 		}
