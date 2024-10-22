@@ -3,6 +3,7 @@ package router
 import (
 	"juno/pkg/api/auth"
 	"juno/pkg/api/balancer"
+	"juno/pkg/api/extraction/job"
 	"juno/pkg/api/middleware"
 	"juno/pkg/api/node"
 	"juno/pkg/api/token"
@@ -19,6 +20,7 @@ func New(
 	nodeHandler node.Handler,
 	balancerHandler balancer.Handler,
 	transactionHandler transaction.Handler,
+	extractionJobHandler job.Handler,
 	tokenHandler token.Handler,
 	userHandler user.Handler,
 	authHandler auth.Handler,
@@ -66,6 +68,10 @@ func New(
 		authGroup.POST("/tokens/deposit", tokenHandler.Deposit)
 
 		authGroup.GET("/transactions", transactionHandler.List)
+
+		authGroup.POST("/extraction-jobs", extractionJobHandler.Create)
+		authGroup.GET("/extraction-jobs/:id", extractionJobHandler.Get)
+		authGroup.GET("/extraction-jobs", extractionJobHandler.List)
 	}
 
 	return r

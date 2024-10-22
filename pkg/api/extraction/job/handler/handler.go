@@ -21,12 +21,6 @@ func New(jobService job.Service, policy job.Policy) *Handler {
 	}
 }
 
-func (h *Handler) Register(r *gin.RouterGroup) {
-	r.POST("/extraction-jobs", h.Create)
-	r.GET("/extraction-jobs/:id", h.Get)
-	r.GET("/extraction-jobs", h.List)
-}
-
 func (h *Handler) Create(c *gin.Context) {
 	u := auth.MustUserFromContext(c.Request.Context())
 

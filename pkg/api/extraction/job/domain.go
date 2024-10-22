@@ -7,6 +7,7 @@ import (
 	"juno/pkg/can"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
@@ -56,6 +57,12 @@ type Service interface {
 	Create(userID uuid.UUID, extractorID uuid.UUID) (*Job, error)
 	Get(id uuid.UUID) (*Job, error)
 	ListByUserID(userID uuid.UUID) ([]*Job, error)
+}
+
+type Handler interface {
+	Create(c *gin.Context)
+	Get(c *gin.Context)
+	List(c *gin.Context)
 }
 
 type Policy interface {

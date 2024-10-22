@@ -17,6 +17,14 @@ import (
 	tokenHandler "juno/pkg/api/token/handler"
 	tokenService "juno/pkg/api/token/service"
 
+	extractorService "juno/pkg/api/extraction/extractor/service"
+
+	extractionJobHandler "juno/pkg/api/extraction/job/handler"
+	extractionJobMig "juno/pkg/api/extraction/job/migration/mysql"
+	extractionJobPolicy "juno/pkg/api/extraction/job/policy"
+	extractionJobRepo "juno/pkg/api/extraction/job/repo/mysql"
+	extractionJobSvc "juno/pkg/api/extraction/job/service"
+
 	balancerHandler "juno/pkg/api/balancer/handler"
 	balancerMig "juno/pkg/api/balancer/migration/mysql"
 	balancerPolicy "juno/pkg/api/balancer/policy"
@@ -39,7 +47,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func setupDatabases() (*sql.DB, *sql.DB, *sql.DB, *sql.DB) {
+func setupDatabases() (
+	*sql.DB, *sql.DB, *sql.DB, *sql.DB, *sql.DB) {
 	nodeDB, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/node?parseTime=true")
 
 	if err != nil {
@@ -88,7 +97,19 @@ func setupDatabases() (*sql.DB, *sql.DB, *sql.DB, *sql.DB) {
 		panic(err)
 	}
 
-	return nodeDB, userDB, balancerDB, tranDB
+	extractionJobDB, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/extraction_job?parseTime=true")
+
+	if err != nil {
+		panic(err)
+	}
+
+	err = extractionJobMig.ExecuteMigrations(extractionJobDB)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return nodeDB, userDB, balancerDB, tranDB, extractionJobDB
 }
 
 func main() {
@@ -98,7 +119,7 @@ func main() {
 
 	flag.Parse()
 
-	nodeDB, userDB, balancerDB, tranDB := setupDatabases()
+	nodeDB, userDB, balancerDB, tranDB, extractionJobDB := setupDatabases()
 
 	logger := logrus.New()
 
@@ -119,6 +140,13 @@ func main() {
 	balancerPolicy := balancerPolicy.New()
 	balancerHandler := balancerHandler.New(logger, balancerPolicy, balancerSvc)
 
+	extractorSvc := extractorService.New(nil)
+
+	extractionJobRepo := extractionJobRepo.New(extractionJobDB)
+	extractionJobSvc := extractionJobSvc.New(extractionJobRepo, extractorSvc)
+	extractionJobPolicy := extractionJobPolicy.New()
+	extractionJobHandler := extractionJobHandler.New(extractionJobSvc, extractionJobPolicy)
+
 	userRepo := userRepo.New(userDB)
 
 	userSvc := userSvc.New(logger, userRepo)
@@ -132,6 +160,7 @@ func main() {
 		nodeHandler,
 		balancerHandler,
 		tranHandler,
+		extractionJobHandler,
 		tokenHandler,
 		userHandler,
 		authHandler,
