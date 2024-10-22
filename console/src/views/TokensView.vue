@@ -41,7 +41,7 @@ const fetchTransactions = async () => {
 };
 
 const formattedBalance = computed(() => {
-    return balance.value.toLocaleString();
+    return balance.value;
 });
 
 fetchBalance();
@@ -94,7 +94,7 @@ fetchTransactions();
                                     {{ tran.id }}
                                 </td>
                                 <td class="whitespace-nowrap px-3 py-4 text-sm dark:text-gray-300">
-                                    {{ tran.amount.toLocaleString() }}
+                                    {{ tran.amount }}
                                 </td>
                                 <td class="whitespace-nowrap px-3 py-4 text-sm dark:text-gray-300">
                                     {{ tran.key }}

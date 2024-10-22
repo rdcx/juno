@@ -199,3 +199,10 @@ func NewErrorAllShardsNodesResponse(message string) AllShardsNodesResponse {
 		Message: message,
 	}
 }
+
+type QueryResponse struct {
+	Status  string `json:"status"`
+	Message string `json:"message,omitempty"` // Only present when there's an error
+
+	Extraction interface{} `json:"extraction,omitempty"` // Only present when successful
+}

@@ -3,6 +3,8 @@ package service
 import (
 	"juno/pkg/api/client"
 	"juno/pkg/api/node/dto"
+	queryDto "juno/pkg/api/query/dto"
+	"juno/pkg/shard"
 	"testing"
 	"time"
 
@@ -71,6 +73,62 @@ func TestWithShardFetchInterval(t *testing.T) {
 
 		if !gock.IsDone() {
 			t.Errorf("Not all expectations were met")
+		}
+	})
+}
+
+func TestQueryRange(t *testing.T) {
+	t.Run("should combine results", func(t *testing.T) {
+
+		defer gock.Off()
+
+		gock.New("http://node1.com:9090").
+			Post("/query").
+			Reply(200).
+			JSON(queryDto.NewSuccessQueryResponse(
+				map[string]string{
+					"https://google.com/about": "Google About",
+				},
+			))
+
+		gock.New("http://node2.com:9090").
+			Post("/query").
+			Reply(200).
+			JSON(queryDto.NewSuccessQueryResponse(
+				map[string]string{
+					"https://microsoft.com":       "Microsoft",
+					"https://microsoft.com/about": "Microsoft About",
+				},
+			))
+
+		gock.New("http://node3.com:9090").
+			Post("/query").
+			Reply(200).
+			JSON(queryDto.NewSuccessQueryResponse(
+				map[string]string{
+					"https://amazon.com/about": "Amazon About",
+				},
+			))
+
+		svc := New(WithLogger(logrus.New()))
+
+		svc.SetShards([shard.SHARDS][]string{
+			0: {"node1.com:9090"},
+			1: {"node2.com:9090"},
+			2: {"node3.com:9090"},
+		})
+
+		values, err := svc.QueryRange(0, 3, &queryDto.Query{
+			BasicQuery: &queryDto.BasicQuery{
+				Title: &queryDto.StringMatch{
+					Value:     "About",
+					MatchType: queryDto.ContainsStringMatch,
+				},
+			},
+		})
+
+		if err == nil {
+			t.Errorf("expected an error")
 		}
 	})
 }
