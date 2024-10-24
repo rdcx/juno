@@ -10,7 +10,7 @@ import (
 	"juno/pkg/util"
 	"net/http"
 
-	queryDto "juno/pkg/api/query/dto"
+	extractorDto "juno/pkg/api/extraction/extractor/dto"
 )
 
 func SendCrawlRequest(node string, url string) error {
@@ -40,14 +40,14 @@ func SendCrawlRequest(node string, url string) error {
 	return nil
 }
 
-func SendQueryRequest(nodeAddr string, query queryDto.Query) (interface{}, error) {
-	b, err := json.Marshal(query)
+func SendExtractionRequest(nodeAddr string, req extractorDto.ExtractionRequest) (interface{}, error) {
+	b, err := json.Marshal(req)
 
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := http.Post("http://"+nodeAddr+"/query", "application/json", bytes.NewBuffer(b))
+	res, err := http.Post("http://"+nodeAddr+"/extraction", "application/json", bytes.NewBuffer(b))
 
 	if err != nil {
 		return nil, err

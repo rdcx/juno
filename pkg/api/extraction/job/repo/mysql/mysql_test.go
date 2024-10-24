@@ -13,7 +13,7 @@ import (
 )
 
 func setupDB(t *testing.T) *sql.DB {
-	db, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/extraction_test?parseTime=true")
+	db, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/extraction_job_test?parseTime=true")
 
 	if err != nil {
 		log.Fatal(err)
