@@ -17,13 +17,19 @@ import (
 	tokenHandler "juno/pkg/api/token/handler"
 	tokenService "juno/pkg/api/token/service"
 
-	extractorService "juno/pkg/api/extraction/extractor/service"
+	strategyService "juno/pkg/api/extractor/strategy/service"
 
-	extractionJobHandler "juno/pkg/api/extraction/job/handler"
-	extractionJobMig "juno/pkg/api/extraction/job/migration/mysql"
-	extractionJobPolicy "juno/pkg/api/extraction/job/policy"
-	extractionJobRepo "juno/pkg/api/extraction/job/repo/mysql"
-	extractionJobSvc "juno/pkg/api/extraction/job/service"
+	extractorJobHandler "juno/pkg/api/extractor/job/handler"
+	extractorJobMig "juno/pkg/api/extractor/job/migration/mysql"
+	extractorJobPolicy "juno/pkg/api/extractor/job/policy"
+	extractorJobRepo "juno/pkg/api/extractor/job/repo/mysql"
+	extractorJobSvc "juno/pkg/api/extractor/job/service"
+
+	selectorHandler "juno/pkg/api/extractor/selector/handler"
+	selectorMig "juno/pkg/api/extractor/selector/migration/mysql"
+	selectorPolicy "juno/pkg/api/extractor/selector/policy"
+	selectorRepo "juno/pkg/api/extractor/selector/repo/mysql"
+	selectorService "juno/pkg/api/extractor/selector/service"
 
 	balancerHandler "juno/pkg/api/balancer/handler"
 	balancerMig "juno/pkg/api/balancer/migration/mysql"
@@ -48,7 +54,7 @@ import (
 )
 
 func setupDatabases() (
-	*sql.DB, *sql.DB, *sql.DB, *sql.DB, *sql.DB) {
+	*sql.DB, *sql.DB, *sql.DB, *sql.DB, *sql.DB, *sql.DB) {
 	nodeDB, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/node?parseTime=true")
 
 	if err != nil {
@@ -103,13 +109,25 @@ func setupDatabases() (
 		panic(err)
 	}
 
-	err = extractionJobMig.ExecuteMigrations(extractionJobDB)
+	err = extractorJobMig.ExecuteMigrations(extractionJobDB)
 
 	if err != nil {
 		panic(err)
 	}
 
-	return nodeDB, userDB, balancerDB, tranDB, extractionJobDB
+	selectorDB, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/selector?parseTime=true")
+
+	if err != nil {
+		panic(err)
+	}
+
+	err = selectorMig.ExecuteMigrations(selectorDB)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return nodeDB, userDB, balancerDB, tranDB, extractionJobDB, selectorDB
 }
 
 func main() {
@@ -119,7 +137,7 @@ func main() {
 
 	flag.Parse()
 
-	nodeDB, userDB, balancerDB, tranDB, extractionJobDB := setupDatabases()
+	nodeDB, userDB, balancerDB, tranDB, extractionJobDB, selectorDB := setupDatabases()
 
 	logger := logrus.New()
 
@@ -140,12 +158,17 @@ func main() {
 	balancerPolicy := balancerPolicy.New()
 	balancerHandler := balancerHandler.New(logger, balancerPolicy, balancerSvc)
 
-	extractorSvc := extractorService.New(nil)
+	strategyService := strategyService.New(nil)
 
-	extractionJobRepo := extractionJobRepo.New(extractionJobDB)
-	extractionJobSvc := extractionJobSvc.New(extractionJobRepo, extractorSvc)
-	extractionJobPolicy := extractionJobPolicy.New()
-	extractionJobHandler := extractionJobHandler.New(extractionJobSvc, extractionJobPolicy)
+	extractionJobRepo := extractorJobRepo.New(extractionJobDB)
+	extractionJobSvc := extractorJobSvc.New(extractionJobRepo, strategyService)
+	extractionJobPolicy := extractorJobPolicy.New()
+	extractionJobHandler := extractorJobHandler.New(extractionJobSvc, extractionJobPolicy)
+
+	selectorRepo := selectorRepo.New(selectorDB)
+	selectorSvc := selectorService.New(selectorRepo)
+	selectorPolicy := selectorPolicy.New()
+	selectorHandler := selectorHandler.New(selectorPolicy, selectorSvc)
 
 	userRepo := userRepo.New(userDB)
 
@@ -161,6 +184,7 @@ func main() {
 		balancerHandler,
 		tranHandler,
 		extractionJobHandler,
+		selectorHandler,
 		tokenHandler,
 		userHandler,
 		authHandler,
