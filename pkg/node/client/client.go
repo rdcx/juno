@@ -4,13 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"juno/pkg/node"
 	domain "juno/pkg/node/crawl"
 	"juno/pkg/node/crawl/dto"
 	"juno/pkg/util"
 	"net/http"
-
-	extractorDto "juno/pkg/api/extraction/extractor/dto"
 )
 
 func SendCrawlRequest(node string, url string) error {
@@ -40,33 +37,33 @@ func SendCrawlRequest(node string, url string) error {
 	return nil
 }
 
-func SendExtractionRequest(nodeAddr string, req extractorDto.ExtractionRequest) (interface{}, error) {
-	b, err := json.Marshal(req)
+// func SendExtractionRequest(nodeAddr string, req extractorDto.ExtractionRequest) (interface{}, error) {
+// 	b, err := json.Marshal(req)
 
-	if err != nil {
-		return nil, err
-	}
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	res, err := http.Post("http://"+nodeAddr+"/extraction", "application/json", bytes.NewBuffer(b))
+// 	res, err := http.Post("http://"+nodeAddr+"/extraction", "application/json", bytes.NewBuffer(b))
 
-	if err != nil {
-		return nil, err
-	}
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	if res.StatusCode != http.StatusOK {
-		return nil, util.WrapErr(
-			node.ErrFailedQueryRequest,
-			fmt.Sprintf("status code: %d", res.StatusCode),
-		)
-	}
+// 	if res.StatusCode != http.StatusOK {
+// 		return nil, util.WrapErr(
+// 			node.ErrFailedQueryRequest,
+// 			fmt.Sprintf("status code: %d", res.StatusCode),
+// 		)
+// 	}
 
-	var response interface{}
+// 	var response interface{}
 
-	err = json.NewDecoder(res.Body).Decode(&response)
+// 	err = json.NewDecoder(res.Body).Decode(&response)
 
-	if err != nil {
-		return nil, err
-	}
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return response, nil
-}
+// 	return response, nil
+// }

@@ -3,6 +3,7 @@ package router
 import (
 	"juno/pkg/api/auth"
 	"juno/pkg/api/balancer"
+	"juno/pkg/api/extractor/filter"
 	"juno/pkg/api/extractor/job"
 	"juno/pkg/api/extractor/selector"
 	"juno/pkg/api/middleware"
@@ -23,6 +24,7 @@ func New(
 	transactionHandler transaction.Handler,
 	extractorJobHandler job.Handler,
 	selectorHandler selector.Handler,
+	filterHandler filter.Handler,
 	tokenHandler token.Handler,
 	userHandler user.Handler,
 	authHandler auth.Handler,
@@ -79,6 +81,9 @@ func New(
 		authGroup.GET("/extractor/selectors/:id", selectorHandler.Get)
 		authGroup.GET("/extractor/selectors", selectorHandler.List)
 
+		authGroup.POST("/extractor/filters", filterHandler.Create)
+		authGroup.GET("/extractor/filters/:id", filterHandler.Get)
+		authGroup.GET("/extractor/filters", filterHandler.List)
 	}
 
 	return r

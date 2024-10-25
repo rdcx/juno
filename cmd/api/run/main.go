@@ -31,6 +31,12 @@ import (
 	selectorRepo "juno/pkg/api/extractor/selector/repo/mysql"
 	selectorService "juno/pkg/api/extractor/selector/service"
 
+	filterHandler "juno/pkg/api/extractor/filter/handler"
+	filterMig "juno/pkg/api/extractor/filter/migration/mysql"
+	filterPolicy "juno/pkg/api/extractor/filter/policy"
+	filterRepo "juno/pkg/api/extractor/filter/repo/mysql"
+	filterService "juno/pkg/api/extractor/filter/service"
+
 	balancerHandler "juno/pkg/api/balancer/handler"
 	balancerMig "juno/pkg/api/balancer/migration/mysql"
 	balancerPolicy "juno/pkg/api/balancer/policy"
@@ -54,7 +60,7 @@ import (
 )
 
 func setupDatabases() (
-	*sql.DB, *sql.DB, *sql.DB, *sql.DB, *sql.DB, *sql.DB) {
+	*sql.DB, *sql.DB, *sql.DB, *sql.DB, *sql.DB, *sql.DB, *sql.DB) {
 	nodeDB, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/node?parseTime=true")
 
 	if err != nil {
@@ -127,7 +133,19 @@ func setupDatabases() (
 		panic(err)
 	}
 
-	return nodeDB, userDB, balancerDB, tranDB, extractionJobDB, selectorDB
+	filterDB, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/filter?parseTime=true")
+
+	if err != nil {
+		panic(err)
+	}
+
+	err = filterMig.ExecuteMigrations(filterDB)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return nodeDB, userDB, balancerDB, tranDB, extractionJobDB, selectorDB, filterDB
 }
 
 func main() {
@@ -137,7 +155,7 @@ func main() {
 
 	flag.Parse()
 
-	nodeDB, userDB, balancerDB, tranDB, extractionJobDB, selectorDB := setupDatabases()
+	nodeDB, userDB, balancerDB, tranDB, extractionJobDB, selectorDB, filterDB := setupDatabases()
 
 	logger := logrus.New()
 
@@ -170,6 +188,11 @@ func main() {
 	selectorPolicy := selectorPolicy.New()
 	selectorHandler := selectorHandler.New(selectorPolicy, selectorSvc)
 
+	filterRepo := filterRepo.New(filterDB)
+	filterSvc := filterService.New(filterRepo)
+	filterPolicy := filterPolicy.New()
+	filterHandler := filterHandler.New(filterPolicy, filterSvc)
+
 	userRepo := userRepo.New(userDB)
 
 	userSvc := userSvc.New(logger, userRepo)
@@ -185,6 +208,7 @@ func main() {
 		tranHandler,
 		extractionJobHandler,
 		selectorHandler,
+		filterHandler,
 		tokenHandler,
 		userHandler,
 		authHandler,
