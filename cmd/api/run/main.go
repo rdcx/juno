@@ -3,11 +3,13 @@ package main
 import (
 	"database/sql"
 	"flag"
+	"juno/cmd/api/run/config"
 	nodeHandler "juno/pkg/api/node/handler"
 	nodeMig "juno/pkg/api/node/migration/mysql"
 	nodePolicy "juno/pkg/api/node/policy"
 	nodeRepo "juno/pkg/api/node/repo/mysql"
 	nodeSvc "juno/pkg/api/node/service"
+	"log"
 
 	tranHandler "juno/pkg/api/transaction/handler"
 	tranMig "juno/pkg/api/transaction/migration/mysql"
@@ -37,6 +39,12 @@ import (
 	filterRepo "juno/pkg/api/extractor/filter/repo/mysql"
 	filterService "juno/pkg/api/extractor/filter/service"
 
+	fieldHandler "juno/pkg/api/extractor/field/handler"
+	fieldMig "juno/pkg/api/extractor/field/migration/mysql"
+	fieldPolicy "juno/pkg/api/extractor/field/policy"
+	fieldRepo "juno/pkg/api/extractor/field/repo/mysql"
+	fieldService "juno/pkg/api/extractor/field/service"
+
 	balancerHandler "juno/pkg/api/balancer/handler"
 	balancerMig "juno/pkg/api/balancer/migration/mysql"
 	balancerPolicy "juno/pkg/api/balancer/policy"
@@ -59,93 +67,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func setupDatabases() (
-	*sql.DB, *sql.DB, *sql.DB, *sql.DB, *sql.DB, *sql.DB, *sql.DB) {
-	nodeDB, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/node?parseTime=true")
-
+func setupDatabase(connectionString string, migrations func(*sql.DB) error) *sql.DB {
+	db, err := sql.Open("mysql", connectionString)
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed to connect to database: %v", err)
 	}
 
-	err = nodeMig.ExecuteMigrations(nodeDB)
-
-	if err != nil {
-		panic(err)
+	if err := migrations(db); err != nil {
+		log.Fatalf("failed to execute migrations: %v", err)
 	}
 
-	userDB, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/user?parseTime=true")
-
-	if err != nil {
-		panic(err)
-	}
-
-	err = userMig.ExecuteMigrations(userDB)
-
-	if err != nil {
-		panic(err)
-	}
-
-	balancerDB, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/balancer?parseTime=true")
-
-	if err != nil {
-		panic(err)
-	}
-
-	err = balancerMig.ExecuteMigrations(balancerDB)
-
-	if err != nil {
-		panic(err)
-	}
-
-	tranDB, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/transaction?parseTime=true")
-
-	if err != nil {
-		panic(err)
-	}
-
-	err = tranMig.ExecuteMigrations(tranDB)
-
-	if err != nil {
-		panic(err)
-	}
-
-	extractionJobDB, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/extraction_job?parseTime=true")
-
-	if err != nil {
-		panic(err)
-	}
-
-	err = extractorJobMig.ExecuteMigrations(extractionJobDB)
-
-	if err != nil {
-		panic(err)
-	}
-
-	selectorDB, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/selector?parseTime=true")
-
-	if err != nil {
-		panic(err)
-	}
-
-	err = selectorMig.ExecuteMigrations(selectorDB)
-
-	if err != nil {
-		panic(err)
-	}
-
-	filterDB, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/filter?parseTime=true")
-
-	if err != nil {
-		panic(err)
-	}
-
-	err = filterMig.ExecuteMigrations(filterDB)
-
-	if err != nil {
-		panic(err)
-	}
-
-	return nodeDB, userDB, balancerDB, tranDB, extractionJobDB, selectorDB, filterDB
+	return db
 }
 
 func main() {
@@ -155,7 +87,15 @@ func main() {
 
 	flag.Parse()
 
-	nodeDB, userDB, balancerDB, tranDB, extractionJobDB, selectorDB, filterDB := setupDatabases()
+	config := config.LoadConfig()
+	nodeDB := setupDatabase(config.NodeDB, nodeMig.ExecuteMigrations)
+	userDB := setupDatabase(config.UserDB, userMig.ExecuteMigrations)
+	balancerDB := setupDatabase(config.BalancerDB, balancerMig.ExecuteMigrations)
+	tranDB := setupDatabase(config.TranDB, tranMig.ExecuteMigrations)
+	extractionJobDB := setupDatabase(config.ExtractionJobDB, extractorJobMig.ExecuteMigrations)
+	selectorDB := setupDatabase(config.SelectorDB, selectorMig.ExecuteMigrations)
+	filterDB := setupDatabase(config.FilterDB, filterMig.ExecuteMigrations)
+	fieldDB := setupDatabase(config.FieldDB, fieldMig.ExecuteMigrations)
 
 	logger := logrus.New()
 
@@ -193,6 +133,11 @@ func main() {
 	filterPolicy := filterPolicy.New()
 	filterHandler := filterHandler.New(filterPolicy, filterSvc)
 
+	fieldRepo := fieldRepo.New(fieldDB)
+	fieldSvc := fieldService.New(fieldRepo)
+	fieldPolicy := fieldPolicy.New()
+	fieldHandler := fieldHandler.New(fieldPolicy, fieldSvc)
+
 	userRepo := userRepo.New(userDB)
 
 	userSvc := userSvc.New(logger, userRepo)
@@ -209,6 +154,7 @@ func main() {
 		extractionJobHandler,
 		selectorHandler,
 		filterHandler,
+		fieldHandler,
 		tokenHandler,
 		userHandler,
 		authHandler,

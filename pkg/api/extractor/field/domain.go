@@ -75,6 +75,7 @@ type Handler interface {
 	Create(c *gin.Context)
 	Get(c *gin.Context)
 	List(c *gin.Context)
+	ListBySelectorID(c *gin.Context)
 }
 
 type Policy interface {
