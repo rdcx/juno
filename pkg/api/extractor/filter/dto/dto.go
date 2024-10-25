@@ -13,6 +13,7 @@ const (
 type Filter struct {
 	ID        string `json:"id"`
 	Name      string `json:"name"`
+	FieldID   string `json:"field_id"`
 	Value     string `json:"value"`
 	Type      string `json:"type"`
 	CreatedAt string `json:"created_at"`
@@ -23,6 +24,7 @@ func NewFilterFromDomain(s *filter.Filter) *Filter {
 	return &Filter{
 		ID:        s.ID.String(),
 		Name:      s.Name,
+		FieldID:   s.FieldID.String(),
 		Value:     s.Value,
 		Type:      string(s.Type),
 		CreatedAt: s.CreatedAt.Format(time.RFC3339),
@@ -31,7 +33,7 @@ func NewFilterFromDomain(s *filter.Filter) *Filter {
 }
 
 type CreateFilterRequest struct {
-	FieldID string `json:"field_id" binding:"required"`
+	FieldID string `json:"field_id" binding:"required" validate:"uuid"`
 	Name    string `json:"name" binding:"required"`
 	Type    string `json:"type" binding:"required"`
 	Value   string `json:"value" binding:"required"`

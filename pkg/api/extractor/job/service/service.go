@@ -4,6 +4,7 @@ import (
 	"juno/pkg/api/extractor/job"
 	"juno/pkg/api/extractor/strategy"
 	"juno/pkg/api/ranag"
+	"juno/pkg/ranag/client"
 
 	"github.com/google/uuid"
 )
@@ -12,26 +13,14 @@ type Service struct {
 	jobRepo         job.Repository
 	strategyService strategy.Service
 	ranagService    ranag.Service
-
-	ranags map[[2]int][]string
 }
 
-func New(jobRepo job.Repository, strategyService strategy.Service) *Service {
-
-	ranges := 10000
-
-	fakeRanags := make(map[[2]int][]string)
-
-	for i := 0; i < ranges; i++ {
-		for j := 0; j < ranges; j++ {
-			fakeRanags[[2]int{i, j}] = []string{"localhost:9292"}
-		}
-	}
+func New(jobRepo job.Repository, strategyService strategy.Service, ranagService ranag.Service) *Service {
 
 	return &Service{
 		jobRepo:         jobRepo,
 		strategyService: strategyService,
-		ranags:          fakeRanags,
+		ranagService:    ranagService,
 	}
 }
 
@@ -81,6 +70,24 @@ func (s *Service) process(j *job.Job) error {
 
 	if err != nil {
 		return err
+	}
+
+	ranges, err := s.ranagService.GroupByRange()
+
+	if err != nil {
+		return err
+	}
+
+	for _, r := range ranges {
+		for _, ran := range r {
+			client := client.New(ran.Address)
+
+			res, err := client.SendRangeAggregationRequest(
+				strat.Selectors,
+				strat.Fields,
+				strat.Aggregations,
+			)
+		}
 	}
 
 }

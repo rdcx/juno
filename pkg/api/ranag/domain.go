@@ -28,7 +28,7 @@ type Repository interface {
 
 type Service interface {
 	AllShardsRanags() (map[int][]*Ranag, error)
-	GroupByRange(ranags []*Ranag) (map[[2]int][]*Ranag, error)
+	GroupByRange() (map[[2]int][]*Ranag, error)
 	Get(id uuid.UUID) (*Ranag, error)
 	ListByOwnerID(ownerID uuid.UUID) ([]*Ranag, error)
 	Create(ownerID uuid.UUID, addr string, shardAssignments [][2]int) (*Ranag, error)
