@@ -1,7 +1,12 @@
 package strategy
 
 import (
+	"context"
 	"errors"
+	"juno/pkg/api/extractor/field"
+	"juno/pkg/api/extractor/filter"
+	"juno/pkg/api/extractor/selector"
+	"juno/pkg/can"
 	"juno/pkg/util"
 	"time"
 
@@ -9,50 +14,28 @@ import (
 	"github.com/google/uuid"
 )
 
-type StringMatchType string
-type JobStatus string
-type FilterType string
-
-type StringMatch struct {
-	Value     string          `json:"value"`
-	MatchType StringMatchType `json:"type"`
-}
-
-type Filter struct {
-	FilterType FilterType `json:"type"`
-	Value      string     `json:"value"`
-}
+var ErrNotFound = errors.New("strategy not found")
 
 type Strategy struct {
-	ID     uuid.UUID `json:"id"`
-	UserID uuid.UUID `json:"user_id"`
-	Name   string    `json:"name"`
-	Instruction
-	Filters   map[string]*Filter `json:"filters"`
-	CreatedAt time.Time          `json:"created_at"`
-	UpdatedAt time.Time          `json:"updated_at"`
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	Name      string
+	Selectors []*selector.Selector
+	Filters   []*filter.Filter
+	Fields    []*field.Field
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
-func validateStrategy(name string, instruction Instruction, filters map[string]*Filter) error {
-
+func (s Strategy) Validate() error {
 	var errs []error
 
-	if name == "" {
+	if s.Name == "" {
 		errs = append(errs, errors.New("name is required"))
 	}
 
-	if len(instruction.Selectors) == 0 {
-		errs = append(errs, errors.New("selectors are required"))
-	}
-
-	if len(instruction.OutputFormat) == 0 {
-		errs = append(errs, errors.New("output format is required"))
-	}
-
-	for _, filter := range filters {
-		if filter.FilterType == "" {
-			errs = append(errs, errors.New("filter type is required"))
-		}
+	if s.UserID == uuid.Nil {
+		errs = append(errs, errors.New("user_id is required"))
 	}
 
 	if len(errs) > 0 {
@@ -62,76 +45,51 @@ func validateStrategy(name string, instruction Instruction, filters map[string]*
 	return nil
 }
 
-func NewStrategy(userID uuid.UUID, name string, instruction Instruction, filters map[string]*Filter) (*Strategy, error) {
-
-	if err := validateStrategy(name, instruction, filters); err != nil {
-		return nil, err
-	}
-
-	return &Strategy{
-		ID:          uuid.New(),
-		UserID:      userID,
-		Name:        name,
-		Instruction: instruction,
-		Filters:     filters,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-	}, nil
+type Service interface {
+	Create(userID, name string) (*Strategy, error)
+	Get(id uuid.UUID) (*Strategy, error)
+	AddSelector(id, selectorID uuid.UUID) error
+	AddFilter(id, filterID uuid.UUID) error
+	AddField(id, fieldID uuid.UUID) error
+	ListByUserID(userID uuid.UUID) ([]*Strategy, error)
 }
-
-type Instruction struct {
-	Selectors    map[string]string `json:"selectors"`
-	OutputFormat map[string]string `json:"output_format"`
-}
-
-var exampleStrategyInstruction = &Instruction{
-	Selectors: map[string]string{
-		"#productTitle":        "text",
-		"#priceblock_ourprice": "text",
-	},
-
-	OutputFormat: map[string]string{
-		"#productTitle":        "string",
-		"#priceblock_ourprice": "string",
-	},
-}
-
-var (
-	ErrNotFound = errors.New("extraction not found")
-)
-
-const (
-	ExactStringMatch    StringMatchType = "exact"
-	ContainsStringMatch StringMatchType = "contains"
-)
-
-const (
-	ExactStringFilterType    FilterType = "string_exact"
-	ContainsStringFilterType FilterType = "string_contains"
-)
 
 type Repository interface {
 	Create(strategy *Strategy) error
 	Get(id uuid.UUID) (*Strategy, error)
 	ListByUserID(userID uuid.UUID) ([]*Strategy, error)
-	Update(strategy *Strategy) error
+	ListBySelectorID(selectorID uuid.UUID) ([]*Strategy, error)
 }
 
-type Service interface {
-	Create(userID uuid.UUID, name string, selector string, filters []*Filter) (*Strategy, error)
-	Get(id uuid.UUID) (*Strategy, error)
-	ListByUserID(userID uuid.UUID) ([]*Strategy, error)
+type StrategySelectorRepository interface {
+	AddSelector(strategyID, selectorID uuid.UUID) error
+	ListSelectorIDs(strategyID uuid.UUID) ([]*selector.Selector, error)
+	RemoveSelector(strategyID, selectorID uuid.UUID) error
 }
 
-type Policy interface {
-	CanCreate() error
-	CanUpdate(strategy *Strategy) error
-	CanRead(strategy *Strategy) error
-	CanDelete(strategy *Strategy) error
+type StrategyFilterRepository interface {
+	AddFilter(strategyID, filterID uuid.UUID) error
+	ListFilterIDs(strategyID uuid.UUID) ([]*filter.Filter, error)
+	RemoveFilter(strategyID, filterID uuid.UUID) error
+}
+
+type StrategyFieldRepository interface {
+	AddField(strategyID, fieldID uuid.UUID) error
+	ListFieldIDs(strategyID uuid.UUID) ([]*field.Field, error)
+	RemoveField(strategyID, fieldID uuid.UUID) error
 }
 
 type Handler interface {
 	Create(c *gin.Context)
 	Get(c *gin.Context)
 	List(c *gin.Context)
+	ListBySelectorID(c *gin.Context)
+}
+
+type Policy interface {
+	CanCreate() can.Result
+	CanRead(ctx context.Context, strategy *Strategy) can.Result
+	CanUpdate(ctx context.Context, strategy *Strategy) can.Result
+	CanDelete(ctx context.Context, strategy *Strategy) can.Result
+	CanList(ctx context.Context, strategys []*Strategy) can.Result
 }
