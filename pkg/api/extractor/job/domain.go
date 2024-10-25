@@ -50,6 +50,7 @@ type Repository interface {
 	Create(job *Job) error
 	Get(id uuid.UUID) (*Job, error)
 	ListByUserID(userID uuid.UUID) ([]*Job, error)
+	ListByStatus(status JobStatus) ([]*Job, error)
 	Update(job *Job) error
 }
 

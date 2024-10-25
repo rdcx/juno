@@ -66,6 +66,30 @@ func (r *Repository) ListByUserID(userID uuid.UUID) ([]*job.Job, error) {
 	return jobs, nil
 }
 
+func (r *Repository) ListByStatus(status job.JobStatus) ([]*job.Job, error) {
+	rows, err := r.db.Query("SELECT id, user_id, strategy_id, status, created_at, updated_at FROM jobs WHERE status = ?", status)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var jobs []*job.Job
+
+	for rows.Next() {
+		var j job.Job
+
+		err := rows.Scan(&j.ID, &j.UserID, &j.StrategyID, &j.Status, &j.CreatedAt, &j.UpdatedAt)
+
+		if err != nil {
+			return nil, err
+		}
+
+		jobs = append(jobs, &j)
+	}
+
+	return jobs, nil
+}
+
 func (r *Repository) Update(j *job.Job) error {
 	_, err := r.db.Exec("UPDATE jobs SET status = ? WHERE id = ?", j.Status, j.ID)
 

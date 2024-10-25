@@ -13,7 +13,7 @@ import (
 )
 
 func setupDB(t *testing.T) *sql.DB {
-	db, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/extractor_test?parseTime=true")
+	db, err := sql.Open("mysql", "root:juno@tcp(localhost:3306)/job_test?parseTime=true")
 
 	if err != nil {
 		log.Fatal(err)
@@ -38,6 +38,8 @@ func TestCreate(t *testing.T) {
 		}
 
 		err := repo.Create(j)
+
+		defer db.Exec("DELETE FROM jobs WHERE id = ?", j.ID)
 
 		if err != nil {
 			t.Errorf("Expected nil, got %v", err)
@@ -83,6 +85,8 @@ func TestGet(t *testing.T) {
 		}
 
 		err := repo.Create(j)
+
+		defer db.Exec("DELETE FROM jobs WHERE id = ?", j.ID)
 
 		if err != nil {
 			t.Errorf("Expected nil, got %v", err)
@@ -130,12 +134,14 @@ func TestListByUserID(t *testing.T) {
 		}
 
 		err := repo.Create(j1)
+		defer db.Exec("DELETE FROM jobs WHERE id = ?", j1.ID)
 
 		if err != nil {
 			t.Errorf("Expected nil, got %v", err)
 		}
 
 		err = repo.Create(j2)
+		defer db.Exec("DELETE FROM jobs WHERE id = ?", j2.ID)
 
 		if err != nil {
 			t.Errorf("Expected nil, got %v", err)
@@ -157,6 +163,56 @@ func TestListByUserID(t *testing.T) {
 	})
 }
 
+func TestListByStatus(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		db := setupDB(t)
+		repo := New(db)
+
+		userID := uuid.New()
+
+		j1 := &job.Job{
+			ID:     uuid.New(),
+			UserID: userID,
+			Status: job.PendingStatus,
+		}
+
+		j2 := &job.Job{
+			ID:     uuid.New(),
+			UserID: userID,
+			Status: job.FailedStatus,
+		}
+
+		err := repo.Create(j1)
+
+		defer db.Exec("DELETE FROM jobs WHERE id = ?", j1.ID)
+
+		if err != nil {
+			t.Errorf("Expected nil, got %v", err)
+		}
+
+		err = repo.Create(j2)
+		defer db.Exec("DELETE FROM jobs WHERE id = ?", j2.ID)
+
+		if err != nil {
+			t.Errorf("Expected nil, got %v", err)
+		}
+
+		list, err := repo.ListByStatus(job.FailedStatus)
+
+		if err != nil {
+			t.Errorf("Expected nil, got %v", err)
+		}
+
+		if len(list) != 1 {
+			t.Errorf("Expected 1, got %d", len(list))
+		}
+
+		if list[0].ID != j2.ID {
+			t.Errorf("Expected %s, got %s", j2.ID, list[0].ID)
+		}
+	})
+}
+
 func TestUpdate(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		db := setupDB(t)
@@ -167,6 +223,8 @@ func TestUpdate(t *testing.T) {
 		}
 
 		err := repo.Create(j)
+
+		defer db.Exec("DELETE FROM jobs WHERE id = ?", j.ID)
 
 		if err != nil {
 			t.Errorf("Expected nil, got %v", err)

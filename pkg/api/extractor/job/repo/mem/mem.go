@@ -30,6 +30,17 @@ func (r *Repository) Get(id uuid.UUID) (*job.Job, error) {
 	return &q, nil
 }
 
+func (r *Repository) ListByStatus(status job.JobStatus) ([]*job.Job, error) {
+	var jobs []*job.Job
+	for _, q := range r.jobs {
+		if q.Status == status {
+			jobs = append(jobs, &q)
+		}
+	}
+
+	return jobs, nil
+}
+
 func (r *Repository) ListByUserID(userID uuid.UUID) ([]*job.Job, error) {
 	var jobs []*job.Job
 	for _, q := range r.jobs {

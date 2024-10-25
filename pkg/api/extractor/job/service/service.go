@@ -3,6 +3,7 @@ package service
 import (
 	"juno/pkg/api/extractor/job"
 	"juno/pkg/api/extractor/strategy"
+	"juno/pkg/api/ranag"
 
 	"github.com/google/uuid"
 )
@@ -10,12 +11,27 @@ import (
 type Service struct {
 	jobRepo         job.Repository
 	strategyService strategy.Service
+	ranagService    ranag.Service
+
+	ranags map[[2]int][]string
 }
 
 func New(jobRepo job.Repository, strategyService strategy.Service) *Service {
+
+	ranges := 10000
+
+	fakeRanags := make(map[[2]int][]string)
+
+	for i := 0; i < ranges; i++ {
+		for j := 0; j < ranges; j++ {
+			fakeRanags[[2]int{i, j}] = []string{"localhost:9292"}
+		}
+	}
+
 	return &Service{
 		jobRepo:         jobRepo,
 		strategyService: strategyService,
+		ranags:          fakeRanags,
 	}
 }
 
@@ -58,4 +74,48 @@ func (s *Service) Update(q *job.Job) error {
 
 func (s *Service) ListByUserID(userID uuid.UUID) ([]*job.Job, error) {
 	return s.jobRepo.ListByUserID(userID)
+}
+
+func (s *Service) process(j *job.Job) error {
+	strat, err := s.strategyService.Get(j.StrategyID)
+
+	if err != nil {
+		return err
+	}
+
+}
+
+func (s *Service) ProcessPending() error {
+	jobs, err := s.jobRepo.ListByStatus(job.PendingStatus)
+
+	if err != nil {
+		return err
+	}
+
+	for _, j := range jobs {
+
+		j.Status = job.RunningStatus
+
+		err := s.jobRepo.Update(j)
+
+		if err != nil {
+			return err
+		}
+
+		err = s.process(j)
+
+		if err != nil {
+			j.Status = job.FailedStatus
+		} else {
+			j.Status = job.CompletedStatus
+		}
+
+		err = s.jobRepo.Update(j)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

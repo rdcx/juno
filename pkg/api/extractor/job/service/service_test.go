@@ -269,3 +269,8 @@ func TestUpdate(t *testing.T) {
 		}
 	})
 }
+
+func TestProcessPending(t *testing.T) {
+	t.Run("sets job status to running", func(t *testing.T) {
+
+}

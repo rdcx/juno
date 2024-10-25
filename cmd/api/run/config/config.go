@@ -13,6 +13,7 @@ type Config struct {
 	FilterDB        string
 	FieldDB         string
 	StrategyDB      string
+	RanagDB         string
 }
 
 // LoadConfig reads environment variables and returns a Config struct.
@@ -22,11 +23,12 @@ func LoadConfig() *Config {
 		UserDB:          getEnv("USER_DB", "root:juno@tcp(localhost:3306)/user?parseTime=true"),
 		BalancerDB:      getEnv("BALANCER_DB", "root:juno@tcp(localhost:3306)/balancer?parseTime=true"),
 		TranDB:          getEnv("TRAN_DB", "root:juno@tcp(localhost:3306)/transaction?parseTime=true"),
-		ExtractionJobDB: getEnv("EXTRACTION_JOB_DB", "root:juno@tcp(localhost:3306)/extraction_job?parseTime=true"),
+		ExtractionJobDB: getEnv("EXTRACTION_JOB_DB", "root:juno@tcp(localhost:3306)/job?parseTime=true"),
 		SelectorDB:      getEnv("SELECTOR_DB", "root:juno@tcp(localhost:3306)/selector?parseTime=true"),
 		FilterDB:        getEnv("FILTER_DB", "root:juno@tcp(localhost:3306)/filter?parseTime=true"),
 		FieldDB:         getEnv("FIELD_DB", "root:juno@tcp(localhost:3306)/field?parseTime=true"),
 		StrategyDB:      getEnv("STRATEGY_DB", "root:juno@tcp(localhost:3306)/strategy?parseTime=true"),
+		RanagDB:         getEnv("RANAG_DB", "root:juno@tcp(localhost:3306)/ranag?parseTime=true"),
 	}
 }
 

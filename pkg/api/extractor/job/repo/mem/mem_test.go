@@ -70,9 +70,9 @@ func Test(t *testing.T) {
 	copied.Status = q.Status
 	copied.StrategyID = q.StrategyID
 
-	q.Status = job.CompletedStatus
+	copied.Status = job.CompletedStatus
 
-	err = repo.Update(q)
+	err = repo.Update(&copied)
 
 	if err != nil {
 		t.Errorf("Expected nil, got %v", err)
@@ -88,4 +88,13 @@ func Test(t *testing.T) {
 		t.Errorf("Expected %s, got %s", job.CompletedStatus, check.Status)
 	}
 
+	list, err = repo.ListByStatus(job.CompletedStatus)
+
+	if err != nil {
+		t.Errorf("Expected nil, got %v", err)
+	}
+
+	if len(list) != 1 {
+		t.Errorf("Expected 1, got %d", len(list))
+	}
 }

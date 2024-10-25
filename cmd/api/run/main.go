@@ -59,6 +59,12 @@ import (
 	balancerRepo "juno/pkg/api/balancer/repo/mysql"
 	balancerSvc "juno/pkg/api/balancer/service"
 
+	ranagHandler "juno/pkg/api/ranag/handler"
+	ranagMig "juno/pkg/api/ranag/migration/mysql"
+	ranagPolicy "juno/pkg/api/ranag/policy"
+	ranagRepo "juno/pkg/api/ranag/repo/mysql"
+	ranagSvc "juno/pkg/api/ranag/service"
+
 	userHandler "juno/pkg/api/user/handler"
 	userMig "juno/pkg/api/user/migration/mysql"
 	userPolicy "juno/pkg/api/user/policy"
@@ -105,6 +111,7 @@ func main() {
 	filterDB := setupDatabase(config.FilterDB, filterMig.ExecuteMigrations)
 	fieldDB := setupDatabase(config.FieldDB, fieldMig.ExecuteMigrations)
 	strategyDB := setupDatabase(config.StrategyDB, strategyMig.ExecuteMigrations)
+	ranagDB := setupDatabase(config.RanagDB, ranagMig.ExecuteMigrations)
 
 	logger := logrus.New()
 
@@ -124,6 +131,11 @@ func main() {
 	balancerSvc := balancerSvc.New(balancerRepo)
 	balancerPolicy := balancerPolicy.New()
 	balancerHandler := balancerHandler.New(logger, balancerPolicy, balancerSvc)
+
+	ranagRepo := ranagRepo.New(ranagDB)
+	ranagSvc := ranagSvc.New(ranagRepo)
+	ranagPolicy := ranagPolicy.New()
+	ranagHandler := ranagHandler.New(logger, ranagPolicy, ranagSvc)
 
 	selectorRepo := selectorRepo.New(selectorDB)
 	selectorSvc := selectorService.New(selectorRepo)
@@ -165,6 +177,7 @@ func main() {
 	r := router.New(
 		nodeHandler,
 		balancerHandler,
+		ranagHandler,
 		tranHandler,
 		extractionJobHandler,
 		selectorHandler,
