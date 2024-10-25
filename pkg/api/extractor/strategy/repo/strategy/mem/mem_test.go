@@ -54,9 +54,9 @@ func Test(t *testing.T) {
 	copied.ID = q.ID
 	copied.UserID = q.UserID
 
-	q.Name = "test"
+	copied.Name = "test"
 
-	err = repo.Update(q)
+	err = repo.Update(&copied)
 
 	if err != nil {
 		t.Errorf("Expected nil, got %v", err)
@@ -68,7 +68,7 @@ func Test(t *testing.T) {
 		t.Errorf("Expected nil, got %v", err)
 	}
 
-	if check.Name != q.Name {
-		t.Errorf("Expected %s, got %s", q.Name, check.Name)
+	if copied.Name != check.Name {
+		t.Errorf("Expected %s, got %s", copied.Name, check.Name)
 	}
 }

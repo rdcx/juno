@@ -46,11 +46,14 @@ func (s Strategy) Validate() error {
 }
 
 type Service interface {
-	Create(userID, name string) (*Strategy, error)
+	Create(userID uuid.UUID, name string) (*Strategy, error)
 	Get(id uuid.UUID) (*Strategy, error)
 	AddSelector(id, selectorID uuid.UUID) error
+	RemoveSelector(id, selectorID uuid.UUID) error
 	AddFilter(id, filterID uuid.UUID) error
+	RemoveFilter(id, filterID uuid.UUID) error
 	AddField(id, fieldID uuid.UUID) error
+	RemoveField(id, fieldID uuid.UUID) error
 	ListByUserID(userID uuid.UUID) ([]*Strategy, error)
 }
 
@@ -58,24 +61,25 @@ type Repository interface {
 	Create(strategy *Strategy) error
 	Get(id uuid.UUID) (*Strategy, error)
 	ListByUserID(userID uuid.UUID) ([]*Strategy, error)
-	ListBySelectorID(selectorID uuid.UUID) ([]*Strategy, error)
+	Update(strategy *Strategy) error
+	Delete(id uuid.UUID) error
 }
 
 type StrategySelectorRepository interface {
 	AddSelector(strategyID, selectorID uuid.UUID) error
-	ListSelectorIDs(strategyID uuid.UUID) ([]*selector.Selector, error)
+	ListSelectorIDs(strategyID uuid.UUID) ([]uuid.UUID, error)
 	RemoveSelector(strategyID, selectorID uuid.UUID) error
 }
 
 type StrategyFilterRepository interface {
 	AddFilter(strategyID, filterID uuid.UUID) error
-	ListFilterIDs(strategyID uuid.UUID) ([]*filter.Filter, error)
+	ListFilterIDs(strategyID uuid.UUID) ([]uuid.UUID, error)
 	RemoveFilter(strategyID, filterID uuid.UUID) error
 }
 
 type StrategyFieldRepository interface {
 	AddField(strategyID, fieldID uuid.UUID) error
-	ListFieldIDs(strategyID uuid.UUID) ([]*field.Field, error)
+	ListFieldIDs(strategyID uuid.UUID) ([]uuid.UUID, error)
 	RemoveField(strategyID, fieldID uuid.UUID) error
 }
 

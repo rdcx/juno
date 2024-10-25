@@ -11,29 +11,23 @@ const (
 )
 
 type Strategy struct {
-	ID         string `json:"id"`
-	Name       string `json:"name"`
-	Type       string `json:"type"`
-	SelectorID string `json:"selector_id"`
-	CreatedAt  string `json:"created_at"`
-	UpdatedAt  string `json:"updated_at"`
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
 }
 
 func NewStrategyFromDomain(s *strategy.Strategy) *Strategy {
 	return &Strategy{
-		ID:         s.ID.String(),
-		Name:       s.Name,
-		SelectorID: s.SelectorID.String(),
-		Type:       string(s.Type),
-		CreatedAt:  s.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:  s.UpdatedAt.Format(time.RFC3339),
+		ID:        s.ID.String(),
+		Name:      s.Name,
+		CreatedAt: s.CreatedAt.Format(time.RFC3339),
+		UpdatedAt: s.UpdatedAt.Format(time.RFC3339),
 	}
 }
 
 type CreateStrategyRequest struct {
-	Name       string `json:"name" binding:"required"`
-	Type       string `json:"type" binding:"required"`
-	SelectorID string `json:"selector_id" binding:"required" validate:"uuid"`
+	Name string `json:"name" binding:"required"`
 }
 
 type CreateStrategyResponse struct {

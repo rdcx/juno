@@ -34,7 +34,7 @@ func (h *Handler) Create(c *gin.Context) {
 
 	h.policy.CanCreate().
 		Allow(func() {
-			sel, err := h.service.Create(u.ID, uuid.MustParse(req.SelectorID), req.Name, strategy.StrategyType(req.Type))
+			sel, err := h.service.Create(u.ID, req.Name)
 
 			if err != nil {
 				c.JSON(500, dto.NewErrorCreateStrategyResponse(err))
@@ -85,28 +85,6 @@ func (h *Handler) List(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(500, dto.NewErrorListStrategyResponse(err))
-		return
-	}
-
-	h.policy.CanList(c.Request.Context(), sels).
-		Allow(func() {
-			c.JSON(200, dto.NewSuccessListStrategyResponse(sels))
-		}).
-		Deny(func(reason string) {
-			c.JSON(403, dto.NewErrorListStrategyResponse(errors.New(reason)))
-		}).
-		Err(func(err error) {
-			c.JSON(500, dto.NewErrorListStrategyResponse(err))
-		})
-}
-
-func (h *Handler) ListBySelectorID(c *gin.Context) {
-	u := auth.MustUserFromContext(c.Request.Context())
-
-	sels, err := h.service.ListBySelectorID(u.ID)
-
-	if err != nil {
-		c.JSON(400, dto.NewErrorListStrategyResponse(err))
 		return
 	}
 

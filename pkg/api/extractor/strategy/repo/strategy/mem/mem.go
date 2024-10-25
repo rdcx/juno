@@ -45,3 +45,8 @@ func (r *Repository) Update(q *strategy.Strategy) error {
 	r.strategys[q.ID] = *q
 	return nil
 }
+
+func (r *Repository) Delete(id uuid.UUID) error {
+	delete(r.strategys, id)
+	return nil
+}
