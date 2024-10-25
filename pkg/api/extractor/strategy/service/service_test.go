@@ -217,7 +217,7 @@ func TestAddFilter(t *testing.T) {
 
 		strategyRepo.Create(strat)
 
-		filter, err := filterService.Create(strat.UserID, "filter_name", "filter_type", "filter_value")
+		filter, err := filterService.Create(strat.UserID, uuid.New(), "filter_name", "filter_type", "filter_value")
 
 		if err != nil {
 			t.Errorf("Expected nil, got %v", err)
@@ -266,7 +266,7 @@ func TestRemoveFilter(t *testing.T) {
 
 		strategyRepo.Create(strat)
 
-		filter, _ := filterService.Create(strat.UserID, "filter_name", "filter_type", "filter_value")
+		filter, _ := filterService.Create(strat.UserID, uuid.New(), "filter_name", "filter_type", "filter_value")
 
 		service.AddFilter(strat.ID, filter.ID)
 

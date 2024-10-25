@@ -54,9 +54,9 @@ func Test(t *testing.T) {
 	copied.ID = q.ID
 	copied.UserID = q.UserID
 
-	q.Visibility = filter.VisibilityPrivate
+	copied.Name = "String equals 'charger'"
 
-	err = repo.Update(q)
+	err = repo.Update(&copied)
 
 	if err != nil {
 		t.Errorf("Expected nil, got %v", err)
@@ -68,7 +68,7 @@ func Test(t *testing.T) {
 		t.Errorf("Expected nil, got %v", err)
 	}
 
-	if check.Visibility != q.Visibility {
-		t.Errorf("Expected %s, got %s", q.Visibility, check.Visibility)
+	if check.Name != "String equals 'charger'" {
+		t.Errorf("Expected %s, got %s", "String equals 'charger'", check.Name)
 	}
 }

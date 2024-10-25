@@ -20,7 +20,7 @@ func New(db *sql.DB) *Repository {
 func (r *Repository) Get(id uuid.UUID) (*filter.Filter, error) {
 	var f filter.Filter
 
-	err := r.db.QueryRow("SELECT id, user_id, name, type, value, created_at, updated_at FROM filters WHERE id = ?", id).Scan(&f.ID, &f.UserID, &f.Name, &f.Type, &f.Value, &f.CreatedAt, &f.UpdatedAt)
+	err := r.db.QueryRow("SELECT id, user_id, field_id, name, type, value, created_at, updated_at FROM filters WHERE id = ?", id).Scan(&f.ID, &f.UserID, &f.FieldID, &f.Name, &f.Type, &f.Value, &f.CreatedAt, &f.UpdatedAt)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -33,7 +33,7 @@ func (r *Repository) Get(id uuid.UUID) (*filter.Filter, error) {
 }
 
 func (r *Repository) Create(f *filter.Filter) error {
-	_, err := r.db.Exec("INSERT INTO filters (id, user_id, name, type, value) VALUES (?, ?, ?, ?, ?)", f.ID, f.UserID, f.Name, f.Type, f.Value)
+	_, err := r.db.Exec("INSERT INTO filters (id, user_id, field_id, name, type, value) VALUES (?, ?, ?, ?, ?, ?)", f.ID, f.UserID, f.FieldID, f.Name, f.Type, f.Value)
 
 	if err != nil {
 		return err
@@ -63,7 +63,7 @@ func (r *Repository) Delete(id uuid.UUID) error {
 }
 
 func (r *Repository) ListByUserID(userID uuid.UUID) ([]*filter.Filter, error) {
-	rows, err := r.db.Query("SELECT id, user_id, name, type, value, created_at, updated_at FROM filters WHERE user_id = ?", userID)
+	rows, err := r.db.Query("SELECT id, user_id, field_id, name, type, value, created_at, updated_at FROM filters WHERE user_id = ?", userID)
 
 	if err != nil {
 		return nil, err
@@ -75,7 +75,7 @@ func (r *Repository) ListByUserID(userID uuid.UUID) ([]*filter.Filter, error) {
 
 	for rows.Next() {
 		var f filter.Filter
-		err := rows.Scan(&f.ID, &f.UserID, &f.Name, &f.Type, &f.Value, &f.CreatedAt, &f.UpdatedAt)
+		err := rows.Scan(&f.ID, &f.UserID, &f.FieldID, &f.Name, &f.Type, &f.Value, &f.CreatedAt, &f.UpdatedAt)
 
 		if err != nil {
 			return nil, err

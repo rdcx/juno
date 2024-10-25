@@ -16,13 +16,14 @@ func New(repo filter.Repository) *Service {
 	}
 }
 
-func (s *Service) Create(userID uuid.UUID, name string, t filter.FilterType, value string) (*filter.Filter, error) {
+func (s *Service) Create(userID, fieldID uuid.UUID, name string, t filter.FilterType, value string) (*filter.Filter, error) {
 	sel := &filter.Filter{
-		ID:     uuid.New(),
-		UserID: userID,
-		Name:   name,
-		Value:  value,
-		Type:   t,
+		ID:      uuid.New(),
+		UserID:  userID,
+		FieldID: fieldID,
+		Name:    name,
+		Value:   value,
+		Type:    t,
 	}
 
 	err := sel.Validate()

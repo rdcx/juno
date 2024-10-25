@@ -31,9 +31,10 @@ func NewFilterFromDomain(s *filter.Filter) *Filter {
 }
 
 type CreateFilterRequest struct {
-	Name  string `json:"name" binding:"required"`
-	Type  string `json:"type" binding:"required"`
-	Value string `json:"value" binding:"required"`
+	FieldID string `json:"field_id" binding:"required"`
+	Name    string `json:"name" binding:"required"`
+	Type    string `json:"type" binding:"required"`
+	Value   string `json:"value" binding:"required"`
 }
 
 type CreateFilterResponse struct {

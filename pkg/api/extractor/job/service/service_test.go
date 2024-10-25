@@ -18,7 +18,7 @@ func (m *mockStrategyService) Get(id uuid.UUID) (*strategy.Strategy, error) {
 	return m.returnStrategy, m.returnError
 }
 
-func (m *mockStrategyService) Create(userID uuid.UUID, name, selector string, filters []*strategy.Filter) (*strategy.Strategy, error) {
+func (m *mockStrategyService) Create(userID uuid.UUID, name string) (*strategy.Strategy, error) {
 	return m.returnStrategy, m.returnError
 }
 
@@ -27,6 +27,34 @@ func (m *mockStrategyService) ListByUserID(userID uuid.UUID) ([]*strategy.Strate
 }
 
 func (m *mockStrategyService) Update(e *strategy.Strategy) error {
+	return nil
+}
+
+func (m *mockStrategyService) Delete(id uuid.UUID) error {
+	return nil
+}
+
+func (m *mockStrategyService) AddField(id uuid.UUID, fieldID uuid.UUID) error {
+	return nil
+}
+
+func (m *mockStrategyService) RemoveField(id uuid.UUID, fieldID uuid.UUID) error {
+	return nil
+}
+
+func (m *mockStrategyService) AddFilter(id uuid.UUID, filterID uuid.UUID) error {
+	return nil
+}
+
+func (m *mockStrategyService) RemoveFilter(id uuid.UUID, filterID uuid.UUID) error {
+	return nil
+}
+
+func (m *mockStrategyService) AddSelector(id uuid.UUID, selectorID uuid.UUID) error {
+	return nil
+}
+
+func (m *mockStrategyService) RemoveSelector(id uuid.UUID, selectorID uuid.UUID) error {
 	return nil
 }
 

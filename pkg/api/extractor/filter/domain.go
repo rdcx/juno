@@ -24,6 +24,7 @@ type Filter struct {
 	ID        uuid.UUID
 	UserID    uuid.UUID
 	Name      string
+	FieldID   uuid.UUID
 	Type      FilterType
 	Value     string
 	CreatedAt time.Time
@@ -35,6 +36,10 @@ func (s Filter) Validate() error {
 
 	if s.Name == "" {
 		errs = append(errs, errors.New("name is required"))
+	}
+
+	if s.FieldID == uuid.Nil {
+		errs = append(errs, errors.New("field_id is required"))
 	}
 
 	if s.Type == "" {
@@ -53,7 +58,7 @@ func (s Filter) Validate() error {
 }
 
 type Service interface {
-	Create(userID uuid.UUID, name string, t FilterType, value string) (*Filter, error)
+	Create(userID, fieldID uuid.UUID, name string, t FilterType, value string) (*Filter, error)
 	Get(id uuid.UUID) (*Filter, error)
 	ListByUserID(userID uuid.UUID) ([]*Filter, error)
 }

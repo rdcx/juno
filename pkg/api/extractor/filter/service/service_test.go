@@ -14,11 +14,12 @@ func TestCreate(t *testing.T) {
 		repo := mem.New()
 		service := New(repo)
 		userID := uuid.New()
+		fieldID := uuid.New()
 		name := "String equals 'charger'"
 		value := "charger"
 		fType := filter.FilterTypeStringEquals
 
-		f, err := service.Create(userID, name, fType, value)
+		f, err := service.Create(userID, fieldID, name, fType, value)
 
 		if err != nil {
 			t.Errorf("Expected nil, got %v", err)
@@ -49,11 +50,12 @@ func TestCreate(t *testing.T) {
 		repo := mem.New()
 		service := New(repo)
 		userID := uuid.New()
+		fieldID := uuid.New()
 		name := ""
 		value := ""
 		fType := filter.FilterType("")
 
-		f, err := service.Create(userID, name, fType, value)
+		f, err := service.Create(userID, fieldID, name, fType, value)
 
 		if err == nil {
 			t.Errorf("Expected error, got nil")
@@ -82,11 +84,12 @@ func TestGet(t *testing.T) {
 		repo := mem.New()
 		service := New(repo)
 		userID := uuid.New()
+		fieldID := uuid.New()
 		name := "String equals 'charger'"
 		value := "charger"
 		fType := filter.FilterTypeStringEquals
 
-		f, err := service.Create(userID, name, fType, value)
+		f, err := service.Create(userID, fieldID, name, fType, value)
 
 		if err != nil {
 			t.Fatal(err)
@@ -137,11 +140,12 @@ func TestListByUserID(t *testing.T) {
 		repo := mem.New()
 		service := New(repo)
 		userID := uuid.New()
+		fieldID := uuid.New()
 		name := "String equals 'charger'"
 		value := "charger"
 		fType := filter.FilterTypeStringEquals
 
-		f1, err := service.Create(userID, name, fType, value)
+		f1, err := service.Create(userID, fieldID, name, fType, value)
 
 		if err != nil {
 			t.Fatal(err)
@@ -150,7 +154,7 @@ func TestListByUserID(t *testing.T) {
 		name = "String contains 'charger'"
 		fType = filter.FilterTypeStringContains
 
-		f2, err := service.Create(userID, name, fType, value)
+		f2, err := service.Create(userID, fieldID, name, fType, value)
 
 		if err != nil {
 			t.Fatal(err)

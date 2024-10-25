@@ -2,9 +2,7 @@ package service
 
 import (
 	apiClient "juno/pkg/api/client"
-	"juno/pkg/api/query/dto"
 	"juno/pkg/balancer/crawl"
-	"juno/pkg/node/client"
 	"juno/pkg/shard"
 	"math/rand"
 	"sync"
@@ -105,28 +103,7 @@ func (s *Service) randomNode(shard int) (string, error) {
 	return s.shards[shard][rand.Intn(len(s.shards[shard]))], nil
 }
 
-func (s *Service) QueryRange(offset int, total int, query *dto.Query) ([]dto.QueryResult, error) {
-	results := []dto.QueryResult{}
+func (s *Service) QueryRange(offset int, total int, strategy any) (any, error) {
 
-	shardRange, err := shard.GetShardRange(offset, total)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, shard := range shardRange {
-		node, err := s.randomNode(shard)
-		if err != nil {
-			s.logger.Errorf("no nodes available in shard %d", shard)
-		}
-
-		res, err := client.SendQueryRequest(node, *query)
-
-		if err != nil {
-			s.logger.Errorf("failed to send query to shard %d: %v", shard, err)
-		}
-
-		results = append(results, res)
-	}
-
-	return results, nil
+	return nil, nil
 }

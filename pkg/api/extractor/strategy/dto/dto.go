@@ -3,6 +3,10 @@ package dto
 import (
 	"juno/pkg/api/extractor/strategy"
 	"time"
+
+	fieldDto "juno/pkg/api/extractor/field/dto"
+	filterDto "juno/pkg/api/extractor/filter/dto"
+	selectorDto "juno/pkg/api/extractor/selector/dto"
 )
 
 const (
@@ -11,16 +15,38 @@ const (
 )
 
 type Strategy struct {
-	ID        string `json:"id"`
-	Name      string `json:"name"`
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
+	ID        string                  `json:"id"`
+	Name      string                  `json:"name"`
+	Selectors []*selectorDto.Selector `json:"selectors"`
+	Fields    []*fieldDto.Field       `json:"fields"`
+	Filters   []*filterDto.Filter     `json:"filters"`
+	CreatedAt string                  `json:"created_at"`
+	UpdatedAt string                  `json:"updated_at"`
 }
 
 func NewStrategyFromDomain(s *strategy.Strategy) *Strategy {
+
+	sels := make([]*selectorDto.Selector, 0)
+	for _, sel := range s.Selectors {
+		sels = append(sels, selectorDto.NewSelectorFromDomain(sel))
+	}
+
+	fils := make([]*filterDto.Filter, 0)
+	for _, fil := range s.Filters {
+		fils = append(fils, filterDto.NewFilterFromDomain(fil))
+	}
+
+	flds := make([]*fieldDto.Field, 0)
+	for _, fld := range s.Fields {
+		flds = append(flds, fieldDto.NewFieldFromDomain(fld))
+	}
+
 	return &Strategy{
 		ID:        s.ID.String(),
 		Name:      s.Name,
+		Selectors: sels,
+		Filters:   fils,
+		Fields:    flds,
 		CreatedAt: s.CreatedAt.Format(time.RFC3339),
 		UpdatedAt: s.UpdatedAt.Format(time.RFC3339),
 	}

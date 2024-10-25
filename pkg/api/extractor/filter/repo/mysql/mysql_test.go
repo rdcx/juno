@@ -38,11 +38,12 @@ func TestGet(t *testing.T) {
 		id := uuid.New()
 
 		f := &filter.Filter{
-			ID:     id,
-			UserID: uuid.New(),
-			Name:   "test",
-			Type:   filter.FilterTypeStringEquals,
-			Value:  "test",
+			ID:      id,
+			UserID:  uuid.New(),
+			FieldID: uuid.New(),
+			Name:    "test",
+			Type:    filter.FilterTypeStringEquals,
+			Value:   "test",
 		}
 
 		err := repo.Create(f)
@@ -102,17 +103,44 @@ func TestCreate(t *testing.T) {
 		repo := New(db)
 
 		f := &filter.Filter{
-			ID:     uuid.New(),
-			UserID: uuid.New(),
-			Name:   "test",
-			Type:   filter.FilterTypeStringEquals,
-			Value:  "test",
+			ID:      uuid.New(),
+			UserID:  uuid.New(),
+			FieldID: uuid.New(),
+			Name:    "test",
+			Type:    filter.FilterTypeStringEquals,
+			Value:   "test",
 		}
 
 		err := repo.Create(f)
 
 		if err != nil {
 			t.Fatal(err)
+		}
+
+		got, err := repo.Get(f.ID)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if got.ID != f.ID {
+			t.Errorf("expected id to be %v, got %v", f.ID, got.ID)
+		}
+
+		if got.UserID != f.UserID {
+			t.Errorf("expected user id to be %v, got %v", f.UserID, got.UserID)
+		}
+
+		if got.Name != f.Name {
+			t.Errorf("expected name to be %v, got %v", f.Name, got.Name)
+		}
+
+		if got.Type != f.Type {
+			t.Errorf("expected type to be %v, got %v", f.Type, got.Type)
+		}
+
+		if got.Value != f.Value {
+			t.Errorf("expected value to be %v, got %v", f.Value, got.Value)
 		}
 	})
 }
@@ -127,11 +155,12 @@ func TestUpdate(t *testing.T) {
 		id := uuid.New()
 
 		f := &filter.Filter{
-			ID:     id,
-			UserID: uuid.New(),
-			Name:   "test",
-			Type:   filter.FilterTypeStringEquals,
-			Value:  "test",
+			ID:      id,
+			UserID:  uuid.New(),
+			FieldID: uuid.New(),
+			Name:    "test",
+			Type:    filter.FilterTypeStringEquals,
+			Value:   "test",
 		}
 
 		err := repo.Create(f)
@@ -158,6 +187,10 @@ func TestUpdate(t *testing.T) {
 
 		if got.Name != f.Name {
 			t.Errorf("expected name to be %v, got %v", f.Name, got.Name)
+		}
+
+		if got.FieldID != f.FieldID {
+			t.Errorf("expected field id to be %v, got %v", f.FieldID, got.FieldID)
 		}
 
 		if got.Type != f.Type {

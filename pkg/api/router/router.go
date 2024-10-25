@@ -94,18 +94,18 @@ func New(
 		authGroup.GET("/extractor/fields", fieldHandler.List)
 		authGroup.GET("/extractor/selector/:id/fields", fieldHandler.ListBySelectorID)
 
-		authGroup.POST("/extractor/strategys", strategyHandler.Create)
-		authGroup.GET("/extractor/strategys/:id", strategyHandler.Get)
-		authGroup.GET("/extractor/strategys", strategyHandler.List)
+		authGroup.POST("/extractor/strategies", strategyHandler.Create)
+		authGroup.GET("/extractor/strategies/:id", strategyHandler.Get)
+		authGroup.GET("/extractor/strategies", strategyHandler.List)
 
-		authGroup.POST("/extractor/strategys/:id/selectors", strategyHandler.AddSelector)
-		authGroup.DELETE("/extractor/strategys/:id/selectors", strategyHandler.RemoveSelector)
+		authGroup.POST("/extractor/strategies/:id/selectors", strategyHandler.AddSelector)
+		authGroup.DELETE("/extractor/strategies/:id/selectors", strategyHandler.RemoveSelector)
 
-		authGroup.POST("/extractor/strategys/:id/filters", strategyHandler.AddFilter)
-		authGroup.DELETE("/extractor/strategys/:id/filters", strategyHandler.RemoveFilter)
+		authGroup.POST("/extractor/strategies/:id/filters", strategyHandler.AddFilter)
+		authGroup.DELETE("/extractor/strategies/:id/filters", strategyHandler.RemoveFilter)
 
-		authGroup.POST("/extractor/strategys/:id/fields", strategyHandler.AddField)
-		authGroup.DELETE("/extractor/strategys/:id/fields", strategyHandler.RemoveField)
+		authGroup.POST("/extractor/strategies/:id/fields", strategyHandler.AddField)
+		authGroup.DELETE("/extractor/strategies/:id/fields", strategyHandler.RemoveField)
 	}
 
 	return r

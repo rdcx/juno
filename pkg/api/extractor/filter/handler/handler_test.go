@@ -23,7 +23,7 @@ type mockService struct {
 	returnError   error
 }
 
-func (m mockService) Create(userID uuid.UUID, name string, fType filter.FilterType, value string) (*filter.Filter, error) {
+func (m mockService) Create(userID, fieldID uuid.UUID, name string, fType filter.FilterType, value string) (*filter.Filter, error) {
 	return m.returnFilter, m.returnError
 }
 
@@ -64,20 +64,22 @@ func (m mockPolicy) CanList(ctx context.Context, sels []*filter.Filter) can.Resu
 func TestCreate(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		expect := &filter.Filter{
-			ID:     uuid.New(),
-			UserID: uuid.New(),
-			Name:   "Value equals Charger",
-			Type:   filter.FilterTypeStringEquals,
-			Value:  "charger",
+			ID:      uuid.New(),
+			UserID:  uuid.New(),
+			FieldID: uuid.New(),
+			Name:    "Value equals Charger",
+			Type:    filter.FilterTypeStringEquals,
+			Value:   "charger",
 		}
 		handler := New(&mockPolicy{allowed: true}, mockService{
 			returnFilter: expect,
 		})
 
 		req := dto.CreateFilterRequest{
-			Name:  expect.Name,
-			Type:  string(expect.Type),
-			Value: expect.Value,
+			Name:    expect.Name,
+			FieldID: expect.FieldID.String(),
+			Type:    string(expect.Type),
+			Value:   expect.Value,
 		}
 
 		encoded, err := json.Marshal(req)
@@ -170,9 +172,10 @@ func TestCreate(t *testing.T) {
 		handler := New(&mockPolicy{allowed: false, reason: "reason"}, mockService{})
 
 		req := dto.CreateFilterRequest{
-			Name:  "Value equals Charger",
-			Type:  string(filter.FilterTypeStringEquals),
-			Value: "charger",
+			Name:    "Value equals Charger",
+			FieldID: uuid.New().String(),
+			Type:    string(filter.FilterTypeStringEquals),
+			Value:   "charger",
 		}
 
 		encoded, err := json.Marshal(req)

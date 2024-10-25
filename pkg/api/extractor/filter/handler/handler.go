@@ -34,7 +34,7 @@ func (h *Handler) Create(c *gin.Context) {
 
 	h.policy.CanCreate().
 		Allow(func() {
-			sel, err := h.service.Create(u.ID, req.Name, filter.FilterType(req.Type), req.Value)
+			sel, err := h.service.Create(u.ID, uuid.MustParse(req.FieldID), req.Name, filter.FilterType(req.Type), req.Value)
 
 			if err != nil {
 				c.JSON(500, dto.NewErrorCreateFilterResponse(err))

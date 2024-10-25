@@ -7,6 +7,7 @@ var migrations = map[string]string{
 		CREATE TABLE IF NOT EXISTS filters (
 			id VARCHAR(36) PRIMARY KEY,
 			user_id VARCHAR(36) NOT NULL,
+			field_id VARCHAR(36) NOT NULL,
 			name VARCHAR(255) NOT NULL,
 			type VARCHAR(16) NOT NULL,
 			value TEXT NOT NULL,
