@@ -7,6 +7,7 @@ import (
 	"juno/pkg/api/extractor/filter"
 	"juno/pkg/api/extractor/job"
 	"juno/pkg/api/extractor/selector"
+	"juno/pkg/api/extractor/strategy"
 	"juno/pkg/api/middleware"
 	"juno/pkg/api/node"
 	"juno/pkg/api/token"
@@ -27,6 +28,7 @@ func New(
 	selectorHandler selector.Handler,
 	filterHandler filter.Handler,
 	fieldHandler field.Handler,
+	strategyHandler strategy.Handler,
 	tokenHandler token.Handler,
 	userHandler user.Handler,
 	authHandler auth.Handler,
@@ -91,6 +93,19 @@ func New(
 		authGroup.GET("/extractor/fields/:id", fieldHandler.Get)
 		authGroup.GET("/extractor/fields", fieldHandler.List)
 		authGroup.GET("/extractor/selector/:id/fields", fieldHandler.ListBySelectorID)
+
+		authGroup.POST("/extractor/strategys", strategyHandler.Create)
+		authGroup.GET("/extractor/strategys/:id", strategyHandler.Get)
+		authGroup.GET("/extractor/strategys", strategyHandler.List)
+
+		authGroup.POST("/extractor/strategys/:id/selectors", strategyHandler.AddSelector)
+		authGroup.DELETE("/extractor/strategys/:id/selectors", strategyHandler.RemoveSelector)
+
+		authGroup.POST("/extractor/strategys/:id/filters", strategyHandler.AddFilter)
+		authGroup.DELETE("/extractor/strategys/:id/filters", strategyHandler.RemoveFilter)
+
+		authGroup.POST("/extractor/strategys/:id/fields", strategyHandler.AddField)
+		authGroup.DELETE("/extractor/strategys/:id/fields", strategyHandler.RemoveField)
 	}
 
 	return r

@@ -19,8 +19,6 @@ import (
 	tokenHandler "juno/pkg/api/token/handler"
 	tokenService "juno/pkg/api/token/service"
 
-	strategyService "juno/pkg/api/extractor/strategy/service"
-
 	extractorJobHandler "juno/pkg/api/extractor/job/handler"
 	extractorJobMig "juno/pkg/api/extractor/job/migration/mysql"
 	extractorJobPolicy "juno/pkg/api/extractor/job/policy"
@@ -44,6 +42,16 @@ import (
 	fieldPolicy "juno/pkg/api/extractor/field/policy"
 	fieldRepo "juno/pkg/api/extractor/field/repo/mysql"
 	fieldService "juno/pkg/api/extractor/field/service"
+
+	strategyHandler "juno/pkg/api/extractor/strategy/handler"
+	strategyMig "juno/pkg/api/extractor/strategy/migration/mysql"
+	strategyPolicy "juno/pkg/api/extractor/strategy/policy"
+	strategyRepo "juno/pkg/api/extractor/strategy/repo/strategy/mysql"
+	strategyService "juno/pkg/api/extractor/strategy/service"
+
+	strategyFieldRepo "juno/pkg/api/extractor/strategy/repo/field/mysql"
+	strategyFilterRepo "juno/pkg/api/extractor/strategy/repo/filter/mysql"
+	strategySelectorRepo "juno/pkg/api/extractor/strategy/repo/selector/mysql"
 
 	balancerHandler "juno/pkg/api/balancer/handler"
 	balancerMig "juno/pkg/api/balancer/migration/mysql"
@@ -96,6 +104,7 @@ func main() {
 	selectorDB := setupDatabase(config.SelectorDB, selectorMig.ExecuteMigrations)
 	filterDB := setupDatabase(config.FilterDB, filterMig.ExecuteMigrations)
 	fieldDB := setupDatabase(config.FieldDB, fieldMig.ExecuteMigrations)
+	strategyDB := setupDatabase(config.StrategyDB, strategyMig.ExecuteMigrations)
 
 	logger := logrus.New()
 
@@ -116,13 +125,6 @@ func main() {
 	balancerPolicy := balancerPolicy.New()
 	balancerHandler := balancerHandler.New(logger, balancerPolicy, balancerSvc)
 
-	strategyService := strategyService.New(nil)
-
-	extractionJobRepo := extractorJobRepo.New(extractionJobDB)
-	extractionJobSvc := extractorJobSvc.New(extractionJobRepo, strategyService)
-	extractionJobPolicy := extractorJobPolicy.New()
-	extractionJobHandler := extractorJobHandler.New(extractionJobSvc, extractionJobPolicy)
-
 	selectorRepo := selectorRepo.New(selectorDB)
 	selectorSvc := selectorService.New(selectorRepo)
 	selectorPolicy := selectorPolicy.New()
@@ -137,6 +139,19 @@ func main() {
 	fieldSvc := fieldService.New(fieldRepo)
 	fieldPolicy := fieldPolicy.New()
 	fieldHandler := fieldHandler.New(fieldPolicy, fieldSvc)
+
+	strategyRepo := strategyRepo.New(strategyDB)
+	strategySelectorRepo := strategySelectorRepo.New(strategyDB)
+	strategyFieldRepo := strategyFieldRepo.New(strategyDB)
+	strategyFilterRepo := strategyFilterRepo.New(strategyDB)
+	strategySvc := strategyService.New(strategyRepo, strategyFilterRepo, strategyFieldRepo, strategySelectorRepo, filterSvc, fieldSvc, selectorSvc)
+	strategyPolicy := strategyPolicy.New()
+	strategyHandler := strategyHandler.New(strategyPolicy, strategySvc)
+
+	extractionJobRepo := extractorJobRepo.New(extractionJobDB)
+	extractionJobSvc := extractorJobSvc.New(extractionJobRepo, strategySvc)
+	extractionJobPolicy := extractorJobPolicy.New()
+	extractionJobHandler := extractorJobHandler.New(extractionJobSvc, extractionJobPolicy)
 
 	userRepo := userRepo.New(userDB)
 
@@ -155,6 +170,7 @@ func main() {
 		selectorHandler,
 		filterHandler,
 		fieldHandler,
+		strategyHandler,
 		tokenHandler,
 		userHandler,
 		authHandler,
