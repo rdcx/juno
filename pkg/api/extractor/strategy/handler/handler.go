@@ -99,3 +99,255 @@ func (h *Handler) List(c *gin.Context) {
 			c.JSON(500, dto.NewErrorListStrategyResponse(err))
 		})
 }
+
+func (h *Handler) AddSelector(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+
+	if err != nil {
+		c.JSON(400, dto.NewErrorAddSelectorResponse(err))
+		return
+	}
+
+	var req dto.AddSelectorRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, dto.NewErrorAddSelectorResponse(err))
+		return
+	}
+
+	strat, err := h.service.Get(id)
+
+	if err != nil {
+		c.JSON(404, dto.NewErrorAddSelectorResponse(err))
+		return
+	}
+
+	h.policy.CanUpdate(c.Request.Context(), strat).
+		Allow(func() {
+
+			err = h.service.AddSelector(id, uuid.MustParse(req.SelectorID))
+
+			if err != nil {
+				c.JSON(500, dto.NewErrorAddSelectorResponse(err))
+				return
+			}
+
+			c.JSON(204, dto.NewSuccessAddSelectorResponse())
+		}).
+		Deny(func(reason string) {
+			c.JSON(403, dto.NewErrorAddSelectorResponse(errors.New(reason)))
+		}).
+		Err(func(err error) {
+			c.JSON(500, dto.NewErrorAddSelectorResponse(err))
+		})
+}
+
+func (h *Handler) RemoveSelector(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+
+	if err != nil {
+		c.JSON(400, dto.NewErrorRemoveSelectorResponse(err))
+		return
+	}
+
+	var req dto.RemoveSelectorRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, dto.NewErrorRemoveSelectorResponse(err))
+		return
+	}
+
+	strat, err := h.service.Get(id)
+
+	if err != nil {
+		c.JSON(404, dto.NewErrorRemoveSelectorResponse(err))
+		return
+	}
+
+	h.policy.CanUpdate(c.Request.Context(), strat).
+		Allow(func() {
+
+			err = h.service.RemoveSelector(id, uuid.MustParse(req.SelectorID))
+
+			if err != nil {
+				c.JSON(500, dto.NewErrorRemoveSelectorResponse(err))
+				return
+			}
+
+			c.JSON(204, dto.NewSuccessRemoveSelectorResponse())
+		}).
+		Deny(func(reason string) {
+			c.JSON(403, dto.NewErrorRemoveSelectorResponse(errors.New(reason)))
+		}).
+		Err(func(err error) {
+			c.JSON(500, dto.NewErrorRemoveSelectorResponse(err))
+		})
+}
+
+func (h *Handler) AddFilter(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+
+	if err != nil {
+		c.JSON(400, dto.NewErrorAddFilterResponse(err))
+		return
+	}
+
+	var req dto.AddFilterRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, dto.NewErrorAddFilterResponse(err))
+		return
+	}
+
+	strat, err := h.service.Get(id)
+
+	if err != nil {
+		c.JSON(404, dto.NewErrorAddFilterResponse(err))
+		return
+	}
+
+	h.policy.CanUpdate(c.Request.Context(), strat).
+		Allow(func() {
+
+			err = h.service.AddFilter(id, uuid.MustParse(req.FilterID))
+
+			if err != nil {
+				c.JSON(500, dto.NewErrorAddFilterResponse(err))
+				return
+			}
+
+			c.JSON(204, dto.NewSuccessAddFilterResponse())
+		}).
+		Deny(func(reason string) {
+			c.JSON(403, dto.NewErrorAddFilterResponse(errors.New(reason)))
+		}).
+		Err(func(err error) {
+			c.JSON(500, dto.NewErrorAddFilterResponse(err))
+		})
+}
+
+func (h *Handler) RemoveFilter(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+
+	if err != nil {
+		c.JSON(400, dto.NewErrorRemoveFilterResponse(err))
+		return
+	}
+
+	var req dto.RemoveFilterRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, dto.NewErrorRemoveFilterResponse(err))
+		return
+	}
+
+	strat, err := h.service.Get(id)
+
+	if err != nil {
+		c.JSON(404, dto.NewErrorRemoveFilterResponse(err))
+		return
+	}
+
+	h.policy.CanUpdate(c.Request.Context(), strat).
+		Allow(func() {
+
+			err = h.service.RemoveFilter(id, uuid.MustParse(req.FilterID))
+
+			if err != nil {
+				c.JSON(500, dto.NewErrorRemoveFilterResponse(err))
+				return
+			}
+
+			c.JSON(204, dto.NewSuccessRemoveFilterResponse())
+		}).
+		Deny(func(reason string) {
+			c.JSON(403, dto.NewErrorRemoveFilterResponse(errors.New(reason)))
+		}).
+		Err(func(err error) {
+			c.JSON(500, dto.NewErrorRemoveFilterResponse(err))
+		})
+}
+
+func (h *Handler) AddField(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+
+	if err != nil {
+		c.JSON(400, dto.NewErrorAddFieldResponse(err))
+		return
+	}
+
+	var req dto.AddFieldRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, dto.NewErrorAddFieldResponse(err))
+		return
+	}
+
+	strat, err := h.service.Get(id)
+
+	if err != nil {
+		c.JSON(404, dto.NewErrorAddFieldResponse(err))
+		return
+	}
+
+	h.policy.CanUpdate(c.Request.Context(), strat).
+		Allow(func() {
+
+			err = h.service.AddField(id, uuid.MustParse(req.FieldID))
+
+			if err != nil {
+				c.JSON(500, dto.NewErrorAddFieldResponse(err))
+				return
+			}
+
+			c.JSON(204, dto.NewSuccessAddFieldResponse())
+		}).
+		Deny(func(reason string) {
+			c.JSON(403, dto.NewErrorAddFieldResponse(errors.New(reason)))
+		}).
+		Err(func(err error) {
+			c.JSON(500, dto.NewErrorAddFieldResponse(err))
+		})
+}
+
+func (h *Handler) RemoveField(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+
+	if err != nil {
+		c.JSON(400, dto.NewErrorRemoveFieldResponse(err))
+		return
+	}
+
+	var req dto.RemoveFieldRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, dto.NewErrorRemoveFieldResponse(err))
+		return
+	}
+
+	strat, err := h.service.Get(id)
+
+	if err != nil {
+		c.JSON(404, dto.NewErrorRemoveFieldResponse(err))
+		return
+	}
+
+	h.policy.CanUpdate(c.Request.Context(), strat).
+		Allow(func() {
+
+			err = h.service.RemoveField(id, uuid.MustParse(req.FieldID))
+
+			if err != nil {
+				c.JSON(500, dto.NewErrorRemoveFieldResponse(err))
+				return
+			}
+
+			c.JSON(204, dto.NewSuccessRemoveFieldResponse())
+		}).
+		Deny(func(reason string) {
+			c.JSON(403, dto.NewErrorRemoveFieldResponse(errors.New(reason)))
+		}).
+		Err(func(err error) {
+			c.JSON(500, dto.NewErrorRemoveFieldResponse(err))
+		})
+}

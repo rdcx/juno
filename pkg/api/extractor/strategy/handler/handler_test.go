@@ -438,3 +438,291 @@ func TestList(t *testing.T) {
 		}
 	})
 }
+
+func TestAddSelector(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		handler := New(&mockPolicy{allowed: true}, mockService{})
+
+		w := httptest.NewRecorder()
+
+		c, _ := gin.CreateTestContext(w)
+		c.Params = append(c.Params, gin.Param{Key: "id", Value: uuid.New().String()})
+
+		req := dto.AddSelectorRequest{
+			SelectorID: uuid.New().String(),
+		}
+
+		encoded, err := json.Marshal(req)
+
+		if err != nil {
+			t.Errorf("Expected nil, got %v", err)
+		}
+
+		c.Request = httptest.NewRequest("POST", "/strategies/"+uuid.New().String()+"/selectors/"+uuid.New().String(), bytes.NewBuffer(encoded)).
+			WithContext(auth.WithUser(context.Background(), &user.User{ID: uuid.New()}))
+
+		handler.AddSelector(c)
+
+		if w.Code != 204 {
+			t.Errorf("Expected 204, got %d", w.Code)
+		}
+	})
+
+	t.Run("bad request", func(t *testing.T) {
+		handler := New(&mockPolicy{allowed: true}, mockService{})
+
+		w := httptest.NewRecorder()
+
+		c, _ := gin.CreateTestContext(w)
+		c.Params = append(c.Params, gin.Param{Key: "id", Value: uuid.New().String()})
+
+		c.Request = httptest.NewRequest("POST", "/strategies/"+uuid.New().String()+"/selectors/"+uuid.New().String(), strings.NewReader("bad json")).
+			WithContext(auth.WithUser(context.Background(), &user.User{ID: uuid.New()}))
+
+		handler.AddSelector(c)
+
+		if w.Code != 400 {
+			t.Errorf("Expected 400, got %d", w.Code)
+		}
+	})
+}
+
+func TestRemoveSelector(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		handler := New(&mockPolicy{allowed: true}, mockService{})
+
+		w := httptest.NewRecorder()
+
+		c, _ := gin.CreateTestContext(w)
+		c.Params = append(c.Params, gin.Param{Key: "id", Value: uuid.New().String()})
+
+		req := dto.RemoveSelectorRequest{
+			SelectorID: uuid.New().String(),
+		}
+
+		encoded, err := json.Marshal(req)
+
+		if err != nil {
+			t.Errorf("Expected nil, got %v", err)
+		}
+
+		c.Request = httptest.NewRequest("DELETE", "/strategies/"+uuid.New().String()+"/selectors/"+uuid.New().String(), bytes.NewBuffer(encoded)).
+			WithContext(auth.WithUser(context.Background(), &user.User{ID: uuid.New()}))
+
+		handler.RemoveSelector(c)
+
+		if w.Code != 204 {
+			t.Errorf("Expected 204, got %d", w.Code)
+		}
+	})
+
+	t.Run("bad request", func(t *testing.T) {
+		handler := New(&mockPolicy{allowed: true}, mockService{})
+
+		w := httptest.NewRecorder()
+
+		c, _ := gin.CreateTestContext(w)
+		c.Params = append(c.Params, gin.Param{Key: "id", Value: uuid.New().String()})
+
+		c.Request = httptest.NewRequest("DELETE", "/strategies/"+uuid.New().String()+"/selectors/"+uuid.New().String(), strings.NewReader("bad json")).
+			WithContext(auth.WithUser(context.Background(), &user.User{ID: uuid.New()}))
+
+		handler.RemoveSelector(c)
+
+		if w.Code != 400 {
+			t.Errorf("Expected 400, got %d", w.Code)
+		}
+	})
+}
+
+func TestAddFilter(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		handler := New(&mockPolicy{allowed: true}, mockService{})
+
+		w := httptest.NewRecorder()
+
+		c, _ := gin.CreateTestContext(w)
+		c.Params = append(c.Params, gin.Param{Key: "id", Value: uuid.New().String()})
+
+		req := dto.AddFilterRequest{
+			FilterID: uuid.New().String(),
+		}
+
+		encoded, err := json.Marshal(req)
+
+		if err != nil {
+			t.Errorf("Expected nil, got %v", err)
+		}
+
+		c.Request = httptest.NewRequest("POST", "/strategies/"+uuid.New().String()+"/filters/"+uuid.New().String(), bytes.NewBuffer(encoded)).
+			WithContext(auth.WithUser(context.Background(), &user.User{ID: uuid.New()}))
+
+		handler.AddFilter(c)
+
+		if w.Code != 204 {
+			t.Errorf("Expected 204, got %d", w.Code)
+		}
+	})
+
+	t.Run("bad request", func(t *testing.T) {
+		handler := New(&mockPolicy{allowed: true}, mockService{})
+
+		w := httptest.NewRecorder()
+
+		c, _ := gin.CreateTestContext(w)
+		c.Params = append(c.Params, gin.Param{Key: "id", Value: uuid.New().String()})
+
+		c.Request = httptest.NewRequest("POST", "/strategies/"+uuid.New().String()+"/filters/"+uuid.New().String(), strings.NewReader("bad json")).
+			WithContext(auth.WithUser(context.Background(), &user.User{ID: uuid.New()}))
+
+		handler.AddFilter(c)
+
+		if w.Code != 400 {
+			t.Errorf("Expected 400, got %d", w.Code)
+		}
+	})
+}
+
+func TestRemoveFilter(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		handler := New(&mockPolicy{allowed: true}, mockService{})
+
+		w := httptest.NewRecorder()
+
+		c, _ := gin.CreateTestContext(w)
+		c.Params = append(c.Params, gin.Param{Key: "id", Value: uuid.New().String()})
+
+		req := dto.RemoveFilterRequest{
+			FilterID: uuid.New().String(),
+		}
+
+		encoded, err := json.Marshal(req)
+
+		if err != nil {
+			t.Errorf("Expected nil, got %v", err)
+		}
+
+		c.Request = httptest.NewRequest("DELETE", "/strategies/"+uuid.New().String()+"/filters/"+uuid.New().String(), bytes.NewBuffer(encoded)).
+			WithContext(auth.WithUser(context.Background(), &user.User{ID: uuid.New()}))
+
+		handler.RemoveFilter(c)
+
+		if w.Code != 204 {
+			t.Errorf("Expected 204, got %d", w.Code)
+		}
+	})
+
+	t.Run("bad request", func(t *testing.T) {
+		handler := New(&mockPolicy{allowed: true}, mockService{})
+
+		w := httptest.NewRecorder()
+
+		c, _ := gin.CreateTestContext(w)
+		c.Params = append(c.Params, gin.Param{Key: "id", Value: uuid.New().String()})
+
+		c.Request = httptest.NewRequest("DELETE", "/strategies/"+uuid.New().String()+"/filters/"+uuid.New().String(), strings.NewReader("bad json")).
+			WithContext(auth.WithUser(context.Background(), &user.User{ID: uuid.New()}))
+
+		handler.RemoveFilter(c)
+
+		if w.Code != 400 {
+			t.Errorf("Expected 400, got %d", w.Code)
+		}
+	})
+}
+
+func TestAddField(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		handler := New(&mockPolicy{allowed: true}, mockService{})
+
+		w := httptest.NewRecorder()
+
+		c, _ := gin.CreateTestContext(w)
+		c.Params = append(c.Params, gin.Param{Key: "id", Value: uuid.New().String()})
+
+		req := dto.AddFieldRequest{
+			FieldID: uuid.New().String(),
+		}
+
+		encoded, err := json.Marshal(req)
+
+		if err != nil {
+			t.Errorf("Expected nil, got %v", err)
+		}
+
+		c.Request = httptest.NewRequest("POST", "/strategies/"+uuid.New().String()+"/fields/"+uuid.New().String(), bytes.NewBuffer(encoded)).
+			WithContext(auth.WithUser(context.Background(), &user.User{ID: uuid.New()}))
+
+		handler.AddField(c)
+
+		if w.Code != 204 {
+			t.Errorf("Expected 204, got %d", w.Code)
+		}
+	})
+
+	t.Run("bad request", func(t *testing.T) {
+		handler := New(&mockPolicy{allowed: true}, mockService{})
+
+		w := httptest.NewRecorder()
+
+		c, _ := gin.CreateTestContext(w)
+		c.Params = append(c.Params, gin.Param{Key: "id", Value: uuid.New().String()})
+
+		c.Request = httptest.NewRequest("POST", "/strategies/"+uuid.New().String()+"/fields/"+uuid.New().String(), strings.NewReader("bad json")).
+			WithContext(auth.WithUser(context.Background(), &user.User{ID: uuid.New()}))
+
+		handler.AddField(c)
+
+		if w.Code != 400 {
+			t.Errorf("Expected 400, got %d", w.Code)
+		}
+	})
+}
+
+func TestRemoveField(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		handler := New(&mockPolicy{allowed: true}, mockService{})
+
+		w := httptest.NewRecorder()
+
+		c, _ := gin.CreateTestContext(w)
+		c.Params = append(c.Params, gin.Param{Key: "id", Value: uuid.New().String()})
+
+		req := dto.RemoveFieldRequest{
+			FieldID: uuid.New().String(),
+		}
+
+		encoded, err := json.Marshal(req)
+
+		if err != nil {
+			t.Errorf("Expected nil, got %v", err)
+		}
+
+		c.Request = httptest.NewRequest("DELETE", "/strategies/"+uuid.New().String()+"/fields/"+uuid.New().String(), bytes.NewBuffer(encoded)).
+			WithContext(auth.WithUser(context.Background(), &user.User{ID: uuid.New()}))
+
+		handler.RemoveField(c)
+
+		if w.Code != 204 {
+			t.Errorf("Expected 204, got %d", w.Code)
+		}
+	})
+
+	t.Run("bad request", func(t *testing.T) {
+		handler := New(&mockPolicy{allowed: true}, mockService{})
+
+		w := httptest.NewRecorder()
+
+		c, _ := gin.CreateTestContext(w)
+		c.Params = append(c.Params, gin.Param{Key: "id", Value: uuid.New().String()})
+
+		c.Request = httptest.NewRequest("DELETE", "/strategies/"+uuid.New().String()+"/fields/"+uuid.New().String(), strings.NewReader("bad json")).
+			WithContext(auth.WithUser(context.Background(), &user.User{ID: uuid.New()}))
+
+		handler.RemoveField(c)
+
+		if w.Code != 400 {
+			t.Errorf("Expected 400, got %d", w.Code)
+		}
+	})
+}
