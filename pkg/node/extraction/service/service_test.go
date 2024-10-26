@@ -1,12 +1,13 @@
 package service
 
 import (
-	monkeyService "juno/pkg/monkey/service"
 	htmlService "juno/pkg/node/html/service"
 	"juno/pkg/node/page"
 	pageRepo "juno/pkg/node/page/repo/mem"
 	pageService "juno/pkg/node/page/service"
 	storageService "juno/pkg/node/storage/service"
+
+	extractionDto "juno/pkg/node/extraction/dto"
 	"testing"
 
 	"github.com/sirupsen/logrus"
@@ -19,14 +20,12 @@ func TestTitles(t *testing.T) {
 	pageService := pageService.New(pageRepo)
 	storageService := storageService.New(t.TempDir())
 	htmlService := htmlService.New()
-	monkeyService := monkeyService.New()
 
 	s := New(
 		logger,
 		pageService,
 		storageService,
 		htmlService,
-		monkeyService,
 	)
 
 	body := []byte("<html><head><title>Test</title></head><body></body></html>")
@@ -49,16 +48,36 @@ func TestTitles(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	titles, err := s.Titles()
+	data, err := s.Extract(
+		extractionDto.ExtractionRequest{
+			Selectors: []*extractionDto.Selector{
+				{
+					ID:    "1",
+					Value: "title",
+				},
+			},
+			Fields: []*extractionDto.Field{
+				{
+					SelectorID: "1",
+					Name:       "page_title",
+				},
+			},
+		},
+	)
+
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(titles) != 1 {
-		t.Errorf("expected 1 title, got %d", len(titles))
+	if len(data) != 1 {
+		t.Fatalf("expected 1, got %d", len(data))
 	}
 
-	if titles["http://example.com"] != "Test" {
-		t.Errorf("expected title to be 'Test', got %s", titles["http://example.com"])
+	if data[0]["page_title"] != "Test" {
+		t.Fatalf("expected Test, got %s", data[0]["page_title"])
+	}
+
+	if data[0]["_juno_meta_url"] != "http://example.com" {
+		t.Fatalf("expected http://example.com, got %s", data[0]["_juno_meta_url"])
 	}
 }

@@ -5,9 +5,6 @@ const (
 	ERROR   = "error"
 )
 
-type SelectorKey string
-type FieldKey string
-
 type Selector struct {
 	ID    string `json:"id"`
 	Value string `json:"value"`
@@ -16,7 +13,7 @@ type Selector struct {
 type Field struct {
 	ID         string `json:"id"`
 	SelectorID string `json:"selector_id"`
-	Name       string `json:"value"`
+	Name       string `json:"name"`
 }
 
 type ExtractionRequest struct {

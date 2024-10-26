@@ -7,7 +7,7 @@ import (
 	"juno/pkg/node"
 	domain "juno/pkg/node/crawl"
 	crawlDto "juno/pkg/node/crawl/dto"
-	"juno/pkg/node/dto"
+	extractionDto "juno/pkg/node/extraction/dto"
 	"juno/pkg/util"
 	"net/http"
 )
@@ -39,8 +39,8 @@ func SendCrawlRequest(node string, url string) error {
 	return nil
 }
 
-func SendExtractionRequest(nodeAddr string, selectors []*dto.Selector, fields []*dto.Field) ([]map[string]interface{}, error) {
-	b, err := json.Marshal(&dto.ExtractionRequest{
+func SendExtractionRequest(nodeAddr string, selectors []*extractionDto.Selector, fields []*extractionDto.Field) ([]map[string]interface{}, error) {
+	b, err := json.Marshal(&extractionDto.ExtractionRequest{
 		Selectors: selectors,
 		Fields:    fields,
 	})
@@ -62,7 +62,7 @@ func SendExtractionRequest(nodeAddr string, selectors []*dto.Selector, fields []
 		)
 	}
 
-	var response dto.ExtractionResponse
+	var response extractionDto.ExtractionResponse
 
 	err = json.NewDecoder(res.Body).Decode(&response)
 

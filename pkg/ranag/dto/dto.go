@@ -12,6 +12,8 @@ const (
 )
 
 type RangeAggregatorRequest struct {
+	Offset    int                     `json:"offset"`
+	Total     int                     `json:"total" binding:"required"`
 	Selectors []*selectorDto.Selector `json:"selectors" binding:"required"`
 	Fields    []*fieldDto.Field       `json:"fields" binding:"required"`
 	Filters   []*filterDto.Filter     `json:"filters" binding:"required"`

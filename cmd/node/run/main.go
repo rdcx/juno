@@ -15,10 +15,9 @@ import (
 	htmlService "juno/pkg/node/html/service"
 	storageService "juno/pkg/node/storage/service"
 
-	runnerHandler "juno/pkg/node/runner/handler"
-	runnerService "juno/pkg/node/runner/service"
+	extractionHandler "juno/pkg/node/extraction/handler"
+	extractionService "juno/pkg/node/extraction/service"
 
-	monkeyService "juno/pkg/monkey/service"
 	"time"
 
 	"juno/pkg/node/router"
@@ -76,13 +75,17 @@ func main() {
 
 	crawlHandler := crawlHandler.New(logger, crawlService)
 
-	monkeyService := monkeyService.New()
-	runnerService := runnerService.New(logger, pageService, storageService, htmlService, monkeyService)
-	runnerHandler := runnerHandler.New(logger, runnerService)
+	extracionSvc := extractionService.New(
+		logger,
+		pageService,
+		storageService,
+		htmlService,
+	)
+	extractionHandler := extractionHandler.New(logger, extracionSvc)
 
 	r := router.New(
 		crawlHandler,
-		runnerHandler,
+		extractionHandler,
 	)
 
 	r.Run(":" + port)

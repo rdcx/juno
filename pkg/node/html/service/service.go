@@ -38,3 +38,13 @@ func (s *Service) Title(body []byte) (string, error) {
 
 	return doc.Find("title").First().Text(), nil
 }
+
+func (s *Service) GetSelectorValue(body []byte, selector string) (string, error) {
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(body))
+
+	if err != nil {
+		return "", err
+	}
+
+	return doc.Find(selector).First().Text(), nil
+}

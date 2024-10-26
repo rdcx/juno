@@ -83,7 +83,7 @@ func TestWithShardFetchInterval(t *testing.T) {
 	})
 }
 
-func TestQueryRange(t *testing.T) {
+func TestRangeAggregate(t *testing.T) {
 	t.Run("should combine results", func(t *testing.T) {
 
 		defer gock.Off()
@@ -165,7 +165,7 @@ func TestQueryRange(t *testing.T) {
 			2: {"node3.com:9090"},
 		})
 
-		_, err := svc.QueryRange(0, 3, ranagDto.RangeAggregatorRequest{
+		_, err := svc.RangeAggregate(0, 3, ranagDto.RangeAggregatorRequest{
 			Selectors: []*selectorDto.Selector{
 				{
 					ID:    "1",

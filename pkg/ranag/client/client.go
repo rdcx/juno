@@ -26,7 +26,7 @@ func New(baseURL string) *Client {
 	}
 }
 
-func (c Client) SendRangeAggregationRequest(selectors []*selector.Selector, fields []*field.Field, filters []*filter.Filter) (*dto.RangeAggregatorResponse, error) {
+func (c Client) SendRangeAggregationRequest(offset, total int, selectors []*selector.Selector, fields []*field.Field, filters []*filter.Filter) (*dto.RangeAggregatorResponse, error) {
 
 	selectorDtos := make([]*selectorDto.Selector, 0, len(selectors))
 
@@ -47,6 +47,8 @@ func (c Client) SendRangeAggregationRequest(selectors []*selector.Selector, fiel
 	}
 
 	req := &dto.RangeAggregatorRequest{
+		Offset:    offset,
+		Total:     total,
 		Selectors: selectorDtos,
 		Fields:    fieldDtos,
 		Filters:   filterDtos,
@@ -58,7 +60,7 @@ func (c Client) SendRangeAggregationRequest(selectors []*selector.Selector, fiel
 		return nil, err
 	}
 
-	resp, err := http.Post("http://"+c.baseURL+"/aggregation", "application/json", bytes.NewBuffer(encoded))
+	resp, err := http.Post("http://"+c.baseURL+"/aggregate", "application/json", bytes.NewBuffer(encoded))
 
 	if err != nil {
 		return nil, err

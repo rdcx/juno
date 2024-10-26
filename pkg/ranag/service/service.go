@@ -107,7 +107,7 @@ func (s *Service) randomNode(shard int) (string, error) {
 	return s.shards[shard][rand.Intn(len(s.shards[shard]))], nil
 }
 
-func (s *Service) QueryRange(offset int, total int, req dto.RangeAggregatorRequest) ([]map[string]interface{}, error) {
+func (s *Service) RangeAggregate(offset int, total int, req dto.RangeAggregatorRequest) ([]map[string]interface{}, error) {
 
 	data := make([]map[string]interface{}, 0)
 
