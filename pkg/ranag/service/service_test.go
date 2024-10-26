@@ -4,6 +4,13 @@ import (
 	"juno/pkg/api/client"
 	"juno/pkg/api/node/dto"
 	"juno/pkg/shard"
+
+	ranagDto "juno/pkg/ranag/dto"
+
+	fieldDto "juno/pkg/api/extractor/field/dto"
+	selectorDto "juno/pkg/api/extractor/selector/dto"
+
+	nodeDto "juno/pkg/node/dto"
 	"testing"
 	"time"
 
@@ -81,33 +88,74 @@ func TestQueryRange(t *testing.T) {
 
 		defer gock.Off()
 
-		// gock.New("http://node1.com:9090").
-		// 	Post("/query").
-		// 	Reply(200).
-		// 	JSON(queryDto.NewSuccessQueryResponse(
-		// 		map[string]string{
-		// 			"https://google.com/about": "Google About",
-		// 		},
-		// 	))
+		gock.New("http://node1.com:9090").
+			Post("/extraction").
+			JSON(nodeDto.ExtractionRequest{
+				Selectors: []*nodeDto.Selector{
+					{
+						ID:    "1",
+						Value: "#productTitle",
+					},
+				},
+				Fields: []*nodeDto.Field{
+					{
+						SelectorID: "1",
+						Name:       "product_title",
+					},
+				},
+			}).
+			Reply(200).
+			JSON(nodeDto.NewSuccessExtractionResponse(
+				[]map[string]interface{}{
+					{"https://google.com": "Google"},
+				},
+			))
 
-		// gock.New("http://node2.com:9090").
-		// 	Post("/query").
-		// 	Reply(200).
-		// 	JSON(queryDto.NewSuccessQueryResponse(
-		// 		map[string]string{
-		// 			"https://microsoft.com":       "Microsoft",
-		// 			"https://microsoft.com/about": "Microsoft About",
-		// 		},
-		// 	))
+		gock.New("http://node2.com:9090").
+			Post("/extraction").
+			JSON(nodeDto.ExtractionRequest{
+				Selectors: []*nodeDto.Selector{
+					{
+						ID:    "1",
+						Value: "#productTitle",
+					},
+				},
+				Fields: []*nodeDto.Field{
+					{
+						SelectorID: "1",
+						Name:       "product_title",
+					},
+				},
+			}).
+			Reply(200).
+			JSON(nodeDto.NewSuccessExtractionResponse(
+				[]map[string]interface{}{
+					{"https://google.com/about": "Google About"},
+				},
+			))
 
-		// gock.New("http://node3.com:9090").
-		// 	Post("/query").
-		// 	Reply(200).
-		// 	JSON(queryDto.NewSuccessQueryResponse(
-		// 		map[string]string{
-		// 			"https://amazon.com/about": "Amazon About",
-		// 		},
-		// 	))
+		gock.New("http://node3.com:9090").
+			Post("/extraction").
+			JSON(nodeDto.ExtractionRequest{
+				Selectors: []*nodeDto.Selector{
+					{
+						ID:    "1",
+						Value: "#productTitle",
+					},
+				},
+				Fields: []*nodeDto.Field{
+					{
+						SelectorID: "1",
+						Name:       "product_title",
+					},
+				},
+			}).
+			Reply(200).
+			JSON(nodeDto.NewSuccessExtractionResponse(
+				[]map[string]interface{}{
+					{"https://amazon.com/about": "Amazon About"},
+				},
+			))
 
 		svc := New(WithLogger(logrus.New()))
 
@@ -117,10 +165,28 @@ func TestQueryRange(t *testing.T) {
 			2: {"node3.com:9090"},
 		})
 
-		// _, err := svc.QueryRange(0, 3, nil)
+		_, err := svc.QueryRange(0, 3, ranagDto.RangeAggregatorRequest{
+			Selectors: []*selectorDto.Selector{
+				{
+					ID:    "1",
+					Value: "#productTitle",
+				},
+			},
 
-		// if err == nil {
-		// 	t.Errorf("expected an error")
-		// }
+			Fields: []*fieldDto.Field{
+				{
+					SelectorID: "1",
+					Name:       "product_title",
+				},
+			},
+		})
+
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		if !gock.IsDone() {
+			t.Errorf("Not all expectations were met")
+		}
 	})
 }

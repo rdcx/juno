@@ -2,7 +2,11 @@ package service
 
 import (
 	apiClient "juno/pkg/api/client"
+	nodeClient "juno/pkg/node/client"
+
 	"juno/pkg/balancer/crawl"
+	nodeDto "juno/pkg/node/dto"
+	"juno/pkg/ranag/dto"
 	"juno/pkg/shard"
 	"math/rand"
 	"sync"
@@ -103,7 +107,45 @@ func (s *Service) randomNode(shard int) (string, error) {
 	return s.shards[shard][rand.Intn(len(s.shards[shard]))], nil
 }
 
-func (s *Service) QueryRange(offset int, total int, strategy any) (any, error) {
+func (s *Service) QueryRange(offset int, total int, req dto.RangeAggregatorRequest) ([]map[string]interface{}, error) {
 
-	return nil, nil
+	data := make([]map[string]interface{}, 0)
+
+	// get shard each shard for the given offset
+	for i := offset; i < offset+total; i++ {
+		node, err := s.randomNode(i % shard.SHARDS)
+		if err != nil {
+			s.logger.Errorf("failed to get random node: %v", err)
+			return nil, err
+		}
+
+		selectors := []*nodeDto.Selector{}
+		fields := []*nodeDto.Field{}
+
+		for _, s := range req.Selectors {
+			selectors = append(selectors, &nodeDto.Selector{
+				ID:    s.ID,
+				Value: s.Value,
+			})
+		}
+
+		for _, f := range req.Fields {
+			fields = append(fields, &nodeDto.Field{
+				SelectorID: f.SelectorID,
+				Name:       f.Name,
+			})
+		}
+
+		// send request to the node
+		extractions, err := nodeClient.SendExtractionRequest(node, selectors, fields)
+
+		if err != nil {
+			s.logger.Errorf("failed to send request to node: %v", err)
+			return nil, err
+		}
+
+		data = append(data, extractions...)
+	}
+
+	return data, nil
 }
