@@ -85,7 +85,7 @@ func (s *Service) process(j *job.Job) error {
 		return fmt.Errorf("no ranges found")
 	}
 
-	var data []interface{}
+	var data []map[string]interface{}
 
 	for _, r := range ranges {
 		for _, ran := range r {
@@ -93,7 +93,7 @@ func (s *Service) process(j *job.Job) error {
 
 			res, err := client.SendRangeAggregationRequest(
 				0,
-				100,
+				10000,
 				strat.Selectors,
 				strat.Fields,
 				strat.Filters,
@@ -103,7 +103,7 @@ func (s *Service) process(j *job.Job) error {
 				return err
 			}
 
-			data = append(data, res.Aggregations)
+			data = append(data, res.Aggregations...)
 		}
 	}
 
@@ -143,7 +143,6 @@ func (s *Service) ProcessPending() error {
 
 		if err != nil {
 			j.Status = job.FailedStatus
-			fmt.Println(err)
 		} else {
 			j.Status = job.CompletedStatus
 		}
