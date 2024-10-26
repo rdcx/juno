@@ -39,8 +39,9 @@ func SendCrawlRequest(node string, url string) error {
 	return nil
 }
 
-func SendExtractionRequest(nodeAddr string, selectors []*extractionDto.Selector, fields []*extractionDto.Field) ([]map[string]interface{}, error) {
+func SendExtractionRequest(nodeAddr string, shard int, selectors []*extractionDto.Selector, fields []*extractionDto.Field) ([]map[string]interface{}, error) {
 	b, err := json.Marshal(&extractionDto.ExtractionRequest{
+		Shard:     shard,
 		Selectors: selectors,
 		Fields:    fields,
 	})
@@ -49,7 +50,7 @@ func SendExtractionRequest(nodeAddr string, selectors []*extractionDto.Selector,
 		return nil, err
 	}
 
-	res, err := http.Post("http://"+nodeAddr+"/extraction", "application/json", bytes.NewBuffer(b))
+	res, err := http.Post("http://"+nodeAddr+"/extract", "application/json", bytes.NewBuffer(b))
 
 	if err != nil {
 		return nil, err

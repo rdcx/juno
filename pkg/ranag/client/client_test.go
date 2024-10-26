@@ -18,7 +18,7 @@ func TestSendRangeAggregationRequest(t *testing.T) {
 		defer gock.Off()
 
 		gock.New("http://localhost:8080").
-			Post("/aggregation").
+			Post("/aggregate").
 			Reply(200).
 			JSON(dto.NewSuccessRangeAggregatorResponse([]map[string]interface{}{
 				{
@@ -50,6 +50,8 @@ func TestSendRangeAggregationRequest(t *testing.T) {
 		}
 
 		resp, err := client.SendRangeAggregationRequest(
+			0,
+			10,
 			selectors,
 			fields,
 			filters,
@@ -74,7 +76,7 @@ func TestSendRangeAggregationRequest(t *testing.T) {
 
 		client := New("localhost:8080")
 
-		_, err := client.SendRangeAggregationRequest(nil, nil, nil)
+		_, err := client.SendRangeAggregationRequest(0, 0, nil, nil, nil)
 
 		if err == nil {
 			t.Fatal("expected error")

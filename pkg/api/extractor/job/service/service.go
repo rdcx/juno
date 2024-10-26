@@ -81,6 +81,10 @@ func (s *Service) process(j *job.Job) error {
 		return err
 	}
 
+	if len(ranges) == 0 {
+		return fmt.Errorf("no ranges found")
+	}
+
 	var data []interface{}
 
 	for _, r := range ranges {
@@ -88,6 +92,8 @@ func (s *Service) process(j *job.Job) error {
 			client := client.New(ran.Address)
 
 			res, err := client.SendRangeAggregationRequest(
+				0,
+				100,
 				strat.Selectors,
 				strat.Fields,
 				strat.Filters,
@@ -117,6 +123,10 @@ func (s *Service) ProcessPending() error {
 
 	if err != nil {
 		return err
+	}
+
+	if len(jobs) == 0 {
+		fmt.Println("no pending jobs")
 	}
 
 	for _, j := range jobs {

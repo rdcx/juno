@@ -58,13 +58,7 @@ func (s *Service) Crawl(ctx context.Context, urlStr string) error {
 	if err == page.ErrPageNotFound {
 		p = page.NewPage(finalURL)
 
-		hostname, err := url.ToHostname(finalURL)
-
-		if err != nil {
-			return err
-		}
-
-		shard := shard.GetShard(hostname)
+		shard := shard.GetShard(finalURL)
 		p.Shard = shard
 
 		err = s.pageService.Create(p)

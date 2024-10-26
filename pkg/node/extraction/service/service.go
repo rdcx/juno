@@ -55,6 +55,11 @@ func allFieldsEmpty(data map[string]interface{}) bool {
 func (s *Service) Extract(req extractionDto.ExtractionRequest) ([]map[string]interface{}, error) {
 	extractions := make([]map[string]interface{}, 0)
 	s.pageService.Iterator(func(p *page.Page) {
+
+		if req.Shard != p.Shard {
+			return
+		}
+
 		for _, v := range p.Versions {
 			body, err := s.storageService.Read(v.Hash)
 

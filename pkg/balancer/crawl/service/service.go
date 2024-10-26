@@ -191,13 +191,8 @@ func (s *Service) ProcessQueue(ctx context.Context) error {
 	}
 }
 
-func (s *Service) Crawl(u string) error {
-	hostname, err := url.ToHostname(u)
-	if err != nil {
-		s.logger.Errorf("failed to parse hostname: %v", err)
-		return err
-	}
-	shard := shard.GetShard(hostname)
+func (s *Service) Crawl(url string) error {
+	shard := shard.GetShard(url)
 
 	tries := 0
 	for tries < 3 {
@@ -206,7 +201,7 @@ func (s *Service) Crawl(u string) error {
 			s.logger.Errorf("no nodes available in shard %d", shard)
 			return err
 		}
-		err = client.SendCrawlRequest(node, u)
+		err = client.SendCrawlRequest(node, url)
 		if err == nil {
 			return nil
 		}
@@ -214,7 +209,7 @@ func (s *Service) Crawl(u string) error {
 		tries++
 	}
 
-	s.logger.Errorf("failed to send link %s to shard: %v", u, err)
+	s.logger.Errorf("failed to send link %s to shard", url)
 
 	return crawl.ErrTooManyTries
 }

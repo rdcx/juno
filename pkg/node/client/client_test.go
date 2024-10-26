@@ -80,8 +80,9 @@ func TestSendExtractionRequest(t *testing.T) {
 		defer gock.Off()
 
 		gock.New("http://node1.com:8080").
-			Post("/extraction").
+			Post("/extract").
 			JSON(map[string]interface{}{
+				"shard": 0,
 				"selectors": []map[string]string{
 					{"id": "1", "value": "#productTitle"},
 				},
@@ -98,6 +99,7 @@ func TestSendExtractionRequest(t *testing.T) {
 			))
 
 		res, err := SendExtractionRequest("node1.com:8080",
+			0,
 			[]*extractionDto.Selector{
 				{
 					ID:    "1",

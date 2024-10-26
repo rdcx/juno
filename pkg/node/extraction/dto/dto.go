@@ -17,6 +17,7 @@ type Field struct {
 }
 
 type ExtractionRequest struct {
+	Shard     int         `json:"shard"`
 	Selectors []*Selector `json:"selectors" binding:"required"`
 	Fields    []*Field    `json:"fields" binding:"required"`
 }

@@ -100,7 +100,7 @@ func TestCrawl(t *testing.T) {
 
 		svc := New(WithLogger(logrus.New()))
 		svc.SetShards([shard.SHARDS][]string{
-			72435: {"node1.com:9090"},
+			68735: {"node1.com:9090"},
 		})
 
 		svc.Crawl("http://example.com")
@@ -122,7 +122,7 @@ func TestCrawl(t *testing.T) {
 
 		svc := New(WithLogger(logrus.New()))
 		svc.SetShards([shard.SHARDS][]string{
-			72435: {"node1.com:9090"},
+			68735: {"node1.com:9090"},
 		})
 
 		err := svc.Crawl("http://example.com")
@@ -160,7 +160,7 @@ func TestProcess(t *testing.T) {
 			WithPolicyService(polSvc),
 		)
 		crawlService.SetShards([shard.SHARDS][]string{
-			72435: {"node1.com:9090"},
+			68735: {"node1.com:9090"},
 		})
 
 		pol := policy.New("example.com")
@@ -230,7 +230,7 @@ func TestProcess(t *testing.T) {
 			WithPolicyService(polSvc),
 		)
 		crawlService.SetShards([shard.SHARDS][]string{
-			72435: {"node1.com:9090"},
+			68735: {"node1.com:9090"},
 		})
 
 		lastCrawledTime := time.Now()

@@ -13,7 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func TestTitles(t *testing.T) {
+func TestExtract(t *testing.T) {
 
 	logger := logrus.New()
 	pageRepo := pageRepo.New()
@@ -50,6 +50,7 @@ func TestTitles(t *testing.T) {
 
 	data, err := s.Extract(
 		extractionDto.ExtractionRequest{
+			Shard: 68735,
 			Selectors: []*extractionDto.Selector{
 				{
 					ID:    "1",

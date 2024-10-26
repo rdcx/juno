@@ -85,8 +85,8 @@ func TestCrawl(t *testing.T) {
 			t.Errorf("expected 1 version but got %d", len(p.Versions))
 		}
 
-		if p.Shard != 72435 {
-			t.Errorf("expected 72435 but got %d", p.Shard)
+		if p.Shard != 52283 {
+			t.Errorf("expected 52283 but got %d", p.Shard)
 		}
 
 		if p.Versions[0].Hash != page.NewVersionHash(testFile) {
@@ -103,7 +103,7 @@ func TestCrawl(t *testing.T) {
 			t.Errorf("expected %s but got %s", testFile, data)
 		}
 
-		time.Sleep(75 * time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 
 		if !gock.IsDone() {
 			t.Errorf("Not all expectations were met")

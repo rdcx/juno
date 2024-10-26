@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"juno/pkg/shard"
 	"time"
 )
 
@@ -61,8 +62,9 @@ type Page struct {
 
 func NewPage(url string) *Page {
 	return &Page{
-		ID:  NewPageID(url),
-		URL: url,
+		ID:    NewPageID(url),
+		URL:   url,
+		Shard: shard.GetShard(url),
 	}
 }
 

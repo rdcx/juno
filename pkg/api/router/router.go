@@ -74,10 +74,10 @@ func New(
 		authGroup.POST("/balancers", balancerHandler.Create)
 		authGroup.PUT("/balancers/:id", balancerHandler.Update)
 
-		authGroup.GET("/ranag", ranagHandler.List)
-		authGroup.GET("/ranag/:id", ranagHandler.Get)
-		authGroup.POST("/ranag", ranagHandler.Create)
-		authGroup.PUT("/ranag/:id", ranagHandler.Update)
+		authGroup.GET("/ranags", ranagHandler.List)
+		authGroup.GET("/ranags/:id", ranagHandler.Get)
+		authGroup.POST("/ranags", ranagHandler.Create)
+		authGroup.PUT("/ranags/:id", ranagHandler.Update)
 
 		authGroup.GET("/tokens/balance", tokenHandler.Balance)
 		authGroup.POST("/tokens/deposit", tokenHandler.Deposit)

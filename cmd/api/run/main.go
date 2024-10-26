@@ -161,7 +161,7 @@ func main() {
 	strategyHandler := strategyHandler.New(strategyPolicy, strategySvc)
 
 	extractionJobRepo := extractorJobRepo.New(extractionJobDB)
-	extractionJobSvc := extractorJobSvc.New(extractionJobRepo, strategySvc)
+	extractionJobSvc := extractorJobSvc.New(extractionJobRepo, strategySvc, ranagSvc)
 	extractionJobPolicy := extractorJobPolicy.New()
 	extractionJobHandler := extractorJobHandler.New(extractionJobSvc, extractionJobPolicy)
 
