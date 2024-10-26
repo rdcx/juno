@@ -20,12 +20,10 @@ func TestSendRangeAggregationRequest(t *testing.T) {
 		gock.New("http://localhost:8080").
 			Post("/aggregation").
 			Reply(200).
-			JSON(dto.NewSuccessRangeAggregatorResponse(map[string]interface{}{
-				"aggregations": []map[string]interface{}{
-					{
-						"key":   "test",
-						"count": 10,
-					},
+			JSON(dto.NewSuccessRangeAggregatorResponse([]map[string]interface{}{
+				{
+					"product_title": "charger",
+					"price":         100,
 				},
 			}))
 

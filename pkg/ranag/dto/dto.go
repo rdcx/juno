@@ -21,10 +21,10 @@ type RangeAggregatorResponse struct {
 	Status  string `json:"status"`
 	Message string `json:"message,omitempty"`
 
-	Aggregations map[string]interface{} `json:"aggregations,omitempty"`
+	Aggregations []map[string]interface{} `json:"aggregations,omitempty"`
 }
 
-func NewSuccessRangeAggregatorResponse(aggregations map[string]interface{}) *RangeAggregatorResponse {
+func NewSuccessRangeAggregatorResponse(aggregations []map[string]interface{}) *RangeAggregatorResponse {
 	return &RangeAggregatorResponse{
 		Status:       SUCCESS,
 		Aggregations: aggregations,

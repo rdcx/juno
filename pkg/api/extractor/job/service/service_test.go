@@ -4,9 +4,16 @@ import (
 	"juno/pkg/api/extractor/job"
 	"juno/pkg/api/extractor/job/repo/mem"
 	"juno/pkg/api/extractor/strategy"
+	"juno/pkg/api/ranag"
 	"testing"
 
+	ranagDto "juno/pkg/ranag/dto"
+
+	ranagRepo "juno/pkg/api/ranag/repo/mem"
+	ranagService "juno/pkg/api/ranag/service"
+
 	"github.com/google/uuid"
+	"github.com/h2non/gock"
 )
 
 type mockStrategyService struct {
@@ -66,7 +73,7 @@ func TestCreate(t *testing.T) {
 			returnStrategy: &strategy.Strategy{
 				ID: strategyID,
 			},
-		})
+		}, nil)
 		userID := uuid.New()
 		j, err := service.Create(userID, strategyID)
 
@@ -118,7 +125,7 @@ func TestCreate(t *testing.T) {
 		strategyID := uuid.New()
 		service := New(repo, &mockStrategyService{
 			returnError: strategy.ErrNotFound,
-		})
+		}, nil)
 		userID := uuid.New()
 		_, err := service.Create(userID, strategyID)
 
@@ -136,7 +143,7 @@ func TestGet(t *testing.T) {
 			returnStrategy: &strategy.Strategy{
 				ID: strategyID,
 			},
-		})
+		}, nil)
 		userID := uuid.New()
 		j, err := service.Create(userID, strategyID)
 
@@ -169,7 +176,7 @@ func TestGet(t *testing.T) {
 
 	t.Run("job not found", func(t *testing.T) {
 		repo := mem.New()
-		service := New(repo, &mockStrategyService{})
+		service := New(repo, &mockStrategyService{}, nil)
 		_, err := service.Get(uuid.New())
 
 		if err != job.ErrNotFound {
@@ -186,7 +193,7 @@ func TestListByUserID(t *testing.T) {
 			returnStrategy: &strategy.Strategy{
 				ID: strategyID,
 			},
-		})
+		}, nil)
 		userID := uuid.New()
 		j, err := service.Create(userID, strategyID)
 
@@ -211,7 +218,7 @@ func TestListByUserID(t *testing.T) {
 
 	t.Run("no jobs found", func(t *testing.T) {
 		repo := mem.New()
-		service := New(repo, &mockStrategyService{})
+		service := New(repo, &mockStrategyService{}, nil)
 		list, err := service.ListByUserID(uuid.New())
 
 		if err != nil {
@@ -232,7 +239,7 @@ func TestUpdate(t *testing.T) {
 			returnStrategy: &strategy.Strategy{
 				ID: strategyID,
 			},
-		})
+		}, nil)
 		userID := uuid.New()
 		j, err := service.Create(userID, strategyID)
 
@@ -261,7 +268,7 @@ func TestUpdate(t *testing.T) {
 
 	t.Run("job not found", func(t *testing.T) {
 		repo := mem.New()
-		service := New(repo, &mockStrategyService{})
+		service := New(repo, &mockStrategyService{}, nil)
 		err := service.Update(&job.Job{})
 
 		if err != job.ErrNotFound {
@@ -271,6 +278,65 @@ func TestUpdate(t *testing.T) {
 }
 
 func TestProcessPending(t *testing.T) {
-	t.Run("sets job status to running", func(t *testing.T) {
+	t.Run("sets job status to completed", func(t *testing.T) {
 
+		defer gock.Off()
+
+		gock.New("http://ranag.com:8080").
+			Post("/aggregation").
+			Reply(200).
+			JSON(ranagDto.NewSuccessRangeAggregatorResponse(
+				[]map[string]interface{}{
+					{
+						"product_title": "charger",
+						"price":         10.0,
+					},
+				},
+			))
+
+		repo := mem.New()
+		strategyID := uuid.New()
+
+		ranagRepo := ranagRepo.New()
+
+		ranagRepo.Create(&ranag.Ranag{
+			ID:      uuid.New(),
+			Address: "ranag.com:8080",
+			ShardAssignments: [][2]int{
+				{
+					0, 100000,
+				},
+			},
+		})
+
+		ranagService := ranagService.New(ranagRepo)
+
+		service := New(repo, &mockStrategyService{
+			returnStrategy: &strategy.Strategy{
+				ID: strategyID,
+			},
+		}, ranagService)
+		userID := uuid.New()
+		j, err := service.Create(userID, strategyID)
+
+		if err != nil {
+			t.Errorf("Expected nil, got %v", err)
+		}
+
+		err = service.ProcessPending()
+
+		if err != nil {
+			t.Errorf("Expected nil, got %v", err)
+		}
+
+		check, err := repo.Get(j.ID)
+
+		if err != nil {
+			t.Errorf("Expected nil, got %v", err)
+		}
+
+		if check.Status != job.CompletedStatus {
+			t.Errorf("Expected %s, got %s", job.CompletedStatus, check.Status)
+		}
+	})
 }

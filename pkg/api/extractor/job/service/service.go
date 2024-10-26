@@ -1,10 +1,13 @@
 package service
 
 import (
+	"encoding/json"
+	"fmt"
 	"juno/pkg/api/extractor/job"
 	"juno/pkg/api/extractor/strategy"
 	"juno/pkg/api/ranag"
 	"juno/pkg/ranag/client"
+	"os"
 
 	"github.com/google/uuid"
 )
@@ -78,6 +81,8 @@ func (s *Service) process(j *job.Job) error {
 		return err
 	}
 
+	var data []interface{}
+
 	for _, r := range ranges {
 		for _, ran := range r {
 			client := client.New(ran.Address)
@@ -85,11 +90,26 @@ func (s *Service) process(j *job.Job) error {
 			res, err := client.SendRangeAggregationRequest(
 				strat.Selectors,
 				strat.Fields,
-				strat.Aggregations,
+				strat.Filters,
 			)
+
+			if err != nil {
+				return err
+			}
+
+			data = append(data, res.Aggregations)
 		}
 	}
 
+	jsonData, err := json.Marshal(data)
+
+	if err != nil {
+		return err
+	}
+
+	os.WriteFile("data.json", jsonData, 0644)
+
+	return nil
 }
 
 func (s *Service) ProcessPending() error {
@@ -113,6 +133,7 @@ func (s *Service) ProcessPending() error {
 
 		if err != nil {
 			j.Status = job.FailedStatus
+			fmt.Println(err)
 		} else {
 			j.Status = job.CompletedStatus
 		}
