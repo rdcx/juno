@@ -130,7 +130,63 @@ func (s *Service) Update(strat *strategy.Strategy) error {
 }
 
 func (s *Service) ListByUserID(userID uuid.UUID) ([]*strategy.Strategy, error) {
-	return s.strategyRepo.ListByUserID(userID)
+	strats, err := s.strategyRepo.ListByUserID(userID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, strat := range strats {
+		selectorIDs, err := s.stratSelectorRepo.ListSelectorIDs(strat.ID)
+
+		if err != nil {
+			return nil, err
+		}
+
+		for _, selectorID := range selectorIDs {
+			selector, err := s.selectorService.Get(selectorID)
+
+			if err != nil {
+				return nil, err
+			}
+
+			strat.Selectors = append(strat.Selectors, selector)
+		}
+
+		filterIDs, err := s.stratFilterRepo.ListFilterIDs(strat.ID)
+
+		if err != nil {
+			return nil, err
+		}
+
+		for _, filterID := range filterIDs {
+			filter, err := s.filterService.Get(filterID)
+
+			if err != nil {
+				return nil, err
+			}
+
+			strat.Filters = append(strat.Filters, filter)
+		}
+
+		fieldIDs, err := s.stratFieldRepo.ListFieldIDs(strat.ID)
+
+		if err != nil {
+			return nil, err
+		}
+
+		for _, fieldID := range fieldIDs {
+			field, err := s.fieldService.Get(fieldID)
+
+			if err != nil {
+				return nil, err
+			}
+
+			strat.Fields = append(strat.Fields, field)
+		}
+	}
+
+	return strats, nil
 }
 
 func (s *Service) Delete(id uuid.UUID) error {

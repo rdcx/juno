@@ -390,11 +390,11 @@ func TestList(t *testing.T) {
 			t.Errorf("Expected success, got %s", resp.Status)
 		}
 
-		if len(resp.Strategys) != len(expect) {
-			t.Errorf("Expected %d, got %d", len(expect), len(resp.Strategys))
+		if len(resp.Strategies) != len(expect) {
+			t.Errorf("Expected %d, got %d", len(expect), len(resp.Strategies))
 		}
 
-		for i, f := range resp.Strategys {
+		for i, f := range resp.Strategies {
 			if f.ID != expect[i].ID.String() {
 				t.Errorf("Expected %s, got %s", expect[i].ID.String(), f.ID)
 			}

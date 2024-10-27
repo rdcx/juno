@@ -113,6 +113,75 @@ func TestGet(t *testing.T) {
 	})
 }
 
+func TestListByUserID(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		service, strategyRepo, _, _, _, filterSvc, fieldService, selectorService := setup()
+
+		userID := uuid.New()
+
+		strat1 := &strategy.Strategy{
+			ID:     uuid.New(),
+			UserID: userID,
+			Name:   "strategy_name",
+		}
+
+		strat2 := &strategy.Strategy{
+			ID:     uuid.New(),
+			UserID: uuid.New(),
+			Name:   "strategy_name",
+		}
+
+		strategyRepo.Create(strat1)
+		strategyRepo.Create(strat2)
+
+		selector, _ := selectorService.Create(userID, "selector_name", "selector_type", "selector_value")
+		field, _ := fieldService.Create(userID, selector.ID, "field_name", "field_type")
+		filter, _ := filterSvc.Create(userID, field.ID, "filter_name", "filter_type", "filter_value")
+
+		service.AddFilter(strat1.ID, filter.ID)
+		service.AddField(strat1.ID, field.ID)
+		service.AddSelector(strat1.ID, selector.ID)
+
+		list, err := service.ListByUserID(userID)
+
+		if err != nil {
+			t.Errorf("Expected nil, got %v", err)
+		}
+
+		if len(list) != 1 {
+			t.Errorf("Expected 1, got %d", len(list))
+		}
+
+		if list[0].ID != strat1.ID {
+			t.Errorf("Expected %s, got %s", strat1.ID, list[0].ID)
+		}
+
+		if len(list[0].Filters) != 1 {
+			t.Errorf("Expected 1, got %d", len(list[0].Filters))
+		}
+
+		if list[0].Filters[0].ID != filter.ID {
+			t.Errorf("Expected %s, got %s", filter.ID, list[0].Filters[0].ID)
+		}
+
+		if len(list[0].Fields) != 1 {
+			t.Errorf("Expected 1, got %d", len(list[0].Fields))
+		}
+
+		if list[0].Fields[0].ID != field.ID {
+			t.Errorf("Expected %s, got %s", field.ID, list[0].Fields[0].ID)
+		}
+
+		if len(list[0].Selectors) != 1 {
+			t.Errorf("Expected 1, got %d", len(list[0].Selectors))
+		}
+
+		if list[0].Selectors[0].ID != selector.ID {
+			t.Errorf("Expected %s, got %s", selector.ID, list[0].Selectors[0].ID)
+		}
+	})
+}
+
 func TestUpdate(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		service, strategyRepo, _, _, _, _, _, _ := setup()

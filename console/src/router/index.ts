@@ -30,9 +30,29 @@ const router = createRouter({
       component: () => import('../views/SettingsView.vue'),
     },
     {
-      path: '/queries',
-      name: 'queries',
-      component: () => import('../views/QueriesView.vue'),
+      path: '/strategies',
+      name: 'strategies',
+      component: () => import('../views/StrategiesView.vue'),
+    },
+    {
+      path: '/selectors',
+      name: 'selectors',
+      component: () => import('../views/SelectorsView.vue'),
+    },
+    {
+      path: '/fields',
+      name: 'fields',
+      component: () => import('../views/FieldsView.vue'),
+    },
+    {
+      path: '/filters',
+      name: 'filters',
+      component: () => import('../views/FiltersView.vue'),
+    },
+    {
+      path: '/jobs',
+      name: 'jobs',
+      component: () => import('../views/JobsView.vue'),
     },
     {
       path: '/tokens',

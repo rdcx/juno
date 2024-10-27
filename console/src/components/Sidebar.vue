@@ -12,14 +12,17 @@
             <div class="flex flex-col">
                 <div class="text-sm font-semibold leading-6 text-indigo-200">Data</div>
                 <div class="mt-2">
-                    <SidebarMenuItem :icon="CircleStackIcon" :to="{ name: 'crawl' }" label="Buckets" />
+                    <SidebarMenuItem :icon="CircleStackIcon" :to="{ name: 'data' }" label="Stores" />
                 </div>
             </div>
             <div class="flex flex-col">
                 <div class="text-sm font-semibold leading-6 text-indigo-200">Extraction</div>
                 <div class="mt-2">
-                    <SidebarMenuItem :icon="BugAntIcon" :to="{ name: 'crawl' }" label="Extractors" />
-                    <SidebarMenuItem :icon="ServerStackIcon" :to="{ name: 'crawl' }" label="Jobs" />
+                    <SidebarMenuItem :icon="BeakerIcon" :to="{ name: 'strategies' }" label="Strategies" />
+                    <SidebarMenuItem :icon="ArrowsPointingInIcon" :to="{ name: 'selectors' }" label="Selectors" />
+                    <SidebarMenuItem :icon="ViewColumnsIcon" :to="{ name: 'fields' }" label="Fields" />
+                    <SidebarMenuItem :icon="FunnelIcon" :to="{ name: 'filters' }" label="Filters" />
+                    <SidebarMenuItem :icon="QueueListIcon" :to="{ name: 'jobs' }" label="Jobs" />
                 </div>
             </div>
             <div class="flex flex-1 flex-col">
@@ -37,7 +40,7 @@
 </template>
 
 <script lang="ts" setup>
-import { BanknotesIcon, BugAntIcon, CircleStackIcon, CubeTransparentIcon, DocumentIcon, HomeIcon, ServerStackIcon } from '@heroicons/vue/24/outline'
+import { ArrowsPointingInIcon, BanknotesIcon, BeakerIcon, BugAntIcon, CircleStackIcon, CubeTransparentIcon, DocumentIcon, FunnelIcon, HomeIcon, QueueListIcon, ServerStackIcon, ViewColumnsIcon } from '@heroicons/vue/24/outline'
 import { useRoute } from 'vue-router';
 import SidebarMenuItem from './SidebarMenuItem.vue';
 import { CogIcon } from '@heroicons/vue/24/outline';

@@ -282,8 +282,8 @@ func TestProcessPending(t *testing.T) {
 
 		defer gock.Off()
 
-		gock.New("http://ranag.com:8080").
-			Post("/aggregation").
+		gock.New("http://ranag:8080").
+			Post("/aggregate").
 			Reply(200).
 			JSON(ranagDto.NewSuccessRangeAggregatorResponse(
 				[]map[string]interface{}{
@@ -301,7 +301,7 @@ func TestProcessPending(t *testing.T) {
 
 		ranagRepo.Create(&ranag.Ranag{
 			ID:      uuid.New(),
-			Address: "ranag.com:8080",
+			Address: "ranag:8080",
 			ShardAssignments: [][2]int{
 				{
 					0, 100000,

@@ -70,13 +70,11 @@ func (s *Service) ListByUserID(userID uuid.UUID) ([]*job.Job, error) {
 
 func (s *Service) process(j *job.Job) error {
 	strat, err := s.strategyService.Get(j.StrategyID)
-
 	if err != nil {
 		return err
 	}
 
 	ranges, err := s.ranagService.GroupByRange()
-
 	if err != nil {
 		return err
 	}
@@ -85,35 +83,67 @@ func (s *Service) process(j *job.Job) error {
 		return fmt.Errorf("no ranges found")
 	}
 
-	var data []map[string]interface{}
+	// Channel to collect results from goroutines
+	results := make(chan []map[string]interface{}, len(ranges))
+	errors := make(chan error, len(ranges))
 
-	for _, r := range ranges {
+	// Semaphore channel to limit the number of goroutines
+	sem := make(chan struct{}, 10) // 10 goroutines
+
+	// Launch goroutines
+	for rval, r := range ranges {
 		for _, ran := range r {
-			client := client.New(ran.Address)
+			sem <- struct{}{} // acquire a token
+			go func(rval [2]int, ran *ranag.Ranag) {
+				defer func() { <-sem }() // release token
 
-			res, err := client.SendRangeAggregationRequest(
-				0,
-				10000,
-				strat.Selectors,
-				strat.Fields,
-				strat.Filters,
-			)
+				client := client.New(ran.Address)
+				res, err := client.SendRangeAggregationRequest(
+					rval[0],
+					rval[1],
+					strat.Selectors,
+					strat.Fields,
+					strat.Filters,
+				)
+				if err != nil {
+					errors <- err
+					return
+				}
 
-			if err != nil {
-				return err
-			}
-
-			data = append(data, res.Aggregations...)
+				results <- res.Aggregations
+			}(rval, ran)
 		}
 	}
 
-	jsonData, err := json.Marshal(data)
+	// Wait for all goroutines to complete
+	go func() {
+		for i := 0; i < cap(sem); i++ {
+			sem <- struct{}{} // fill up semaphore channel to ensure all goroutines are done
+		}
+		close(results)
+		close(errors)
+	}()
 
+	// Collect results
+	var data []map[string]interface{}
+	for res := range results {
+		data = append(data, res...)
+	}
+
+	// Check if any error occurred
+	if len(errors) > 0 {
+		return <-errors
+	}
+
+	// Serialize data to JSON
+	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}
 
-	os.WriteFile("data.json", jsonData, 0644)
+	if err := os.WriteFile("data.json", jsonData, 0644); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -142,6 +172,7 @@ func (s *Service) ProcessPending() error {
 		err = s.process(j)
 
 		if err != nil {
+			fmt.Println(err)
 			j.Status = job.FailedStatus
 		} else {
 			j.Status = job.CompletedStatus

@@ -102,7 +102,7 @@ type ListStrategyResponse struct {
 	Status  string `json:"status"`
 	Message string `json:"message,omitempty"`
 
-	Strategys []*Strategy `json:"strategys,omitempty"`
+	Strategies []*Strategy `json:"strategies,omitempty"`
 }
 
 func NewSuccessListStrategyResponse(strategys []*strategy.Strategy) *ListStrategyResponse {
@@ -113,8 +113,8 @@ func NewSuccessListStrategyResponse(strategys []*strategy.Strategy) *ListStrateg
 	}
 
 	return &ListStrategyResponse{
-		Status:    SUCCESS,
-		Strategys: sels,
+		Status:     SUCCESS,
+		Strategies: sels,
 	}
 }
 
