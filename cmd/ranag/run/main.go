@@ -16,7 +16,7 @@ func main() {
 
 	var apiURL string
 	var port string
-	flag.StringVar(&apiURL, "api-url", "http://localhost:8080", "API URL")
+	flag.StringVar(&apiURL, "api-url", "http://127.0.0.1:8080", "API URL")
 	flag.StringVar(&port, "port", "6060", "Port to run the server on")
 	flag.Parse()
 
@@ -42,5 +42,5 @@ func main() {
 
 	r := router.New(h)
 
-	r.Run(":6060")
+	r.Run(":" + port)
 }

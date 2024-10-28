@@ -80,7 +80,7 @@ type ListJobsResponse struct {
 	Status  string `json:"status"`
 	Message string `json:"message,omitempty"`
 
-	Jobs []*Job `json:"result,omitempty"`
+	Jobs []*Job `json:"jobs,omitempty"`
 }
 
 func NewSuccessListJobsResponse(jobs []*job.Job) ListJobsResponse {

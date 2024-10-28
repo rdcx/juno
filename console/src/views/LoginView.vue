@@ -7,10 +7,10 @@
                         class="hidden dark:block absolute -inset-10 blur transition opacity-10 rounded-lg bg-gradient-to-r from-emerald-800 to-emerald-950 rounded-lg dark:from-emerald-600 dark:to-gray-950">
                     </div>
                     <div class="relative dark:bg-gray-950 p-8 rounded-xl">
-                        <h1 class="text-3xl dark:text-white"><span
+                        <h1 class="text-3xl dark:text-white"><span class="font-thin">data</span><span
                                 class="text-emerald-700 dark:text-emerald-300">juno</span>
                         </h1>
-                        <h1 class="dark:text-white text-lg">console.login</h1>
+                        <h1 class="dark:text-white text-lg">Welcome back</h1>
                         <form @submit.prevent="login" class="mt-4">
                             <div class="mb-4">
                                 <label for="email"

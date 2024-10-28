@@ -8,6 +8,7 @@ import (
 	"juno/pkg/api/ranag"
 	"juno/pkg/ranag/client"
 	"os"
+	"sync"
 
 	"github.com/google/uuid"
 )
@@ -83,21 +84,20 @@ func (s *Service) process(j *job.Job) error {
 		return fmt.Errorf("no ranges found")
 	}
 
-	// Channel to collect results from goroutines
-	results := make(chan []map[string]interface{}, len(ranges))
-	errors := make(chan error, len(ranges))
+	var (
+		data           []map[string]interface{}
+		totalShardsHit int
+		mu             sync.Mutex
+		wg             sync.WaitGroup
+	)
 
-	// Semaphore channel to limit the number of goroutines
-	sem := make(chan struct{}, 10) // 10 goroutines
+	for rval, rs := range ranges {
+		for _, r := range rs {
+			wg.Add(1)
+			go func(rval [2]int, r *ranag.Ranag) {
+				defer wg.Done()
 
-	// Launch goroutines
-	for rval, r := range ranges {
-		for _, ran := range r {
-			sem <- struct{}{} // acquire a token
-			go func(rval [2]int, ran *ranag.Ranag) {
-				defer func() { <-sem }() // release token
-
-				client := client.New(ran.Address)
+				client := client.New(r.Address)
 				res, err := client.SendRangeAggregationRequest(
 					rval[0],
 					rval[1],
@@ -106,34 +106,25 @@ func (s *Service) process(j *job.Job) error {
 					strat.Filters,
 				)
 				if err != nil {
-					errors <- err
+					fmt.Println(err)
 					return
 				}
 
-				results <- res.Aggregations
-			}(rval, ran)
+				mu.Lock()
+				defer mu.Unlock()
+
+				totalShardsHit += rval[1]
+				data = append(data, res.Aggregations...)
+
+			}(rval, r)
+			break
 		}
 	}
 
 	// Wait for all goroutines to complete
-	go func() {
-		for i := 0; i < cap(sem); i++ {
-			sem <- struct{}{} // fill up semaphore channel to ensure all goroutines are done
-		}
-		close(results)
-		close(errors)
-	}()
+	wg.Wait()
 
-	// Collect results
-	var data []map[string]interface{}
-	for res := range results {
-		data = append(data, res...)
-	}
-
-	// Check if any error occurred
-	if len(errors) > 0 {
-		return <-errors
-	}
+	fmt.Println("Total shards hit: ", totalShardsHit)
 
 	// Serialize data to JSON
 	jsonData, err := json.Marshal(data)

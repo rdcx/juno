@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	apiClient "juno/pkg/api/client"
 	"juno/pkg/balancer/crawl"
 	"juno/pkg/balancer/policy"
@@ -197,6 +198,7 @@ func (s *Service) Crawl(url string) error {
 	tries := 0
 	for tries < 3 {
 		node, err := s.randomNode(shard)
+		fmt.Println(node)
 		if err == crawl.ErrNoNodesAvailableInShard {
 			s.logger.Errorf("no nodes available in shard %d", shard)
 			return err

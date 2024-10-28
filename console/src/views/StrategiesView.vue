@@ -53,8 +53,6 @@ fetchStrategies();
 <template>
     <Layout>
         <div class="max-w-7xl p-4">
-            <h2 class="text-2xl font-semibold dark:text-gray-300">Strategies</h2>
-            
             <!-- Create Strategy Form -->
             <div class="mb-6 p-4 border dark:border-gray-700 rounded-lg">
                 <h3 class="text-lg font-semibold dark:text-gray-300">Create New Strategy</h3>

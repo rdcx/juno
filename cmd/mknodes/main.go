@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -26,12 +27,32 @@ func randomShardRange() string {
 	return fmt.Sprintf("[%d,%d]", offset, size)
 }
 
+func port(i int) string {
+	if i > 99 {
+		return fmt.Sprintf("9%d", i)
+	}
+
+	if i > 9 {
+		return fmt.Sprintf("90%d", i)
+	}
+
+	return fmt.Sprintf("900%d", i)
+}
+
+func shardRange(i int) string {
+	// make the shard range 100k / 100
+	offset := i * 1000
+	size := 1000
+
+	return fmt.Sprintf("[%d,%d]\n", offset, size)
+}
+
 func main() {
-	nodes := 10000
+	nodes := 100
 
 	for i := 0; i < nodes; i++ {
 		req, err := http.NewRequest("POST", "http://localhost:8080/nodes", bytes.NewBuffer(
-			[]byte(fmt.Sprintf(`{"address":"node%d.com:9392","shard_assignments":[%s]}`, i, randomShardRange())),
+			[]byte(fmt.Sprintf(`{"address":"127.0.0.1:%s","shard_assignments":[%s]}`, port(i), shardRange(i))),
 		))
 
 		if err != nil {
@@ -39,7 +60,7 @@ func main() {
 		}
 
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InJvc3NAZXhhbXBsZS5jb20iLCJleHAiOjE3MjkwMjQ0MDMsImlkIjoiZjA2MDJiYTMtMzBlMy00ODQ5LTkyMzQtNTMxNWQ0OGU3OTFjIn0.UvobuhQooezh0x1zGtw_vBAk7YLOnhNZQZiqFZqaYk4")
+		req.Header.Set("Authorization", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InJvc3NAZXhhbXBsZS5jb20iLCJleHAiOjE3MzAxMTg1MDQsImlkIjoiNDMwMzE2NzYtYjgxZC00ODE5LTg3MjktNTJiNWY1MzQ0MTViIiwibmFtZSI6IlJvc3MifQ.NIDuuGwW3eejo8yJ28rdgrw93SsguO0OaHv_N85e8iI")
 
 		resp, err := http.DefaultClient.Do(req)
 
@@ -48,6 +69,7 @@ func main() {
 		}
 
 		if resp.StatusCode != http.StatusCreated {
+			fmt.Println(io.ReadAll(resp.Body))
 			panic("unexpected status code")
 		}
 

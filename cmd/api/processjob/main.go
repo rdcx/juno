@@ -2,9 +2,12 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"flag"
+	"fmt"
 	"juno/cmd/api/run/config"
 	"log"
+	"os"
 
 	extractorJobMig "juno/pkg/api/extractor/job/migration/mysql"
 	extractorJobRepo "juno/pkg/api/extractor/job/repo/mysql"
@@ -87,4 +90,20 @@ func main() {
 	extractionJobSvc := extractorJobSvc.New(extractionJobRepo, strategySvc, ranagSvc)
 
 	extractionJobSvc.ProcessPending()
+
+	type data []map[string]interface{}
+
+	bytes, err := os.ReadFile("data.json")
+
+	if err != nil {
+		log.Fatalf("failed to read data.json: %v", err)
+	}
+
+	var d data
+
+	if err := json.Unmarshal(bytes, &d); err != nil {
+		log.Fatalf("failed to unmarshal data: %v", err)
+	}
+
+	fmt.Printf("Total data: %d\n", len(d))
 }

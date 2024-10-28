@@ -1,7 +1,7 @@
 <template>
     <div class="h-screen dark:text-white dark:bg-gray-950 border-r pb-6 border-gray-800 px-6 flex flex-col">
         <div class="h-16 pl-2 flex items-center">
-            <h1 class="text-3xl dark:text-white"><span class="text-emerald-700 dark:text-emerald-300">juno</span>
+            <h1 class="text-3xl dark:text-white"><span class="font-thin">data</span><span class="text-emerald-700 dark:text-emerald-300">juno</span>
             </h1>
         </div>
         <div class="flex flex-1 gap-y-7 flex-col">
