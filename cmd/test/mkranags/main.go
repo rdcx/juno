@@ -60,6 +60,7 @@ func main() {
 		}
 
 		req.Header.Set("Content-Type", "application/json")
+		// This key is for a local test env, it also
 		req.Header.Set("Authorization", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InJvc3NAZXhhbXBsZS5jb20iLCJleHAiOjE3MzAxMjg2NzYsImlkIjoiNDMwMzE2NzYtYjgxZC00ODE5LTg3MjktNTJiNWY1MzQ0MTViIiwibmFtZSI6IlJvc3MifQ.rIaVP_-sCkF-wri5gGbGmkjUgd5tXwW8jfSeVcWRmcQ")
 
 		resp, err := http.DefaultClient.Do(req)

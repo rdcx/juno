@@ -108,43 +108,82 @@ func (s *Service) randomNode(shard int) (string, error) {
 }
 
 func (s *Service) RangeAggregate(offset int, total int, req dto.RangeAggregatorRequest) ([]map[string]interface{}, error) {
-
 	data := make([]map[string]interface{}, 0)
+	var (
+		mu       sync.Mutex
+		wg       sync.WaitGroup
+		errChan  = make(chan error, 1) // To capture errors from goroutines
+		dataChan = make(chan []map[string]interface{}, total)
+		sem      = make(chan struct{}, 10) // Buffered channel to limit to 10 concurrent workers
+	)
 
-	// get shard each shard for the given offset
+	// Launch workers for each shard
 	for shard := offset; shard < offset+total; shard++ {
-		node, err := s.randomNode(shard)
-		if err != nil {
-			s.logger.Errorf("failed to get random node: %v", err)
-			return nil, err
-		}
+		wg.Add(1)
+		go func(shard int) {
+			defer wg.Done()
+			sem <- struct{}{} // Block if there are already 10 workers
 
-		selectors := []*extractionDto.Selector{}
-		fields := []*extractionDto.Field{}
+			node, err := s.randomNode(shard)
+			if err != nil {
+				select {
+				case errChan <- err: // Send error if no error has been sent
+				default:
+				}
+				<-sem // Release a spot in the semaphore
+				return
+			}
 
-		for _, s := range req.Selectors {
-			selectors = append(selectors, &extractionDto.Selector{
-				ID:    s.ID,
-				Value: s.Value,
-			})
-		}
+			selectors := make([]*extractionDto.Selector, len(req.Selectors))
+			for i, s := range req.Selectors {
+				selectors[i] = &extractionDto.Selector{
+					ID:    s.ID,
+					Value: s.Value,
+				}
+			}
 
-		for _, f := range req.Fields {
-			fields = append(fields, &extractionDto.Field{
-				SelectorID: f.SelectorID,
-				Name:       f.Name,
-			})
-		}
+			fields := make([]*extractionDto.Field, len(req.Fields))
+			for i, f := range req.Fields {
+				fields[i] = &extractionDto.Field{
+					SelectorID: f.SelectorID,
+					Name:       f.Name,
+				}
+			}
 
-		// send request to the node
-		extractions, err := nodeClient.SendExtractionRequest(node, shard, selectors, fields)
+			// Send request to the node
+			extractions, err := nodeClient.SendExtractionRequest(node, shard, selectors, fields)
+			if err != nil {
+				s.logger.Errorf("failed to send request to node: %v", err)
+				select {
+				case errChan <- err:
+				default:
+				}
+				<-sem
+				return
+			}
 
-		if err != nil {
-			s.logger.Errorf("failed to send request to node: %v", err)
-			return nil, err
-		}
+			dataChan <- extractions // Send extractions to data channel
+			<-sem                   // Release a spot in the semaphore
+		}(shard)
+	}
 
-		data = append(data, extractions...)
+	// Close the data channel once all goroutines complete
+	go func() {
+		wg.Wait()
+		close(dataChan)
+		close(errChan)
+	}()
+
+	// Collect results from dataChan
+	for extraction := range dataChan {
+		mu.Lock()
+		data = append(data, extraction...)
+		mu.Unlock()
+	}
+
+	// Check if any error occurred
+	if err, ok := <-errChan; ok {
+		return nil, err
 	}
 
 	return data, nil
