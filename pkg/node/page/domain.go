@@ -74,6 +74,7 @@ type Repository interface {
 	AddVersion(pageID PageID, version Version) error
 	GetVersions(pageID PageID) ([]Version, error)
 	Iterator(fn func(*Page)) error
+	Count() (int, error)
 }
 
 type Service interface {
@@ -83,4 +84,5 @@ type Service interface {
 	AddVersion(pageID PageID, version Version) error
 	GetVersions(pageID PageID) ([]Version, error)
 	Iterator(fn func(*Page)) error
+	Count() (int, error)
 }

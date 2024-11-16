@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	extractionDto "juno/pkg/node/extraction/dto"
+	"juno/pkg/node/info"
+	infoDto "juno/pkg/node/info/dto"
 
 	"github.com/h2non/gock"
 )
@@ -125,6 +127,45 @@ func TestSendExtractionRequest(t *testing.T) {
 
 		if res[0]["product_title"] != "charger" {
 			t.Errorf("Expected charger, got %s", res[0]["product_title"])
+		}
+
+		if !gock.IsDone() {
+			t.Errorf("Not all expectations were met")
+		}
+	})
+}
+
+func TestSendInfoRequest(t *testing.T) {
+
+	t.Run("sends info request", func(t *testing.T) {
+		defer gock.Off()
+
+		gock.New("http://node1.com:8080").
+			Get("/info").
+			Times(1).
+			Reply(200).
+			JSON(infoDto.NewSuccessInfoResponse(
+				&info.Info{
+					PageCount: 100,
+				}),
+			)
+
+		res, err := SendInfoRequest("node1.com:8080")
+
+		if err != nil {
+			t.Errorf("Unexpected error: %s", err)
+		}
+
+		if res == nil {
+			t.Fatal("Expected non-nil response")
+		}
+
+		if res.Info == nil {
+			t.Fatal("Expected non-nil info")
+		}
+
+		if res.Info.PageCount != 100 {
+			t.Errorf("Expected 100, got %d", res.Info.PageCount)
 		}
 
 		if !gock.IsDone() {

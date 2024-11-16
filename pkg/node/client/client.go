@@ -8,6 +8,7 @@ import (
 	domain "juno/pkg/node/crawl"
 	crawlDto "juno/pkg/node/crawl/dto"
 	extractionDto "juno/pkg/node/extraction/dto"
+	infoDto "juno/pkg/node/info/dto"
 	"juno/pkg/util"
 	"net/http"
 )
@@ -72,4 +73,29 @@ func SendExtractionRequest(nodeAddr string, shard int, selectors []*extractionDt
 	}
 
 	return response.Extractions, nil
+}
+
+func SendInfoRequest(nodeAddr string) (*infoDto.InfoResponse, error) {
+	res, err := http.Get("http://" + nodeAddr + "/info")
+
+	if err != nil {
+		return nil, err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return nil, util.WrapErr(
+			node.ErrFailedInfoRequest,
+			fmt.Sprintf("status code: %d", res.StatusCode),
+		)
+	}
+
+	var response infoDto.InfoResponse
+
+	err = json.NewDecoder(res.Body).Decode(&response)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
 }

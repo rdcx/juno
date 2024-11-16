@@ -153,6 +153,22 @@ func (r *Repository) GetVersions(pageID page.PageID) ([]page.Version, error) {
 	return versions, nil
 }
 
+func (r *Repository) Count() (int, error) {
+	var count int
+
+	err := r.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("pages"))
+		count = b.Stats().KeyN
+		return nil
+	})
+
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
 // Close closes the BoltDB connection.
 func (r *Repository) Close() error {
 	return r.db.Close()

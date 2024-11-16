@@ -191,3 +191,36 @@ func TestRepository_GetPageNotFound(t *testing.T) {
 		t.Errorf("expected error when retrieving non-existent page, got nil")
 	}
 }
+
+func TestRepository_Count(t *testing.T) {
+	repo, cleanup := setupTestRepo(t)
+	defer cleanup()
+
+	// Create some test pages
+	testPages := []*page.Page{
+		{
+			ID:  page.NewPageID("https://example.com"),
+			URL: "https://example.com",
+		},
+		{
+			ID:  page.NewPageID("https://example.com/another"),
+			URL: "https://example.com/another",
+		},
+	}
+
+	for _, testPage := range testPages {
+		err := repo.CreatePage(testPage)
+		if err != nil {
+			t.Fatalf("failed to create page: %v", err)
+		}
+	}
+
+	// Verify the count
+	count, err := repo.Count()
+	if err != nil {
+		t.Fatalf("failed to get count: %v", err)
+	}
+	if count != len(testPages) {
+		t.Errorf("expected count %d, got %d", len(testPages), count)
+	}
+}

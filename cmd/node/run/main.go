@@ -18,6 +18,9 @@ import (
 	extractionHandler "juno/pkg/node/extraction/handler"
 	extractionService "juno/pkg/node/extraction/service"
 
+	infoHandler "juno/pkg/node/info/handler"
+	infoService "juno/pkg/node/info/service"
+
 	"time"
 
 	"juno/pkg/node/router"
@@ -83,9 +86,13 @@ func main() {
 	)
 	extractionHandler := extractionHandler.New(logger, extracionSvc)
 
+	infoSvc := infoService.New(pageService)
+	infoHandler := infoHandler.New(infoSvc)
+
 	r := router.New(
 		crawlHandler,
 		extractionHandler,
+		infoHandler,
 	)
 
 	r.Run(":" + port)

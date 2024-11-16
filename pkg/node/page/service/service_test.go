@@ -171,3 +171,26 @@ func TestService_GetPageNotFound(t *testing.T) {
 		t.Errorf("expected error when retrieving non-existent page, got nil")
 	}
 }
+
+func TestService_Count(t *testing.T) {
+	service := setupTestService()
+
+	// Create a test page using NewPageID
+	testPage := &page.Page{
+		ID:  page.NewPageID("https://example.com"),
+		URL: "https://example.com",
+	}
+	err := service.Create(testPage)
+	if err != nil {
+		t.Fatalf("failed to create page: %v", err)
+	}
+
+	// Verify that the count is 1
+	count, err := service.Count()
+	if err != nil {
+		t.Fatalf("failed to get count: %v", err)
+	}
+	if count != 1 {
+		t.Errorf("expected count 1, got %d", count)
+	}
+}

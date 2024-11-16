@@ -35,3 +35,7 @@ func (s *Service) AddVersion(pageID page.PageID, version page.Version) error {
 func (s *Service) GetVersions(pageID page.PageID) ([]page.Version, error) {
 	return s.repo.GetVersions(pageID)
 }
+
+func (s *Service) Count() (int, error) {
+	return s.repo.Count()
+}

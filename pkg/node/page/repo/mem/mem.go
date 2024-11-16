@@ -86,3 +86,10 @@ func (r *Repository) GetVersions(pageID page.PageID) ([]page.Version, error) {
 
 	return p.Versions, nil
 }
+
+func (r *Repository) Count() (int, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	return len(r.pages), nil
+}
